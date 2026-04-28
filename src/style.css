@@ -666,7 +666,9 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
 
 .gallery__back {
   display: block;
-  width: 100%;
+  width: auto;
+  margin-left: 36px;
+  margin-right: 44px;
   padding: 18px 0;
   background: rgba(201, 169, 110, 0.06);
   border: none;
@@ -681,7 +683,7 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
   cursor: pointer;
   transition: all 0.3s;
   margin-top: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 5px;
 }
 
 .gallery__back:hover {
