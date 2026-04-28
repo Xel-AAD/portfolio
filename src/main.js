@@ -154,12 +154,17 @@ function renderGallery() {
 
 function initResizeHandler() {
   let resizeTimer
+  let lastWidth = window.innerWidth
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer)
     resizeTimer = setTimeout(() => {
-      if (isGalleryPage) {
-        renderGallery()
-        initScrollAnimations()
+      const newWidth = window.innerWidth
+      if (newWidth !== lastWidth) {
+        lastWidth = newWidth
+        if (isGalleryPage) {
+          renderGallery()
+          initScrollAnimations()
+        }
       }
     }, 200)
   })
@@ -351,19 +356,36 @@ function initHeaderScroll() {
 function initMobileNav() {
   const burger = $('#navBurger')
   const links = $('.nav__links')
+  const overlay = $('#navOverlay')
+  const closeBtn = $('#navClose')
 
   if (!burger || !links) return
 
+  function closeMenu() {
+    burger.classList.remove('active')
+    links.classList.remove('open')
+    if (overlay) overlay.classList.remove('open')
+  }
+
+  function openMenu() {
+    burger.classList.add('active')
+    links.classList.add('open')
+    if (overlay) overlay.classList.add('open')
+  }
+
   burger.addEventListener('click', () => {
-    burger.classList.toggle('active')
-    links.classList.toggle('open')
+    if (links.classList.contains('open')) {
+      closeMenu()
+    } else {
+      openMenu()
+    }
   })
 
+  if (overlay) overlay.addEventListener('click', closeMenu)
+  if (closeBtn) closeBtn.addEventListener('click', closeMenu)
+
   $$('.nav__links a').forEach(link => {
-    link.addEventListener('click', () => {
-      burger.classList.remove('active')
-      links.classList.remove('open')
-    })
+    link.addEventListener('click', closeMenu)
   })
 }
 
