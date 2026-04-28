@@ -3,62 +3,133 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Фотопортфолио</title>
+  <title>Александр Ахметов — Портретный фотограф | Екатеринбург</title>
+  <meta name="description" content="Портретный фотограф Александр Ахметов. Студийные и уличные портреты. Съёмка от 1500₽. Екатеринбург." />
+  <meta property="og:title" content="Александр Ахметов — Портретный фотограф" />
+  <meta property="og:description" content="Студийные и уличные портреты. Съёмка от 1500₽." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="/photos/og-cover.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/style.css" />
 </head>
 <body>
 
-  <header class="header" id="header">
-    <nav class="nav">
-      <a href="#hero" class="nav__logo">Портфолио</a>
-      <ul class="nav__links">
-        <li><a href="#hero">Главная</a></li>
-        <li><a href="#gallery">Галерея</a></li>
-        <li><a href="#contact">Контакты</a></li>
-      </ul>
-      <button class="nav__burger" id="navBurger" aria-label="Меню">
-        <span></span><span></span><span></span>
-      </button>
-    </nav>
-  </header>
+  <div class="page page--main" id="pageMain">
 
-  <section class="hero" id="hero">
-    <div class="hero__bg"></div>
-    <div class="hero__overlay"></div>
-    <div class="hero__content">
-      <p class="hero__subtitle anim-fade-up">Портретный фотограф</p>
-      <h1 class="hero__title anim-fade-up anim-delay-1">Александр Ахметов</h1>
-      <p class="hero__desc anim-fade-up anim-delay-2">Портреты &middot; Студия &middot; На улице</p>
-      <a href="#gallery" class="hero__btn anim-fade-up anim-delay-3">Смотреть работы</a>
-    </div>
-    <div class="hero__scroll-hint anim-fade-up anim-delay-4">
-      <span>Вниз</span>
-      <div class="hero__scroll-line"></div>
-    </div>
-  </section>
+    <header class="header" id="header">
+      <nav class="nav">
+        <a href="#hero" class="nav__logo">Александр Ахметов</a>
+        <ul class="nav__links">
+          <li><a href="#about">Обо мне</a></li>
+          <li><a href="#services">Услуги</a></li>
+          <li><a href="#" id="navGalleryBtn">Галерея</a></li>
+          <li><a href="#contact">Контакты</a></li>
+        </ul>
+        <button class="nav__burger" id="navBurger" aria-label="Меню">
+          <span></span><span></span><span></span>
+        </button>
+      </nav>
+    </header>
 
-  <section class="gallery" id="gallery">
-    <h2 class="gallery__title section-title anim-fade-up">Портреты</h2>
-    <div class="gallery__grid" id="galleryGrid"></div>
-  </section>
+    <section class="hero" id="hero">
+      <div class="hero__particles" id="heroParticles"></div>
+      <div class="hero__bg"></div>
+      <div class="hero__overlay"></div>
+      <div class="hero__content">
+        <div class="hero__line-top anim-fade-up"></div>
+        <p class="hero__subtitle anim-fade-up">Портретный фотограф</p>
+        <h1 class="hero__title anim-fade-up anim-delay-1">Александр<br/>Ахметов</h1>
+        <p class="hero__desc anim-fade-up anim-delay-2">Портреты &middot; Студия &middot; На улице</p>
+        <a href="#featured" class="hero__btn anim-fade-up anim-delay-3">Смотреть работы</a>
+        <div class="hero__line-bottom anim-fade-up anim-delay-4"></div>
+      </div>
+      <div class="hero__scroll-hint anim-fade-up anim-delay-4">
+        <div class="hero__scroll-line"></div>
+      </div>
+    </section>
 
-  <section class="contact" id="contact">
-    <h2 class="section-title anim-fade-up">Контакты</h2>
-    <p class="contact__text anim-fade-up">Для сотрудничества и заказа съёмки:</p>
-    <a href="mailto:photo@example.com" class="contact__email anim-fade-up">photo@example.com</a>
-    <div class="contact__socials anim-fade-up">
-      <a href="#" class="contact__social" aria-label="Instagram">Instagram</a>
-      <a href="https://t.me/Alexander_Xel" class="contact__social" aria-label="Telegram">Telegram</a>
-      <a href="#" class="contact__social" aria-label="VK">VK</a>
-    </div>
-  </section>
+    <div class="divider"></div>
 
-  <footer class="footer">
-    <p>&copy; 2026 Александр Ахметов. Все права защищены.</p>
-  </footer>
+    <section class="about" id="about">
+      <div class="about__inner">
+        <div class="about__photo-wrap anim-fade-up">
+          <div class="about__photo-glow"></div>
+          <img class="about__photo" src="" alt="Александр Ахметов" />
+        </div>
+        <div class="about__text anim-fade-up anim-delay-1">
+          <h2 class="section-title section-title--left">Обо мне</h2>
+          <p>Привет! Меня зовут Александр, я портретный фотограф из Екатеринбурга. Мне важно поймать не просто лицо — а момент, когда человек настоящий.</p>
+          <p>Работаю с естественным и студийным светом, помогаю раскрыться перед камерой даже тем, кто считает себя «нефотогеничным».</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <section class="featured" id="featured">
+      <h2 class="section-title anim-fade-up">Избранное</h2>
+      <div class="featured__grid" id="featuredGrid"></div>
+      <div class="featured__more anim-fade-up">
+        <a href="#" class="featured__more-btn" id="featuredMoreBtn">Смотреть все работы</a>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <section class="services" id="services">
+      <h2 class="section-title anim-fade-up">Услуги</h2>
+      <div class="services__grid">
+        <div class="services__card anim-fade-up">
+          <div class="services__icon">⏱</div>
+          <div class="services__duration">1 час</div>
+          <h3 class="services__name">Стандартная съёмка</h3>
+          <p class="services__deliverable">от 20 готовых фотографий</p>
+          <div class="services__price">1 500 ₽</div>
+        </div>
+        <div class="services__card anim-fade-up anim-delay-1">
+          <div class="services__icon">✦</div>
+          <div class="services__duration">2 часа</div>
+          <h3 class="services__name">Расширенная съёмка</h3>
+          <p class="services__deliverable">от 40 готовых фотографий</p>
+          <div class="services__price">2 500 ₽</div>
+        </div>
+      </div>
+      <a href="https://t.me/Alexander_Xel" class="services__btn anim-fade-up">Записаться</a>
+    </section>
+
+    <div class="divider"></div>
+
+    <section class="contact" id="contact">
+      <h2 class="section-title anim-fade-up">Контакты</h2>
+      <p class="contact__text anim-fade-up">Для сотрудничества и заказа съёмки:</p>
+      <a href="mailto:photo@example.com" class="contact__email anim-fade-up">photo@example.com</a>
+      <div class="contact__socials anim-fade-up">
+        <a href="#" class="contact__social" aria-label="Instagram">Instagram</a>
+        <a href="https://t.me/Alexander_Xel" class="contact__social" aria-label="Telegram">Telegram</a>
+        <a href="#" class="contact__social" aria-label="VK">VK</a>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>&copy; 2026 Александр Ахметов</p>
+    </footer>
+
+  </div>
+
+  <div class="page page--gallery" id="pageGallery">
+    <button class="gallery__back" id="navBackBtn">&#10094;&ensp;Назад</button>
+    <section class="gallery" id="gallery">
+      <div class="gallery__grid">
+        <div class="gallery__grid-inner" id="galleryGrid"></div>
+      </div>
+    </section>
+    <footer class="footer">
+      <p>&copy; 2026 Александр Ахметов</p>
+    </footer>
+  </div>
 
   <div class="lightbox" id="lightbox" role="dialog" aria-hidden="true">
     <button class="lightbox__close" id="lightboxClose" aria-label="Закрыть">&times;</button>
