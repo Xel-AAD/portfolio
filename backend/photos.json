@@ -1,0 +1,108 @@
+{
+  "photos": [
+    {
+      "file": "portraits/|19-04-2026| B&W |-76.jpg",
+      "title": "Дмитрий Потапов",
+      "description": "Здесь будет описание фото"
+    },
+    {
+      "file": "https://picsum.photos/seed/p1/800/1200",
+      "src": "https://picsum.photos/seed/p1/800/1200",
+      "thumb": "https://picsum.photos/seed/p1/400/600",
+      "title": "Утренний свет",
+      "description": "Естественный свет, утренняя съёмка",
+      "width": 800,
+      "height": 1200
+    },
+    {
+      "file": "https://picsum.photos/seed/p2/800/1100",
+      "src": "https://picsum.photos/seed/p2/800/1100",
+      "thumb": "https://picsum.photos/seed/p2/400/550",
+      "title": "В раздумьях",
+      "description": "Черно-белый портрет",
+      "width": 800,
+      "height": 1100
+    },
+    {
+      "file": "https://picsum.photos/seed/p3/900/1000",
+      "src": "https://picsum.photos/seed/p3/900/1000",
+      "thumb": "https://picsum.photos/seed/p3/450/500",
+      "title": "Городской образ",
+      "description": "Портрет на фоне города",
+      "width": 900,
+      "height": 1000
+    },
+    {
+      "file": "https://picsum.photos/seed/p4/700/1100",
+      "src": "https://picsum.photos/seed/p4/700/1100",
+      "thumb": "https://picsum.photos/seed/p4/350/550",
+      "title": "Золотой час",
+      "description": "Тёплый свет перед закатом",
+      "width": 700,
+      "height": 1100
+    },
+    {
+      "file": "https://picsum.photos/seed/p5/850/1200",
+      "src": "https://picsum.photos/seed/p5/850/1200",
+      "thumb": "https://picsum.photos/seed/p5/425/600",
+      "title": "В студии",
+      "description": "Студийная съёмка",
+      "width": 850,
+      "height": 1200
+    },
+    {
+      "file": "https://picsum.photos/seed/p6/1000/1300",
+      "src": "https://picsum.photos/seed/p6/1000/1300",
+      "thumb": "https://picsum.photos/seed/p6/500/650",
+      "title": "Естественная грация",
+      "description": "На улице",
+      "width": 1000,
+      "height": 1300
+    },
+    {
+      "file": "https://picsum.photos/seed/p7/800/1000",
+      "src": "https://picsum.photos/seed/p7/800/1000",
+      "thumb": "https://picsum.photos/seed/p7/400/500",
+      "title": "Контровой свет",
+      "description": "Силуэт на закате",
+      "width": 800,
+      "height": 1000
+    },
+    {
+      "file": "https://picsum.photos/seed/p8/750/1100",
+      "src": "https://picsum.photos/seed/p8/750/1100",
+      "thumb": "https://picsum.photos/seed/p8/375/550",
+      "title": "Нежность",
+      "description": "Мягкий свет",
+      "width": 750,
+      "height": 1100
+    },
+    {
+      "file": "https://picsum.photos/seed/p9/900/1200",
+      "src": "https://picsum.photos/seed/p9/900/1200",
+      "thumb": "https://picsum.photos/seed/p9/450/600",
+      "title": "Чёрно-белое",
+      "description": "Классический портрет",
+      "width": 900,
+      "height": 1200
+    },
+    {
+      "file": "https://picsum.photos/seed/p10/800/900",
+      "src": "https://picsum.photos/seed/p10/800/900",
+      "thumb": "https://picsum.photos/seed/p10/400/450",
+      "title": "В движении",
+      "description": "Динамичный кадр",
+      "width": 800,
+      "height": 900
+    },
+    {
+      "file": "https://picsum.photos/seed/p11/950/1250",
+      "src": "https://picsum.photos/seed/p11/950/1250",
+      "thumb": "https://picsum.photos/seed/p11/475/625",
+      "title": "Свет из окна",
+      "description": "Рембрандтовское освещение",
+      "width": 950,
+      "height": 1250
+    }
+  ]
+}

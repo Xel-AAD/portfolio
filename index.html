@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Фотопортфолио</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+
+  <header class="header" id="header">
+    <nav class="nav">
+      <a href="#hero" class="nav__logo">Портфолио</a>
+      <ul class="nav__links">
+        <li><a href="#hero">Главная</a></li>
+        <li><a href="#gallery">Галерея</a></li>
+        <li><a href="#contact">Контакты</a></li>
+      </ul>
+      <button class="nav__burger" id="navBurger" aria-label="Меню">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+  </header>
+
+  <section class="hero" id="hero">
+    <div class="hero__bg"></div>
+    <div class="hero__overlay"></div>
+    <div class="hero__content">
+      <p class="hero__subtitle anim-fade-up">Портретный фотограф</p>
+      <h1 class="hero__title anim-fade-up anim-delay-1">Александр Ахметов</h1>
+      <p class="hero__desc anim-fade-up anim-delay-2">Портреты &middot; Студия &middot; На улице</p>
+      <a href="#gallery" class="hero__btn anim-fade-up anim-delay-3">Смотреть работы</a>
+    </div>
+    <div class="hero__scroll-hint anim-fade-up anim-delay-4">
+      <span>Вниз</span>
+      <div class="hero__scroll-line"></div>
+    </div>
+  </section>
+
+  <section class="gallery" id="gallery">
+    <h2 class="gallery__title section-title anim-fade-up">Портреты</h2>
+    <div class="gallery__grid" id="galleryGrid"></div>
+  </section>
+
+  <section class="contact" id="contact">
+    <h2 class="section-title anim-fade-up">Контакты</h2>
+    <p class="contact__text anim-fade-up">Для сотрудничества и заказа съёмки:</p>
+    <a href="mailto:photo@example.com" class="contact__email anim-fade-up">photo@example.com</a>
+    <div class="contact__socials anim-fade-up">
+      <a href="#" class="contact__social" aria-label="Instagram">Instagram</a>
+      <a href="https://t.me/Alexander_Xel" class="contact__social" aria-label="Telegram">Telegram</a>
+      <a href="#" class="contact__social" aria-label="VK">VK</a>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>&copy; 2026 Александр Ахметов. Все права защищены.</p>
+  </footer>
+
+  <div class="lightbox" id="lightbox" role="dialog" aria-hidden="true">
+    <button class="lightbox__close" id="lightboxClose" aria-label="Закрыть">&times;</button>
+    <button class="lightbox__prev" id="lightboxPrev" aria-label="Предыдущее">&#10094;</button>
+    <button class="lightbox__next" id="lightboxNext" aria-label="Следующее">&#10095;</button>
+    <div class="lightbox__img-wrap">
+      <img class="lightbox__img" id="lightboxImg" src="" alt="" />
+    </div>
+    <div class="lightbox__info" id="lightboxInfo"></div>
+    <div class="lightbox__counter" id="lightboxCounter"></div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

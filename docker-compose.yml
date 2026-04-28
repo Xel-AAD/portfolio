@@ -1,0 +1,9 @@
+services:
+  portfolio:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./public/photos:/app/public/photos
+      - ./backend/photos.json:/app/photos.json
+    restart: unless-stopped
