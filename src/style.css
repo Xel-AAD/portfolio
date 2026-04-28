@@ -209,7 +209,7 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
   letter-spacing: 0.3em;
   text-transform: uppercase;
   color: var(--accent);
-  margin-bottom: 28px;
+  margin-bottom: 20px;
 }
 
 .hero__title {
@@ -218,7 +218,7 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
   font-weight: 400;
   line-height: 1;
   letter-spacing: -0.01em;
-  margin-bottom: 28px;
+  margin-bottom: 30px;
   background: linear-gradient(135deg, var(--text) 30%, var(--accent) 70%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -306,12 +306,13 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
   font-weight: 400;
   text-align: center;
   letter-spacing: 0.01em;
-  margin-bottom: 56px;
+  margin-bottom: 20px;
   position: relative;
 }
 
 .section-title--left {
   text-align: left;
+  margin-bottom: 14px;
 }
 
 .about {
@@ -322,13 +323,15 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
 
 .about__inner {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: minmax(200px, 30%) 1fr;
   gap: 80px;
-  align-items: center;
+  align-items: stretch;
 }
 
 .about__photo-wrap {
   position: relative;
+  overflow: hidden;
+  min-height: 300px;
 }
 
 .about__photo-glow {
@@ -342,11 +345,10 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
 }
 
 .about__photo {
-  position: relative;
-  z-index: 1;
   width: 100%;
-  aspect-ratio: 3 / 4;
+  height: 100%;
   object-fit: cover;
+  object-position: top center;
   border-radius: 2px;
 }
 
@@ -660,19 +662,18 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
 .contact__social:hover { color: var(--accent); }
 
 .gallery {
-  padding: 80px 0 40px;
+  padding: 10px 0 40px;
   position: relative;
 }
 
 .gallery__back {
   display: block;
-  width: auto;
+  width: calc(100% - 36px - 44px);
   margin-left: 36px;
   margin-right: 44px;
-  padding: 18px 0;
+  padding: 14px 0;
   background: rgba(201, 169, 110, 0.06);
   border: none;
-  border-bottom: 1px solid rgba(201, 169, 110, 0.12);
   font-family: var(--font-body);
   font-size: 0.8rem;
   font-weight: 400;
@@ -682,8 +683,8 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
   text-align: center;
   cursor: pointer;
   transition: all 0.3s;
-  margin-top: 16px;
-  margin-bottom: 5px;
+  margin-top: 12px;
+  margin-bottom: 2px;
 }
 
 .gallery__back:hover {
