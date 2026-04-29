@@ -553,14 +553,13 @@ html.gallery-open { overflow: hidden; }  /* На iOS Safari overflow:hidden на
 
 /* .hero__scroll-hint — контейнер стрелки вниз */
 .hero__scroll-hint {
-  position: absolute;                 /* Абсолютное от hero — не влияет на контент */
-  bottom: 48px;                      /* 48px от низа hero */
-  left: 50%;                         /* Центр горизонтально... */
-  transform: translateX(-50%);       /* ...с поправкой на свою ширину (центрирование absolute-элемента) */
-  z-index: 2;                        /* Над overlay */
-  display: flex;                     /* Flex для центрирования содержимого */
-  flex-direction: column;            /* Линия + текст столбиком */
-  align-items: center;               /* Всё по центру — линия и текст выровнены */
+  position: absolute;
+  bottom: 48px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* .hero__scroll-line — пульсирующая вертикальная линия */
