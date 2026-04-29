@@ -5,6 +5,7 @@ from pathlib import Path
 from pydantic import BaseModel
 from urllib.parse import unquote
 import json
+import random
 import re
 import hashlib
 import time
@@ -24,7 +25,7 @@ DIMENSIONS_CACHE_FILE = THUMBS_DIR / ".dimensions.json"
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".tiff", ".bmp", ".heic", ".avif"}
 
-THUMB_MAX_W = 600
+THUMB_MAX_W = 1200
 THUMB_QUALITY = 80
 
 FAVOURITES_DIR = PHOTOS_DIR / "Favourites"
@@ -70,11 +71,30 @@ _dim_cache: dict[str, dict] = {}
 
 def prettify_filename(filename: str) -> str:
     name = Path(filename).stem
-    name = name.replace("-", " ").replace("_", " ").replace("|", " ")
-    name = re.sub(r"\s+", " ", name).strip()
-    if name:
-        name = name[0].upper() + name[1:]
-    return name if name else filename
+    parts = [p.strip() for p in name.split("|") if p.strip()]
+    date_str = parts[0] if parts else ""
+    is_bw = any("b&w" in p.lower() or "bw" in p.lower() for p in parts)
+    num = parts[-1] if len(parts) > 1 else ""
+
+    date_fmt = ""
+    if date_str and re.match(r"\d{2}-\d{2}-\d{4}", date_str):
+        d, m, y = date_str.split("-")
+        months = {
+            "01": "января", "02": "февраля", "03": "марта",
+            "04": "апреля", "05": "мая", "06": "июня",
+            "07": "июля", "08": "августа", "09": "сентября",
+            "10": "октября", "11": "ноября", "12": "декабря",
+        }
+        date_fmt = f"{int(d)} {months.get(m, m)} {y}"
+
+    title_parts = []
+    if date_fmt:
+        title_parts.append(date_fmt)
+    title_parts.append("Чёрно-белый портрет" if is_bw else "Портрет")
+    if num:
+        title_parts.append(f"№{num}")
+
+    return ", ".join(title_parts) if title_parts else filename
 
 
 def _load_dim_cache() -> dict[str, dict]:
@@ -239,6 +259,7 @@ def scan_folder(folder: Path, photo_meta: dict[str, dict]) -> list[Photo]:
             )
         )
 
+    random.shuffle(photos)
     return photos
 
 

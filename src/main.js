@@ -9,6 +9,10 @@ const ROW_HEIGHT = 280
 const ROW_HEIGHT_MOBILE = 180
 
 async function init() {
+  if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual'
+  }
+
   try {
     const response = await fetch('/api/portfolio')
     if (!response.ok) throw new Error(`HTTP ${response.status}`)
@@ -30,13 +34,15 @@ async function init() {
   initParallax()
   initResizeHandler()
   initPageSwitching()
+
+  window.scrollTo(0, 0)
 }
 
 function renderAbout() {
   const photo = portfolioData.about?.photo
   const img = $('.about__photo')
   if (img && photo) {
-    img.src = photo.src
+    img.src = photo.thumb
     img.alt = photo.title
   }
 }
@@ -44,22 +50,78 @@ function renderAbout() {
 function renderFeatured() {
   const grid = $('#featuredGrid')
   if (!grid || !portfolioData.featured?.length) return
+  grid.innerHTML = ''
+
+  const style = getComputedStyle(grid)
+  const containerWidth = grid.clientWidth
+    - parseFloat(style.paddingLeft)
+    - parseFloat(style.paddingRight)
+  const gap = 10
+  const isMobile = window.innerWidth <= 768
+  const colCount = isMobile ? 2 : 4
+  const colWidth = (containerWidth - (colCount - 1) * gap) / colCount
+
+  const columns = Array.from({ length: colCount }, () => ({
+    el: null,
+    height: 0,
+    items: [],
+    imgHeights: []
+  }))
+
+  for (let i = 0; i < colCount; i++) {
+    const colEl = document.createElement('div')
+    colEl.className = 'featured__col'
+    colEl.style.width = `${colWidth}px`
+    columns[i].el = colEl
+    grid.appendChild(colEl)
+  }
 
   portfolioData.featured.forEach((photo, idx) => {
-    const item = document.createElement('div')
-    item.className = 'featured__item anim-fade-up parallax-item'
-    item.innerHTML = `
-      <img src="${photo.thumb}" alt="${photo.title}" loading="lazy" />
+    const w = photo.width || 3
+    const h = photo.height || 4
+    const imgHeight = colWidth * (h / w)
+    const shortest = columns.reduce((min, col, i) => col.height < columns[min].height ? i : min, 0)
+
+    const itemEl = document.createElement('div')
+    itemEl.className = 'featured__item anim-fade-up'
+    itemEl.style.marginBottom = `${gap}px`
+
+    itemEl.innerHTML = `
+      <img src="${photo.thumb}" alt="${photo.title}" loading="lazy"
+           width="${Math.round(colWidth)}" height="${Math.round(imgHeight)}" />
       <div class="featured__item-overlay">
         <h3 class="featured__item-title">${photo.title}</h3>
-        <p class="featured__item-desc">${photo.description}</p>
       </div>
     `
-    item.addEventListener('click', () => {
+
+    itemEl.addEventListener('click', () => {
       currentLightboxList = portfolioData.featured
       openLightbox(idx)
     })
-    grid.appendChild(item)
+
+    columns[shortest].el.appendChild(itemEl)
+    columns[shortest].height += imgHeight + gap
+    columns[shortest].items.push(itemEl)
+    columns[shortest].imgHeights.push(imgHeight)
+  })
+
+  const maxH = Math.max(...columns.map(c => c.height))
+
+  columns.forEach(col => {
+    const lastIdx = col.items.length - 1
+    if (lastIdx < 0) return
+
+    col.items[lastIdx].style.marginBottom = '0'
+
+    const diff = maxH - col.height
+    if (diff > 2) {
+      const img = col.items[lastIdx].querySelector('img')
+      if (img) {
+        const newH = col.imgHeights[lastIdx] + diff
+        img.style.height = `${Math.round(newH)}px`
+        img.style.objectFit = 'cover'
+      }
+    }
   })
 }
 
@@ -161,6 +223,8 @@ function initResizeHandler() {
       const newWidth = window.innerWidth
       if (newWidth !== lastWidth) {
         lastWidth = newWidth
+        renderFeatured()
+        initScrollAnimations()
         if (isGalleryPage) {
           renderGallery()
           initScrollAnimations()
@@ -177,16 +241,52 @@ function initPageSwitching() {
   const pageMain = $('#pageMain')
   const pageGallery = $('#pageGallery')
 
-  function openGalleryPage() {
+  function openGalleryPage(replace = false) {
+    if (isGalleryPage) return
     isGalleryPage = true
-    pageMain.classList.add('hidden')
+    if (replace) {
+      history.replaceState({ gallery: true }, '')
+    } else {
+      history.pushState({ gallery: true }, '')
+    }
+    document.documentElement.classList.add('gallery-open')
     pageGallery.classList.add('active')
-    window.scrollTo(0, 0)
+    pageGallery.scrollTop = 0
+    const lines = $('#galleryLines')
+    if (lines) lines.classList.add('active')
     setTimeout(() => {
       renderGallery()
       initScrollAnimations()
     }, 50)
   }
+
+  function closeGalleryPage() {
+    if (!isGalleryPage) return
+    isGalleryPage = false
+    document.documentElement.classList.remove('gallery-open')
+    pageGallery.classList.remove('active')
+    const lines = $('#galleryLines')
+    if (lines) lines.classList.remove('active')
+  }
+
+  window.addEventListener('popstate', (e) => {
+    if (e.state?.gallery) {
+      if (!isGalleryPage) {
+        isGalleryPage = true
+        document.documentElement.classList.add('gallery-open')
+        pageGallery.classList.add('active')
+        pageGallery.scrollTop = 0
+        const lines = $('#galleryLines')
+        if (lines) lines.classList.add('active')
+        setTimeout(() => {
+          renderGallery()
+          initScrollAnimations()
+        }, 50)
+      }
+    } else {
+      closeGalleryPage()
+    }
+  })
 
   if (navGalleryBtn) {
     navGalleryBtn.addEventListener('click', (e) => {
@@ -202,13 +302,24 @@ function initPageSwitching() {
     })
   }
 
-  if (navBackBtn) {
-    navBackBtn.addEventListener('click', () => {
-      isGalleryPage = false
-      pageGallery.classList.remove('active')
-      pageMain.classList.remove('hidden')
-      window.scrollTo(0, 0)
+  const navLogo = $('.nav__logo')
+  if (navLogo) {
+    navLogo.addEventListener('click', (e) => {
+      if (isGalleryPage) {
+        e.preventDefault()
+        history.back()
+        const hero = $('#hero')
+        if (hero) hero.scrollIntoView({ behavior: 'smooth' })
+      }
     })
+  }
+
+  if (navBackBtn) {
+    navBackBtn.addEventListener('click', () => history.back())
+  }
+
+  if (history.state?.gallery) {
+    openGalleryPage(true)
   }
 }
 
@@ -273,53 +384,191 @@ function initLightbox() {
   })
 
   let touchStartX = 0
+  let touchStartY = 0
   lightbox.addEventListener('touchstart', e => {
     touchStartX = e.changedTouches[0].screenX
+    touchStartY = e.changedTouches[0].screenY
+    if (prevBtn) prevBtn.style.opacity = '1'
+    if (nextBtn) nextBtn.style.opacity = '1'
   }, { passive: true })
 
   lightbox.addEventListener('touchend', e => {
-    const diff = e.changedTouches[0].screenX - touchStartX
-    if (Math.abs(diff) > 50) {
-      navigateLightbox(diff > 0 ? -1 : 1)
+    const diffX = e.changedTouches[0].screenX - touchStartX
+    const diffY = e.changedTouches[0].screenY - touchStartY
+    if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) {
+      navigateLightbox(diffX > 0 ? -1 : 1)
     }
+    if (Math.abs(diffY) > 100 && diffY > 0 && Math.abs(diffY) > Math.abs(diffX)) {
+      closeLightbox()
+    }
+    setTimeout(() => {
+      if (prevBtn) prevBtn.style.opacity = ''
+      if (nextBtn) nextBtn.style.opacity = ''
+    }, 1500)
   }, { passive: true })
+}
+
+let _lbTimer = null
+const _lbT = 'translate(-50%,-50%)'
+
+function _lbSetLoading(on) {
+  const lb = $('#lightbox')
+  if (!lb) return
+  if (on) {
+    lb.classList.add('lb-loading')
+    lb.classList.remove('lb-done')
+  } else {
+    lb.classList.remove('lb-loading')
+    lb.classList.add('lb-done')
+  }
+}
+
+function _lbLoadFull(full, src, idx) {
+  _lbSetLoading(true)
+  full.onload = () => {
+    if (currentLightboxIndex === idx) {
+      full.classList.add('loaded')
+      _lbSetLoading(false)
+    }
+  }
+  full.src = src
+  if (full.complete && full.naturalWidth > 0) {
+    full.classList.add('loaded')
+    _lbSetLoading(false)
+  }
 }
 
 function openLightbox(index) {
   const lightbox = $('#lightbox')
-  const img = $('#lightboxImg')
+  const thumb = $('#lightboxThumb')
+  const full = $('#lightboxFull')
   const info = $('#lightboxInfo')
   const counter = $('#lightboxCounter')
 
   currentLightboxIndex = index
   const photo = currentLightboxList[index]
 
-  img.src = photo.src
-  img.alt = photo.title
   info.textContent = photo.title
   counter.textContent = `${index + 1} / ${currentLightboxList.length}`
 
+  full.classList.remove('loaded')
+  full.removeAttribute('src')
+
+  thumb.style.transition = 'none'
+  thumb.style.opacity = '0'
+  thumb.style.transform = `${_lbT} scale(0.92)`
+  thumb.style.filter = 'blur(25px)'
+  thumb.src = photo.thumb
+  thumb.alt = photo.title
+
   lightbox.classList.add('open')
+  lightbox.classList.remove('lb-loading', 'lb-done')
   lightbox.setAttribute('aria-hidden', 'false')
   document.body.style.overflow = 'hidden'
+
+  const startZoom = () => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        thumb.style.transition = 'opacity 0.4s ease, transform 0.45s cubic-bezier(0.22,1,0.36,1), filter 0.8s ease'
+        thumb.style.opacity = '1'
+        thumb.style.transform = `${_lbT} scale(1)`
+        thumb.style.filter = 'blur(25px)'
+      })
+    })
+
+    if (currentLightboxIndex === index) {
+      _lbLoadFull(full, photo.src, index)
+    }
+  }
+
+  if (thumb.complete && thumb.naturalWidth > 0) {
+    startZoom()
+  } else {
+    thumb.addEventListener('load', startZoom, { once: true })
+  }
 }
 
 function closeLightbox() {
   const lightbox = $('#lightbox')
-  lightbox.classList.remove('open')
-  lightbox.setAttribute('aria-hidden', 'true')
-  document.body.style.overflow = ''
-  currentLightboxIndex = -1
+  const thumb = $('#lightboxThumb')
+  const full = $('#lightboxFull')
+
+  thumb.style.transition = 'opacity 0.3s ease, transform 0.3s ease'
+  thumb.style.opacity = '0'
+  thumb.style.transform = `${_lbT} scale(0.95)`
+
+  full.classList.remove('loaded')
+  lightbox.classList.remove('lb-loading', 'lb-done')
+
+  if (_lbTimer) {
+    clearTimeout(_lbTimer)
+    _lbTimer = null
+  }
+
+  setTimeout(() => {
+    lightbox.classList.remove('open')
+    lightbox.setAttribute('aria-hidden', 'true')
+    document.body.style.overflow = ''
+    currentLightboxIndex = -1
+    thumb.style.transition = ''
+    thumb.style.opacity = ''
+    thumb.style.transform = ''
+    thumb.style.filter = ''
+    full.removeAttribute('src')
+  }, 300)
 }
 
 function navigateLightbox(direction) {
   if (currentLightboxIndex === -1) return
 
-  let newIdx = currentLightboxIndex + direction
-  if (newIdx < 0) newIdx = currentLightboxList.length - 1
-  if (newIdx >= currentLightboxList.length) newIdx = 0
+  const thumb = $('#lightboxThumb')
+  const full = $('#lightboxFull')
 
-  openLightbox(newIdx)
+  thumb.style.transition = 'opacity 0.25s ease, transform 0.25s ease'
+  thumb.style.opacity = '0'
+  thumb.style.transform = `${_lbT} scale(0.98)`
+  full.classList.remove('loaded')
+
+  const lb = $('#lightbox')
+  if (lb) lb.classList.remove('lb-done')
+
+  if (_lbTimer) clearTimeout(_lbTimer)
+
+  _lbTimer = setTimeout(() => {
+    let newIdx = currentLightboxIndex + direction
+    if (newIdx < 0) newIdx = currentLightboxList.length - 1
+    if (newIdx >= currentLightboxList.length) newIdx = 0
+
+    currentLightboxIndex = newIdx
+    const photo = currentLightboxList[newIdx]
+
+    const info = $('#lightboxInfo')
+    const counter = $('#lightboxCounter')
+    if (info) info.textContent = photo.title
+    if (counter) counter.textContent = `${newIdx + 1} / ${currentLightboxList.length}`
+
+    full.removeAttribute('src')
+    thumb.src = photo.thumb
+    thumb.alt = photo.title
+    thumb.style.filter = 'blur(25px)'
+
+    const showNew = () => {
+      requestAnimationFrame(() => {
+        thumb.style.transition = 'opacity 0.3s ease, transform 0.35s cubic-bezier(0.22,1,0.36,1), filter 0.8s ease'
+        thumb.style.opacity = '1'
+        thumb.style.transform = `${_lbT} scale(1)`
+      })
+      _lbLoadFull(full, photo.src, newIdx)
+    }
+
+    if (thumb.complete && thumb.naturalWidth > 0) {
+      showNew()
+    } else {
+      thumb.addEventListener('load', showNew, { once: true })
+    }
+
+    _lbTimer = null
+  }, 250)
 }
 
 function initScrollAnimations() {
@@ -328,7 +577,9 @@ function initScrollAnimations() {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           entry.target.classList.add('visible')
-          observer.unobserve(entry.target)
+            observer.unobserve(entry.target)
+        /*} else {
+          entry.target.classList.remove('visible') */
         }
       })
     },
