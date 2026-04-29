@@ -82,8 +82,10 @@
 
 /* html — корневой элемент, выше body */
 html {
-  scroll-behavior: smooth;          /* При клике на якорь (<a href="#about">) — плавная прокрутка, не резкий прыжок */
-  -webkit-font-smoothing: antialiased;  /* На Mac шрифты рендерятся чётче на тёмном фоне. Без этого — мыльные */
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
 }
 
 /* body — тело страницы, содержит весь видимый контент */
@@ -164,13 +166,16 @@ button {
    ============================================================ */
 
 /* iOS-фикс: блокировка скролла главной при открытой галерее */
-html.gallery-open { overflow: hidden; }  /* На iOS Safari overflow:hidden на body не всегда работает. html — надёжнее */
+html.gallery-open { overflow: hidden; }
+
+  /* На iOS Safari overflow:hidden на body не всегда работает. html — надёжнее */
 
 /* Состояние: галерея СКРЫТА (нет класса .active) */
 .page--gallery {
-  position: fixed;                  /* Оверлей поверх всего — не скроллится вместе со страницей */
-  inset: 0;                         /* top:0, right:0, bottom:0, left:0 — занимает весь экран */
-  overflow-y: auto;                 /* Внутренний скролл: если фото много — скроллится галерея, не главная */
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;                 /* Внутренний скролл: если фото много — скроллится галерея, не главная */
   background: var(--bg);            /* Фон галереи: тот же тёмный, чтобы не было белой вспышки при появлении */
   opacity: 0;                       /* Полностью прозрачная — невидима */
   visibility: hidden;               /* Не видима + не кликабельна + не скроллится (в отличие от opacity:0) */
@@ -274,30 +279,24 @@ html.gallery-open { overflow: hidden; }  /* На iOS Safari overflow:hidden на
 /* .nav__burger — кнопка бургер-меню (три горизонтальные полоски) */
 /* На десктопе скрыта (display: none), на мобильном показывается */
 .nav__burger {
-  display: none;                     /* Скрыта на десктопе */
-  flex-direction: column;            /* Полоски вертикально (столбиком), не горизонтально */
-  gap: 5px;                          /* 5px между полосками */
-  width: 24px;                       /* Ширина кнопки: узкая, 24px — стандартный размер тач-цели */
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  width: 22px;
 }
 
-/* .nav__burger span — каждая полоска бургера */
 .nav__burger span {
-  display: block;                    /* Блочный элемент — занимает всю ширину родителя (24px) */
-  width: 100%;                       /* Полоска на всю ширину кнопки */
-  height: 1.5px;                     /* Тонкая линия: 1.5px — элегантная, не грубая */
-  background: var(--text);           /* Цвет полоски: тёплый белый #e8e4de */
-  transition: transform 0.3s,        /* Плавная трансформация при анимации бургер→крестик */
-              opacity 0.3s;           /* Плавное исчезновение средней полоски */
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: var(--text);
+  transition: transform 0.3s,
+              opacity 0.3s;
 }
 
-/* Анимация бургер → крестик (JS добавляет .active на .nav__burger) */
-/* Верхняя полоска: сдвигается вниз на 6.5px (5px gap + 1.5px height) и поворачивается на 45° */
-.nav__burger.active span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
-/* Средняя полоска: исчезает (opacity: 0) */
+.nav__burger.active span:nth-child(1) { transform: translateY(5px) rotate(45deg); }
 .nav__burger.active span:nth-child(2) { opacity: 0; }
-/* Нижняя полоска: сдвигается вверх на 6.5px и поворачивается на -45° */
-.nav__burger.active span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
-/* Итого: верхняя и нижняя образуют крестик ✕, средняя исчезает */
+.nav__burger.active span:nth-child(3) { transform: translateY(-5px) rotate(-45deg); }
 
 /* .nav__close — кнопка закрытия мобильного меню (✕) */
 /* На десктопе скрыта, на мобильном показывается внутри панели навигации */
@@ -319,66 +318,7 @@ html.gallery-open { overflow: hidden; }  /* На iOS Safari overflow:hidden на
    • Панель ссылок: 99 — выезжающее меню поверх overlay
    • Крестик: внутри панели (position: absolute)
    ============================================================ */
-@media (max-width: 768px) {         /* Всё внутри срабатывает только при ширине ≤768px */
 
-  .nav { padding: 16px 20px; }      /* Компактнее: 16px вместо 24px верх/низ, 20px вместо 48px бока */
-
-  .nav__logo {
-    font-size: 0.75rem;              /* 0.75 × 16px = 12px — в 2+ раза меньше десктопного */
-    letter-spacing: 0.02em;          /* Трекинг чуть свободнее — мелкий текст читабельнее */
-  }
-
-  .nav__burger { display: flex; }    /* Показываем бургер на мобильном */
-
-  /* .nav__links — выезжающая панель справа */
-  .nav__links {
-    position: fixed;                  /* Фиксированная — не скроллится со страницей */
-    top: 0;                           /* От верха экрана */
-    right: 0;                         /* Прижата к правому краю */
-    width: 260px;                     /* Ширина панели: 260px — ~70% экрана телефона, оставляет overlay видимым */
-    height: 100vh;                    /* На всю высоту экрана */
-    background: var(--bg);            /* Тёмный фон как у страницы — визуально часть сайта */
-    flex-direction: column;           /* Ссылки столбиком, не в ряд */
-    align-items: flex-start;          /* Текст прижат влево внутри панели */
-    justify-content: flex-start;      /* Ссылки от верха панели, не центрированы */
-    padding: 60px 40px 40px;         /* 60px сверху (место под крестик), 40px бока/низ */
-    gap: 28px;                        /* 28px между ссылками — удобнее тапать */
-    transform: translateX(100%);      /* Сдвинута на 100% своей ширины вправо — скрыта за правым краем экрана */
-    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);  /* Плавное выезжание: cubic-bezier — быстрый старт, плавное торможение */
-    z-index: 99;                      /* Над overlay (98), под хедером (100) */
-  }
-
-  /* .nav__links.open — панель выехала (JS добавляет класс) */
-  .nav__links.open { transform: translateX(0); }  /* Сдвиг 0 — панель на месте, видима */
-
-  .nav__links a { font-size: 1rem; }  /* Крупнее чем на десктопе (1rem vs 0.8rem) — удобнее тапать пальцем */
-
-  /* .nav__close — крестик ✕ в правом верхнем углу панели */
-  .nav__close {
-    position: absolute;               /* Относительно панели (.nav__links) */
-    top: 20px;                        /* 20px от верха панели */
-    right: 20px;                      /* 20px от правого края — стандартная позиция кнопки закрытия */
-    font-size: 1.3rem;                /* Крупный ✕ — легко попасть пальцем */
-    color: var(--text-muted);         /* Серый — не кричит, но виден */
-    width: 40px;                      /* 40×40px — минимальный размер тач-цели по гайдлайнам Apple/Google */
-    height: 40px;                     /* 40×40px — тот же минимум */
-    display: flex;                    /* Flex для центрирования ✕ внутри 40×40 */
-    align-items: center;              /* Вертикальное центрирование ✕ */
-    justify-content: center;          /* Горизонтальное центрирование ✕ */
-    transition: color 0.3s;           /* Плавная смена цвета при hover */
-  }
-  .nav__close:hover { color: var(--text); }  /* При наведении: белый вместо серого — контрастнее */
-
-  /* .nav__overlay — полупрозрачная подложка за панелью */
-  .nav__overlay {
-    display: none;                    /* Скрыта по умолчанию — нет меню, нет подложки */
-    position: fixed;                  /* Фиксированная — покрывает весь экран */
-    inset: 0;                         /* top:0, right:0, bottom:0, left:0 — весь экран */
-    background: rgba(0, 0, 0, 0.5);  /* Чёрный с 50% прозрачности — затемняет главную страницу */
-    z-index: 98;                      /* Под панелью (99), над контентом — клик по overlay закрывает меню */
-  }
-  .nav__overlay.open { display: block; }  /* JS добавляет .open — overlay появляется вместе с меню */
-}
 
 
 
@@ -724,33 +664,6 @@ html.gallery-open { overflow: hidden; }  /* На iOS Safari overflow:hidden на
 .about__text p:nth-of-type(3) { color: var(--text); }  /* Третий: белый — завершение важной части */
 
 /* --- Мобильный «Обо мне» (<=768px) --- */
-@media (max-width: 768px) {
-  .about { padding: 60px 24px; }     /* Компактнее: 60px вместо 120px, 24px бока */
-
-  .about__inner {
-    grid-template-columns: 1fr;       /* Одна колонка — фото над текстом */
-    gap: 32px;                        /* 32px между фото и текстом — было 80px */
-    align-items: start;               /* От верха — текст не центрируется вертикально относительно фото */
-  }
-
-  .about__photo-wrap {
-    max-width: 200px;                 /* Фото не шире 200px — компактное */
-    margin: 0 auto;                   /* Центрирование горизонтально */
-  }
-
-  .about__photo { position: relative; inset: auto; }  /* Сброс absolute (если был) — фото в потоке */
-
-  .about__text .section-title--left { text-align: center; }  /* Заголовок по центру вместо левого */
-  .about__text { text-align: center; }                        /* Весь текст по центру */
-
-  .about__photo {
-    position: relative;               /* В потоке, не absolute */
-    inset: auto;                      /* Сброс top/left/right/bottom */
-    width: 100%;                      /* На всю ширину обёртки */
-    height: 100%;                     /* На всю высоту (aspect-ratio) */
-    object-fit: cover;                /* Заполняет, обрезает */
-  }
-}
 
 
 
@@ -794,6 +707,8 @@ html.gallery-open { overflow: hidden; }  /* На iOS Safari overflow:hidden на
   overflow: hidden;
   cursor: pointer;
   border-radius: 2px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .featured__item img {
@@ -864,10 +779,6 @@ html.gallery-open { overflow: hidden; }  /* На iOS Safari overflow:hidden на
   box-shadow: 0 0 30px var(--accent-soft);
 }
 
-@media (max-width: 768px) {
-  .featured { padding: 80px 24px; }
-  .featured__grid { gap: 6px; }
-}
 
 
 
@@ -1009,36 +920,6 @@ html.gallery-open { overflow: hidden; }  /* На iOS Safari overflow:hidden на
   transform: translateY(-2px);       /* Приподнимается на 2px — эффект "всплывания" */
 }
 
-/* Мобильные услуги — 1 колонка, компактнее (<=600px) */
-@media (max-width: 600px) {
-  .services { padding: 60px 20px; }  /* Компактнее */
-
-  .services__grid {
-    grid-template-columns: 1fr;      /* Одна колонка — карточки столбиком */
-    gap: 12px;                       /* 12px между карточками — было 24px */
-    margin-bottom: 36px;             /* Было 56px */
-  }
-
-  .services__card { padding: 28px 24px; }  /* Было 56px 40px — в 2 раза компактнее */
-
-  .services__icon {
-    font-size: 1.1rem;               /* Было 1.5rem */
-    margin-bottom: 12px;             /* Было 20px */
-  }
-
-  .services__duration { margin-bottom: 10px; }  /* Было 20px */
-
-  .services__name {
-    font-size: 1.2rem;               /* Было 1.5rem */
-    margin-bottom: 8px;             /* Было 12px */
-  }
-
-  .services__includes li { font-size: 0.8rem; padding-left: 14px; }
-
-  .services__price { font-size: 1.5rem; }
-
-  .services__btn { padding: 12px 36px; }  /* Было 14px 48px — компактнее */
-}
 
 
 
@@ -1175,10 +1056,12 @@ html.gallery-open { overflow: hidden; }  /* На iOS Safari overflow:hidden на
 
 /* .contact__email — email */
 .contact__email {
-  font-size: 0.95rem;                /* 12px — мелкий */
+  font-size: 0.95rem;
   color: var(--text-muted);
-  opacity: 0.5;                      /* Приглушён — как иконки */
+  opacity: 0.5;
   transition: color 0.3s, opacity 0.3s;
+  word-break: break-all;
+  overflow-wrap: break-word;
 }
 
 .contact__email:hover {
@@ -1258,9 +1141,12 @@ html.gallery-open { overflow: hidden; }  /* На iOS Safari overflow:hidden на
 }
 
 .gallery-lines.active {
-  display: block;                     /* JS добавляет .active при открытии портфолио */
-  z-index: 160;                       /* Над .page--gallery (150), под лайтбоксом (200) — линии видны поверх галереи */
-  position: relative;                 /* z-index работает с position ≠ static */
+  display: block;
+  z-index: 160;
+  position: relative;
+  width: 0;
+  height: 0;
+  overflow: visible;
 }
 
 .gallery-line {
@@ -1311,11 +1197,13 @@ html.gallery-open { overflow: hidden; }  /* На iOS Safari overflow:hidden на
 
 /* .gallery__item — одно фото в ряду */
 .gallery__item {
-  position: relative;                 /* Для оверлея (absolute внутри) */
-  overflow: hidden;                   /* Зум при hover не выходит за границы */
-  flex-shrink: 0;                    /* Не сжимается — ширина задаётся JS точно по justified-алгоритму */
-  cursor: pointer;                   /* Кликабельно — открывает лайтбокс */
-  margin-right: 3px;                /* 3px зазор между фото в ряду */
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  cursor: pointer;
+  margin-right: 3px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 .gallery__item:last-child { margin-right: 0; }  /* Последнее фото в ряду — без правого зазора */
 
@@ -1403,6 +1291,9 @@ html.gallery-open { overflow: hidden; }  /* На iOS Safari overflow:hidden на
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.4s ease;
+  touch-action: pan-y;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .lightbox.open {
@@ -1585,58 +1476,236 @@ html.gallery-open { overflow: hidden; }  /* На iOS Safari overflow:hidden на
 .anim-delay-1 { transition-delay: 0.1s; }  /* +0.1с задержка — первый элемент появляется чуть позже триггера */
 .anim-delay-2 { transition-delay: 0.2s; }  /* +0.2с — второй */
 .anim-delay-3 { transition-delay: 0.3s; }  /* +0.3с — третий */
-.anim-delay-4 { transition-delay: 0.4s; }  /* +0.4с — четвёртый */
+.anim-delay-4 { transition-delay: 0.4s; }
 
 
 
 
-
-
-/* ============================================================
-   18. МОБИЛЬНЫЕ СТИЛИ (<=768px)
-   
-   Общие корректировки для мобильных устройств.
-   Секции компактнее, боковые линии скрыты, контакты
-   переносятся на новую строку.
-   ============================================================ */
 @media (max-width: 768px) {
-  :root { --section-pad: 60px; }    /* Секции: 60px вместо 120px — в 2 раза компактнее */
+  :root { --section-pad: 60px; }
+
+  .nav { padding: 16px 20px; }
+
+  .nav__logo {
+    font-size: 0.82rem;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+
+  .nav__burger { display: flex; }
+
+  .nav__links {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 260px;
+    height: 100vh;
+    height: 100dvh;
+    background: var(--bg);
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 60px 40px 40px;
+    padding-top: calc(60px + env(safe-area-inset-top, 0px));
+    gap: 28px;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    z-index: 99;
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+  }
+
+  .nav__links.open { transform: translateX(0); }
+
+  .nav__links a { font-size: 1rem; }
+
+  .nav__close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 1.6rem;
+    color: var(--text-muted);
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.3s;
+  }
+  .nav__close:hover { color: var(--text); }
+
+  .nav__overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 98;
+  }
+  .nav__overlay.open { display: block; }
+
+  .hero__content { padding: 0 24px; }
+
+  .hero__subtitle {
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    margin-bottom: 16px;
+  }
+
+  .hero__desc {
+    font-size: 0.82rem;
+    letter-spacing: 0.1em;
+    margin-bottom: 32px;
+  }
+
+  .hero__btn { padding: 13px 36px; font-size: 0.78rem; letter-spacing: 0.15em; }
+
+  .hero__line-top { margin-bottom: 28px; }
+  .hero__line-bottom { margin-top: 32px; }
+
+  .hero__scroll-hint { bottom: 32px; }
+
+  .about { padding: 60px 24px; overflow: hidden; }
+
+  .about__inner {
+    grid-template-columns: 1fr !important;
+    gap: 32px;
+    align-items: start;
+  }
+
+  .about__photo-wrap {
+    max-width: 200px;
+    margin: 0 auto;
+    width: 200px;
+  }
+
+  .about__photo-glow { display: none; }
+
+  .about__photo {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    object-position: top center;
+    border-radius: 2px;
+  }
+
+  .about__text .section-title--left { text-align: center; }
+  .about__text { text-align: center; }
+  .about__text p { font-size: 0.9rem; line-height: 1.7; }
+  .about__text p:first-of-type { font-size: 1rem; }
+
+  .featured { padding: 80px 24px; }
+  .featured__grid { gap: 6px; }
+  .featured__item-overlay { padding: 12px; }
+  .featured__item-title { font-size: 0.85rem; }
+  .featured__more { margin-top: 36px; }
+  .featured__more-btn { padding: 12px 36px; font-size: 0.72rem; }
+
+  .services__common { font-size: 0.85rem; margin-bottom: 36px; }
+  .services__card { padding: 36px 28px; }
+  .services__name { font-size: 1.4rem; }
+  .services__price { font-size: 1.8rem; }
 
   .gallery__back {
-    width: 100%;                     /* На всю ширину — без учёта линий (они скрыты) */
-    margin: 8px 0 0 0;              /* 8px сверху, 0 по бокам — без отступов до линий */
-    padding: 14px 24px;             /* 24px бока — текст не прилипает к краю */
+    left: 0;
+    right: 0;
+    width: auto;
+    margin: 0;
+    padding: 14px 24px;
   }
 
   .gallery {
-    padding: 10px 0 0px;            /* 10px сверху, 0 снизу — фото вплотную к футеру */
+    padding: 50px 0 0;
   }
 
   .gallery__grid {
-    padding: 0 16px;                /* 16px бока — фото ближе к краю, без места под линии */
+    padding: 0 16px;
   }
 
-  /* Линии скрыты на мобильном */
-  .gallery-lines.active { display: none; }
+  .gallery-lines.active { }
+  .gallery-line { display: none; }
+  .gallery-lines.active .gallery__back { display: block; }
 
-  .footer { padding: 22px 24px; }   /* Было 20px 48px — бока 24px вместо 48px */
+  .footer { padding: 22px 24px; }
 
-  .divider { padding: 0 24px; }     /* Было 0 48px — бока 24px */
+  .divider { padding: 0 24px; }
 
   .contact__content { padding: 0 24px; }
 
   .contact__heading { margin-bottom: 32px; }
 
   .contact__cta {
-    padding: 14px 40px;             /* Компактнее на мобильном */
-    margin-bottom: 56px;
+    padding: 14px 36px;
+    font-size: 0.78rem;
+    letter-spacing: 0.15em;
+    margin-bottom: 40px;
   }
 
-  .contact__bottom { gap: 12px; }
+  .contact__cta-icon { width: 16px; height: 16px; }
+
+  .contact__bottom { gap: 12px; flex-wrap: wrap; }
+
+  .contact__social { width: 22px; height: 22px; }
+  .contact__social svg { width: 22px; height: 22px; }
+
+  .contact__email { font-size: 0.72rem; }
+
+  .contact__line-top { margin-bottom: 28px; }
+  .contact__line-bottom { margin-top: 28px; }
 
   .lightbox__prev { left: 4px; }
   .lightbox__next { right: 4px; }
   .lightbox__close { top: 12px; right: 12px; }
-  .lightbox__img { max-width: 100vw; max-height: 85vh; }
+  .lightbox__img {
+    max-width: 100vw;
+    max-height: 85vh;
+    max-height: 85dvh;
+  }
   .lightbox__bar { bottom: 0; }
+  .lightbox__img--thumb {
+    filter: blur(20px);
+  }
+  .lightbox__info { font-size: 0.85rem; padding: 16px 0; }
+  .lightbox__counter { top: 16px; font-size: 0.65rem; }
+  .lightbox__prev, .lightbox__next { font-size: 1.2rem; width: 44px; height: 44px; }
+  .lightbox__close { font-size: 1.6rem; width: 44px; height: 44px; }
 }
+
+@media (max-width: 600px) {
+  .services { padding: 60px 20px; }
+
+  .services__grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 36px;
+  }
+
+  .services__card { padding: 28px 24px; }
+
+  .services__icon {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+  }
+
+  .services__duration { margin-bottom: 10px; }
+
+  .services__name {
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+  }
+
+  .services__includes li { font-size: 0.8rem; padding-left: 14px; }
+
+  .services__price { font-size: 1.5rem; }
+
+  .services__btn { padding: 14px 36px; }
+}  /* +0.4с — четвёртый */
+
+
+
+
+
+
+

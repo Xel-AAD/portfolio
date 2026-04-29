@@ -616,12 +616,14 @@ function initMobileNav() {
     burger.classList.remove('active')
     links.classList.remove('open')
     if (overlay) overlay.classList.remove('open')
+    document.body.style.overflow = ''
   }
 
   function openMenu() {
     burger.classList.add('active')
     links.classList.add('open')
     if (overlay) overlay.classList.add('open')
+    document.body.style.overflow = 'hidden'
   }
 
   burger.addEventListener('click', () => {
@@ -635,7 +637,7 @@ function initMobileNav() {
   if (overlay) overlay.addEventListener('click', closeMenu)
   if (closeBtn) closeBtn.addEventListener('click', closeMenu)
 
-  $$('.nav__links a').forEach(link => {
+  $$('.nav__links a, .nav__links button').forEach(link => {
     link.addEventListener('click', closeMenu)
   })
 }
