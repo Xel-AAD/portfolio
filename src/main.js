@@ -318,6 +318,21 @@ function initPageSwitching() {
     navBackBtn.addEventListener('click', () => history.back())
   }
 
+  let galleryTouchStartX = 0
+  let galleryTouchStartY = 0
+  pageGallery.addEventListener('touchstart', e => {
+    galleryTouchStartX = e.changedTouches[0].screenX
+    galleryTouchStartY = e.changedTouches[0].screenY
+  }, { passive: true })
+
+  pageGallery.addEventListener('touchend', e => {
+    const diffX = e.changedTouches[0].screenX - galleryTouchStartX
+    const diffY = e.changedTouches[0].screenY - galleryTouchStartY
+    if (diffX > 80 && Math.abs(diffX) > Math.abs(diffY) * 1.5 && galleryTouchStartX < 50) {
+      history.back()
+    }
+  }, { passive: true })
+
   if (history.state?.gallery) {
     openGalleryPage(true)
   }
@@ -638,6 +653,7 @@ function initMobileNav() {
   if (closeBtn) closeBtn.addEventListener('click', closeMenu)
 
   $$('.nav__links a, .nav__links button').forEach(link => {
+    if (link.classList.contains('nav__menu-tg')) return
     link.addEventListener('click', closeMenu)
   })
 }

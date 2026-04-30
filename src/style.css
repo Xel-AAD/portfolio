@@ -300,7 +300,8 @@ html.gallery-open { overflow: hidden; }
 
 /* .nav__close — кнопка закрытия мобильного меню (✕) */
 /* На десктопе скрыта, на мобильном показывается внутри панели навигации */
-.nav__close { display: none; }       /* Скрыта на десктопе — на десктопе меню всегда открыто */
+.nav__close { display: none; }
+.nav__menu-footer { display: none; }
 
 
 
@@ -614,20 +615,40 @@ html.gallery-open { overflow: hidden; }
   margin: 0 auto;                     /* Центрирование */
 }
 
+
+
+
+
+/*правила для фото*/
+
 /* .about__inner — сетка: фото + текст */
 .about__inner {
   display: grid;                      /* CSS Grid — двухколоночная раскладка */
-  grid-template-columns: minmax(200px, 320px) 1fr;  /* Левая: мин 200px, макс 320px — не тянется на 4K. Правая: оставшееся */
-  gap: 80px;                          /* 80px между фото и текстом — просторно */
+  grid-template-columns: minmax(200px, 320px) 1fr;  /* Левая: мин 200px, макс 320px  Правая: оставшееся */
+  gap: 70px;                          /* 80px между фото и текстом — просторно */
   align-items: center;                /* Фото и текст вертикально по центру — визуальный баланс */
 }
 
 /* .about__photo-wrap — контейнер фото */
 .about__photo-wrap {
-  position: relative;                 /* Для .about__photo-glow (absolute внутри) */
-  overflow: hidden;                   /* Свечение и фото не выходят за границы */
-  aspect-ratio: 3 / 4;              /* Пропорция 3:4 — вертикальная (портретная). Высота = ширина × 4/3 */
+  position: relative;
+  overflow: hidden;
+  max-width: 320px;
+  min-width: 0;
 }
+
+/* .about__photo — само фото */
+.about__photo {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 2px;
+}
+
+
+
+
+
 
 /* .about__photo-glow — мягкое золотое свечение за фото */
 .about__photo-glow {
@@ -638,15 +659,6 @@ html.gallery-open { overflow: hidden; }
   filter: blur(60px);                /* Сильное размытие: 60px — пятно без чётких границ */
   border-radius: 4px;               /* Слегка скруглённое — не квадратное пятно */
   z-index: 0;                        /* Под фото (z-index: auto) */
-}
-
-/* .about__photo — само фото */
-.about__photo {
-  width: 100%;                       /* На всю ширину контейнера */
-  height: 100%;                      /* На всю высоту (определяется aspect-ratio) */
-  object-fit: cover;                 /* Заполняет контейнер, обрезая лишнее — если пропорции фото не 3:4 */
-  object-position: top center;       /* При обрезке: приоритет лица — верх-центр. Если фото горизонтальное — видно лицо, не ноги */
-  border-radius: 2px;               /* Микро-скругление — жёсткий угол + 2px = чуть мягче */
 }
 
 /* .about__text p — абзацы текста */
@@ -817,6 +829,11 @@ html.gallery-open { overflow: hidden; }
   letter-spacing: 0.04em;
   margin-bottom: 48px;
   line-height: 1.8;
+}
+
+.services__common span + span::before {
+  content: ' · ';
+  white-space: pre;
 }
 
 /* .services__card — карточка услуги */
@@ -1024,6 +1041,11 @@ html.gallery-open { overflow: hidden; }
   gap: 16px;
 }
 
+.contact__socials {
+  display: flex;
+  gap: 16px;
+}
+
 /* .contact__social — иконка соцсети */
 .contact__social {
   display: flex;
@@ -1047,11 +1069,26 @@ html.gallery-open { overflow: hidden; }
   transform: translateY(-2px);
 }
 
-/* .contact__dot — разделитель */
 .contact__dot {
   color: var(--text-muted);
   font-size: 1.75rem;
   opacity: 0.3;
+}
+
+.contact__tgk {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  opacity: 0.5;
+  letter-spacing: 0.02em;
+  transition: color 0.3s, opacity 0.3s;
+}
+
+.contact__tgk:hover {
+  color: var(--accent);
+  opacity: 1;
 }
 
 /* .contact__email — email */
@@ -1508,8 +1545,8 @@ html.gallery-open { overflow: hidden; }
     flex-direction: column;
     align-items: flex-start;
     justify-content: flex-start;
-    padding: 60px 40px 40px;
-    padding-top: calc(60px + env(safe-area-inset-top, 0px));
+    padding: 80px 40px 40px;
+    padding-top: calc(80px + env(safe-area-inset-top, 0px));
     gap: 28px;
     transform: translateX(100%);
     transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
@@ -1522,11 +1559,20 @@ html.gallery-open { overflow: hidden; }
 
   .nav__links a { font-size: 1rem; }
 
+  .nav__links li:first-of-type {
+    padding-top: 20px;
+    margin-left: -40px;
+    margin-right: -40px;
+    padding-left: 40px;
+    padding-right: 40px;
+    border-top: 1px solid var(--border);
+  }
+
   .nav__close {
     position: absolute;
     top: 20px;
     right: 20px;
-    font-size: 1.6rem;
+    font-size: 2rem;
     color: var(--text-muted);
     width: 44px;
     height: 44px;
@@ -1537,12 +1583,37 @@ html.gallery-open { overflow: hidden; }
   }
   .nav__close:hover { color: var(--text); }
 
+  .nav__menu-footer {
+    display: flex;
+    margin-top: auto;
+    padding: 32px 40px 0px;
+    gap: 28px;
+    align-items: center;
+    justify-content: center;
+    width: calc(100% + 80px);
+    margin-left: -40px;
+    margin-right: -40px;
+    border-top: 1px solid var(--border);
+  }
+
+  .nav__menu-social {
+    color: var(--text-muted);
+    opacity: 0.5;
+    transition: color 0.3s, opacity 0.3s;
+  }
+
+  .nav__menu-social:hover {
+    color: var(--accent);
+    opacity: 1;
+  }
+
   .nav__overlay {
     display: none;
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.5);
     z-index: 98;
+    cursor: pointer;
   }
   .nav__overlay.open { display: block; }
 
@@ -1567,32 +1638,38 @@ html.gallery-open { overflow: hidden; }
 
   .hero__scroll-hint { bottom: 32px; }
 
-  .about { padding: 60px 24px; overflow: hidden; }
+  .about { padding: 60px 24px; }
 
   .about__inner {
-    grid-template-columns: 1fr !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     gap: 32px;
-    align-items: start;
   }
 
   .about__photo-wrap {
-    max-width: 200px;
-    margin: 0 auto;
     width: 200px;
+    max-width: 100%;
+    min-width: 0;
+    flex-shrink: 0;
   }
-
-  .about__photo-glow { display: none; }
 
   .about__photo {
+    display: block;
     width: 100%;
-    aspect-ratio: 3 / 4;
-    object-fit: cover;
-    object-position: top center;
-    border-radius: 2px;
+    height: auto;
   }
 
+  .about__photo-glow { display: none !important; }
+
   .about__text .section-title--left { text-align: center; }
-  .about__text { text-align: center; }
+  .about__text {
+    text-align: center;
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
   .about__text p { font-size: 0.9rem; line-height: 1.7; }
   .about__text p:first-of-type { font-size: 1rem; }
 
@@ -1603,7 +1680,11 @@ html.gallery-open { overflow: hidden; }
   .featured__more { margin-top: 36px; }
   .featured__more-btn { padding: 12px 36px; font-size: 0.72rem; }
 
-  .services__common { font-size: 0.85rem; margin-bottom: 36px; }
+  .services__common { font-size: 0.85rem; margin-bottom: 36px; text-align: left; }
+  .services__common span { display: block; }
+  .services__common span::before { content: '· '; }
+  .services__common span + span::before { content: '· '; }
+  .services__common br { display: none; }
   .services__card { padding: 36px 28px; }
   .services__name { font-size: 1.4rem; }
   .services__price { font-size: 1.8rem; }
@@ -1634,24 +1715,32 @@ html.gallery-open { overflow: hidden; }
 
   .contact__content { padding: 0 24px; }
 
+  /*расстояние между заголовком и кнопкой*/
   .contact__heading { margin-bottom: 32px; }
 
+  /*кнопка написать в телеграм*/
   .contact__cta {
     padding: 14px 36px;
     font-size: 0.78rem;
     letter-spacing: 0.15em;
-    margin-bottom: 40px;
+    margin-bottom: 32px;   /*расстояние между кнопкой и почтой*/
   }
 
   .contact__cta-icon { width: 16px; height: 16px; }
 
-  .contact__bottom { gap: 12px; flex-wrap: wrap; }
+  .contact__bottom { flex-direction: column; gap: 14px; }
+  .contact__email { order: 1; }
+  .contact__tgk { order: 2; }
+  .contact__socials { order: 3; display: flex; gap: 16px; justify-content: center; }
+  .contact__dot { display: none; }
 
+
+  .contact__tgk { font-size: 0.75rem; }
   .contact__social { width: 22px; height: 22px; }
   .contact__social svg { width: 22px; height: 22px; }
+  .contact__email { font-size: 0.68rem; }
 
-  .contact__email { font-size: 0.72rem; }
-
+  /*Линии*/
   .contact__line-top { margin-bottom: 28px; }
   .contact__line-bottom { margin-top: 28px; }
 

@@ -75,13 +75,24 @@
           <li><a href="#" id="navGalleryBtn">Портфолио</a></li>
           <li><a href="#services">Услуги</a></li>
           <li><a href="#contact">Контакты</a></li>
+          <li class="nav__menu-footer">
+            <a href="https://t.me/Portrait_Photographer_EKB" target="_blank" rel="noopener" class="nav__menu-social" aria-label="Telegram">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </a>
+            <a href="https://instagram.com/portrait_photographer_ekb" target="_blank" rel="noopener" class="nav__menu-social" aria-label="Instagram">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+            </a>
+            <a href="https://vk.com/Portrait_Photographer_EKB" target="_blank" rel="noopener" class="nav__menu-social" aria-label="VK">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M15.07 2H8.93C4.33 2 2 4.33 2 8.93v6.14C2 19.67 4.33 22 8.93 22h6.14C19.67 22 22 19.67 22 15.07V8.93C22 4.33 19.67 2 15.07 2zm3.08 14.27h-1.76c-.67 0-.87-.54-2.07-1.76-1.04-1.01-1.5-1.14-1.76-1.14-.36 0-.47.1-.47.6v1.61c0 .43-.14.69-1.27.69-1.87 0-3.95-1.13-5.41-3.24-2.2-3.09-2.8-5.41-2.8-5.88 0-.26.1-.5.6-.5h1.76c.45 0 .62.2.79.7.87 2.52 2.33 4.74 2.93 4.74.23 0 .33-.1.33-.63V8.86c-.07-1.16-.68-1.26-.68-1.67 0-.2.17-.4.44-.4h2.77c.37 0 .5.2.5.66v3.52c0 .38.17.51.27.51.23 0 .41-.13.83-.55 1.28-1.43 2.2-3.65 2.2-3.65.12-.26.32-.5.77-.5h1.76c.53 0 .65.27.53.66-.23 1.06-2.46 4.22-2.46 4.22-.2.33-.27.47 0 .83.2.27.85.83 1.29 1.34.8.91 1.41 1.68 1.57 2.2.17.52-.08.79-.58.79z"/></svg>
+            </a>
+          </li>
         </ul>
         <button class="nav__burger" id="navBurger" aria-label="Меню">
           <span></span><span></span><span></span>
         </button>
-        <div class="nav__overlay" id="navOverlay"></div>
       </nav>
     </header>
+    <div class="nav__overlay" id="navOverlay"></div>
 
     <section class="hero" id="hero">
       <div class="hero__particles" id="heroParticles"></div>
@@ -111,7 +122,7 @@
         </div>
         <div class="about__text anim-fade-up anim-delay-1">
           <h2 class="section-title section-title--left">Обо мне</h2>
-          <p>Меня зовут Александр. Я начинающий фотограф, занимаюсь портретной съемкой в Екатеринбурге.</p>
+          <p>Я начинающий фотограф, занимаюсь портретной съемкой в Екатеринбурге.</p>
           <p>Работаю преимущественно с естественным светом: 
             мягкий утренний луч из окна, золотистый закат в сосновом лесу или графичную тень в городском переулке. 
             Никаких сложных студийных схем — только вы, воздух и честная красота момента.</p>
@@ -137,8 +148,11 @@
     <section class="services" id="services">
       <h2 class="section-title anim-fade-up">Услуги</h2>
       <p class="services__common anim-fade-up">
-        Съёмка на улицах Екатеринбурга &middot; Студия по договорённости<br>
-        Ретушь и цветокоррекция &middot; Помощь с позами и подбором одежды
+        <span>Съёмка на улицах Екатеринбурга</span>
+        <span>Студия по договорённости</span><br>
+        <span>Ретушь и цветокоррекция</span>
+        <span>Помощь с позами и подбором одежды</span>
+        <span>Доставка фото: Яндекс диск/ваш выбор</span>
       </p>
       <div class="services__grid">
         <div class="services__card anim-fade-up">
@@ -147,7 +161,7 @@
           <h3 class="services__name">Портретная съёмка</h3>
           <ul class="services__includes">
             <li>от <strong>20</strong> готовых фотографий</li>
-            <li>Фото через <strong>7</strong> рабочих дней</li>
+            <li>Обработка до <strong>7</strong> рабочих дней</li>
           </ul>
           <div class="services__price">1 500 ₽</div>
         </div>
@@ -158,7 +172,7 @@
           <ul class="services__includes">
             <li>от <strong>40</strong> готовых фотографий</li>
             <li>Смена локаций</li>
-            <li>Фото через <strong>10</strong> рабочих дней</li>
+            <li>Обработка до <strong>10</strong> рабочих дней</li>
           </ul>
           <div class="services__price">2 500 ₽</div>
         </div>
@@ -202,14 +216,21 @@
           Написать в Telegram
         </a>
         <div class="contact__bottom anim-fade-up">
-          <a href="https://instagram.com/portrait_photographer_ekb" class="contact__social" aria-label="Instagram" target="_blank" rel="noopener">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-          </a>
-          <a href="https://vk.com/Portrait_Photographer_EKB" class="contact__social" aria-label="VK" target="_blank" rel="noopener">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.07 2H8.93C4.33 2 2 4.33 2 8.93v6.14C2 19.67 4.33 22 8.93 22h6.14C19.67 22 22 19.67 22 15.07V8.93C22 4.33 19.67 2 15.07 2zm3.08 14.27h-1.76c-.67 0-.87-.54-2.07-1.76-1.04-1.01-1.5-1.14-1.76-1.14-.36 0-.47.1-.47.6v1.61c0 .43-.14.69-1.27.69-1.87 0-3.95-1.13-5.41-3.24-2.2-3.09-2.8-5.41-2.8-5.88 0-.26.1-.5.6-.5h1.76c.45 0 .62.2.79.7.87 2.52 2.33 4.74 2.93 4.74.23 0 .33-.1.33-.63V8.86c-.07-1.16-.68-1.26-.68-1.67 0-.2.17-.4.44-.4h2.77c.37 0 .5.2.5.66v3.52c0 .38.17.51.27.51.23 0 .41-.13.83-.55 1.28-1.43 2.2-3.65 2.2-3.65.12-.26.32-.5.77-.5h1.76c.53 0 .65.27.53.66-.23 1.06-2.46 4.22-2.46 4.22-.2.33-.27.47 0 .83.2.27.85.83 1.29 1.34.8.91 1.41 1.68 1.57 2.2.17.52-.08.79-.58.79z"/></svg>
+          <a href="https://t.me/One_hundredth_of_a_second" class="contact__tgk" target="_blank" rel="noopener">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Телеграм канал
           </a>
           <span class="contact__dot">·</span>
           <a href="mailto:Portrait-Photographer-EKB@yandex.ru" class="contact__email">Portrait-Photographer-EKB@yandex.ru</a>
+          <span class="contact__dot">·</span>
+          <div class="contact__socials">
+          <a href="https://instagram.com/portrait_photographer_ekb" class="contact__social" aria-label="Instagram" target="_blank" rel="noopener">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+          </a>
+          <a href="https://vk.com/Portrait_Photographer_EKB" class="contact__social" aria-label="VK" target="_blank" rel="noopener">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M15.07 2H8.93C4.33 2 2 4.33 2 8.93v6.14C2 19.67 4.33 22 8.93 22h6.14C19.67 22 22 19.67 22 15.07V8.93C22 4.33 19.67 2 15.07 2zm3.08 14.27h-1.76c-.67 0-.87-.54-2.07-1.76-1.04-1.01-1.5-1.14-1.76-1.14-.36 0-.47.1-.47.6v1.61c0 .43-.14.69-1.27.69-1.87 0-3.95-1.13-5.41-3.24-2.2-3.09-2.8-5.41-2.8-5.88 0-.26.1-.5.6-.5h1.76c.45 0 .62.2.79.7.87 2.52 2.33 4.74 2.93 4.74.23 0 .33-.1.33-.63V8.86c-.07-1.16-.68-1.26-.68-1.67 0-.2.17-.4.44-.4h2.77c.37 0 .5.2.5.66v3.52c0 .38.17.51.27.51.23 0 .41-.13.83-.55 1.28-1.43 2.2-3.65 2.2-3.65.12-.26.32-.5.77-.5h1.76c.53 0 .65.27.53.66-.23 1.06-2.46 4.22-2.46 4.22-.2.33-.27.47 0 .83.2.27.85.83 1.29 1.34.8.91 1.41 1.68 1.57 2.2.17.52-.08.79-.58.79z"/></svg>
+          </a>
+          </div>
         </div>
         <div class="contact__line-bottom anim-fade-up"></div>
       </div>

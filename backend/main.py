@@ -259,7 +259,6 @@ def scan_folder(folder: Path, photo_meta: dict[str, dict]) -> list[Photo]:
             )
         )
 
-    random.shuffle(photos)
     return photos
 
 
@@ -346,7 +345,12 @@ def _build_portfolio() -> PortfolioData:
 
 @app.get("/api/portfolio", response_model=PortfolioData)
 def get_portfolio():
-    return _build_portfolio()
+    data = _build_portfolio()
+    featured = list(data.featured)
+    gallery = list(data.gallery)
+    random.shuffle(featured)
+    random.shuffle(gallery)
+    return PortfolioData(featured=featured, gallery=gallery, about=data.about)
 
 
 @app.get("/photos/{file_path:path}")
