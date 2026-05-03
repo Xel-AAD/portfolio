@@ -97,21 +97,32 @@ Blur-up pattern:
 - `anim-fade-up`: opacity 0→1 + translateY 20px→0, triggered by IntersectionObserver (threshold 0.1, rootMargin bottom -40px)
 - Delay classes: `.anim-delay-1` (0.1s) through `.anim-delay-4` (0.4s)
 - Hero animations triggered after 200ms timeout (not scroll-based)
+- `prefers-reduced-motion: reduce` media query disables all animations/transitions, `.anim-fade-up` immediately visible
+
+### Active Nav Link
+- `initHeaderScroll()` in `scroll.js` tracks sections `['about', 'featured', 'services', 'contact']`
+- On scroll: finds last section with `getBoundingClientRect().top <= 150`
+- Adds `.nav__link--active` to matching nav link (gold color via `var(--accent)`)
+- If `activeId` is empty (hero) or `'featured'` (no nav link for it), nothing is highlighted
 
 ## Services Section
 
-4 cards in a 2×2 grid (1 column on mobile ≤600px):
+4 cards in a 2×2 grid (1 column on mobile ≤600px). Currently 3 active + 1 commented out:
 
 | Service | Duration | Price | Photos | Delivery |
 |---|---|---|---|---|
-| Портретная съёмка | 1 час | 1 500 ₽ | от 20 | 7 рабочих дней |
-| Расширенная съёмка | 2 часа | 2 500 ₽ | от 40 | 10 рабочих дней |
+| Экспресс съёмка | 1 час | 700 ₽ | от 10 | следующий день |
+| Стандартная съёмка | 1 час | 1 500 ₽ | от 20 | 7 рабочих дней |
 | Контент-съёмка | 1,5 часа | 3 000 ₽ | от 30 | следующий день |
-| Предметная съёмка | По договорённости | Договорная | — | — |
+| ~~Расширенная съёмка~~ | ~~2 часа~~ | ~~2 500 ₽~~ | ~~от 40~~ | ~~10 рабочих дней~~ |
+| ~~Предметная съёмка~~ | ~~По договорённости~~ | ~~Договорная~~ | — | — |
+
+Note: Расширенная съёмка is active in HTML but Предметная съёмка is commented out.
 
 Common text above cards:
 > Съёмка на улицах Екатеринбурга · Студия по договорённости
 > Ретушь и цветокоррекция · Помощь с позами и подбором одежды
+> Доставка фото: Яндекс диск/ваш выбор
 
 CTA links to Yandex Forms: `https://forms.yandex.ru/u/69f0e6f702848f49291ec1d6`
 
@@ -124,6 +135,10 @@ CTA links to Yandex Forms: `https://forms.yandex.ru/u/69f0e6f702848f49291ec1d6`
 | `public/photos/Gallery/` | 44 | Gallery section |
 | `public/photos/About me/` | 1 | About section portrait |
 
+### OG Cover Image
+- `public/photos/og-cover.jpg` — 1200×630px, auto-generated from a Favourites photo
+- Referenced in `<meta property="og:image">` for social media previews
+
 ### Thumbnails
 - Auto-generated to `public/thumbs/` with **SHA256-hashed filenames** (first 16 chars of hash + `.jpg`)
 - `THUMB_MAX_W = 1200`, `THUMB_QUALITY = 80`, progressive JPEG
@@ -134,6 +149,7 @@ CTA links to Yandex Forms: `https://forms.yandex.ru/u/69f0e6f702848f49291ec1d6`
 - **Snapshot cache**: compares folder file names + mtimes per directory. Rebuilds portfolio only on change.
 - **Dimensions cache**: `.dimensions.json` in thumbs dir, stores width/height/mtime per photo.
 - **Portfolio cache**: in-memory `PortfolioData` object, invalidated by snapshot or `photos.json` mtime change.
+- **HTTP caching**: `Cache-Control: public, max-age=60` on `/api/*` (middleware), `max-age=86400` on static files
 
 ### Filename Parsing (`prettify_filename`)
 Parses filenames with pipe-delimited segments: `|DD-MM-YYYY| B&W |-N.jpg`
@@ -165,7 +181,7 @@ Overrides `prettify_filename` titles for specific photos. Volume-mounted at `/ap
 - **Originals** (6-10MB): loaded only in lightbox full layer
 
 ### Randomization
-`random.shuffle` applied to featured and gallery photo lists in backend for variety on each rebuild.
+`random.Random(date.today().toordinal()).shuffle()` — deterministic per day (same order all day for SEO, different each day for variety).
 
 ## Deploy Workflow
 
@@ -193,13 +209,33 @@ Old containers can block port 8000. Use `docker ps -a` to find and remove stale 
 - `base: './'` — relative paths for SPA deployment
 - Dev proxy: `/api` and `/photos` → `http://localhost:8000`
 
+## Local Development
+
+Two processes required:
+1. **Vite** (frontend, port 5173): `npx vite --host`
+2. **uvicorn** (backend, port 8000): `python3 -m uvicorn backend.main:app --host 0.0.0.0 --port 8000`
+
+Vite proxies `/api` and `/photos` to backend automatically.
+
+**Mobile testing** (same Wi-Fi): `http://<mac-ip>:5173`
+
 ## JS Details
 
-### Helpers
-```js
-const $ = (sel, ctx = document) => ctx.querySelector(sel)
-const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)]
-```
+### Module Structure (12 files)
+| File | Purpose |
+|---|---|
+| `main.js` | Entry point — imports and initializes all modules, resize handler |
+| `dom.js` | `$` and `$$` query selector helpers |
+| `state.js` | Shared state (portfolioData, lightbox list/index, isGalleryPage) with getters/setters |
+| `api.js` | `fetchPortfolio()` — fetches `/api/portfolio`, sets state |
+| `about.js` | `renderAbout()` with onerror handler |
+| `featured.js` | `renderFeatured()` — masonry with createElement (no innerHTML, XSS-safe) |
+| `gallery.js` | `renderGallery()` + `buildJustifiedRows()` — justified layout with createElement |
+| `lightbox.js` | `openLightbox()`, `closeLightbox()`, `navigateLightbox()`, `initLightbox()` — blur-up, touch swipe, keyboard nav |
+| `scroll.js` | `_scrollObserver`, `initScrollAnimations()`, `initHeaderScroll()` (active nav), `initHeroAnimations()` |
+| `hero.js` | `initParticles()` (25 div particles), `initParallax()` |
+| `mobile-nav.js` | `initMobileNav()` — burger, overlay, close |
+| `page-switching.js` | `initPageSwitching()` — History API, gallery open/close, swipe-right back gesture |
 
 ### Constants
 - `ROW_HEIGHT = 280` (desktop justified row height)
@@ -218,6 +254,7 @@ const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)]
 - `history.scrollRestoration = 'manual'` — prevents browser restoring scroll position on back/forward
 - `window.scrollTo(0, 0)` on init
 - Header scroll: adds `.scrolled` class when `scrollY > 60`
+- Active nav: tracks `about`, `featured`, `services`, `contact` sections; highlights matching nav link with `.nav__link--active` (gold). Nothing highlighted on hero or featured (no nav link for it).
 
 ### Lightbox Lifecycle
 
@@ -248,25 +285,14 @@ Debounced at 200ms. Only re-renders if `window.innerWidth` actually changed — 
 
 ## CSS Details
 
-### File Structure (1642 lines, 18 sections)
-1. Global variables (`:root`)
-2. Reset (`*, html, body`)
-3. Base elements (`a, img, button, ::selection`)
-4. Page switching (gallery overlay transitions)
-5. Header (fixed nav, `.scrolled` state)
-6. Mobile nav (burger menu, slide-in panel, overlay)
-7. Hero (particles, glow bg, vignette, scroll hint)
-8. Divider (gradient gold line)
-9. Section title (h2 style, `--left` modifier)
-10. About (photo+text grid, glow behind photo)
-11. Featured (flex masonry columns)
-12. Services (card grid, gold bottom line on hover)
-13. Contact (full-screen, glow CTA)
-14. Gallery (justified grid, side lines as real divs)
-15. Footer
-16. Lightbox (blur-up, loading bar)
-17. Animations (`anim-fade-up`, delays)
-18. Mobile (≤768px overrides)
+### File Structure (3 files, 1800 lines total)
+| File | Lines | Contents |
+|---|---|---|
+| `base.css` | 648 | Variables, reset, base elements, page switching, header/nav, hero, divider, section-title, animations, `prefers-reduced-motion` |
+| `components.css` | 878 | About, featured, services, contact, gallery, footer, lightbox |
+| `responsive.css` | 274 | `@media 768px` and `@media 600px` overrides |
+
+Main `style.css` = 3 `@import` lines only (Vite inlines into single bundle at build).
 
 ### Key Measurements
 | Element | Value |
@@ -325,16 +351,43 @@ Debounced at 200ms. Only re-renders if `window.innerWidth` actually changed — 
 </body>
 ```
 
+### SVG Sprite
+3 `<symbol>` definitions in hidden `<svg>` in `<head>`:
+- `#icon-telegram`, `#icon-instagram`, `#icon-vk`
+
+All inline SVGs replaced with `<use href="#icon-*">` references.
+
 ## SEO & Structured Data
 
 - `<title>`: Портретный фотограф • Екатеринбург • Фотосессия | Александр Ахметов
-- `<meta description>`: Russian, mentions price from 1500₽
+- `<meta description>`: Russian, mentions price from 700₽
 - OpenGraph + Twitter Card meta tags
+- OG image: `/photos/og-cover.jpg` (1200×630, auto-generated)
 - JSON-LD `ProfessionalService` schema with:
   - Address: Екатеринбург, RU
   - Geo: 56.8389, 60.6057
   - `sameAs`: Telegram, Instagram, VK
-  - `OfferCatalog`: two offers (1hr/1500₽ and 2hr/2500₽)
+  - `OfferCatalog`: offers matching current service cards
+
+## Backend Security
+
+### XSS Prevention
+- `innerHTML` replaced with `createElement` + `textContent` in `renderFeatured()` and `renderGallery()`
+
+### CORS
+- Restricted to `["https://ekb.photographs.gs", "http://localhost:5173", "http://127.0.0.1:5173"]`
+- Methods: `GET` only
+
+### Path Traversal
+- `_safe_file()` helper uses `Path.is_relative_to()` to validate paths stay within base directory
+- Also blocks symlinks pointing outside base dir
+
+### Content-Type
+- `EXTRA_MIME_TYPES` dict for `.heic/.heif/.avif/.webp` + `guess_type()` fallback in `_file_response()`
+
+### PortfolioService Class
+- Single instance `portfolio_service` encapsulates all mutable cache state (`_cache`, `_snapshot`, `_meta_mtime`, `_dim_cache`)
+- No global mutable variables
 
 ## Critical Gotchas
 
@@ -356,6 +409,14 @@ Debounced at 200ms. Only re-renders if `window.innerWidth` actually changed — 
 
 9. **iOS scroll leak**: `html.gallery-open { overflow: hidden }` prevents touch events from "leaking" through the fixed overlay to the main page underneath. `overflow: hidden` on `<html>` is more reliable than on `<body>` for iOS Safari.
 
+10. **About photo: NO `aspect-ratio`**: Uses `display: block; width: 100%; height: auto` everywhere. `aspect-ratio` in CSS Grid causes Samsung browser bug (image disappears or stretches).
+
+11. **CSS Grid `min-width: auto` bug**: Grid items can override `max-width` on Samsung — fix: `min-width: 0`.
+
+12. **Google Fonts preload**: Never hardcode woff2 URLs — they change with font version. Use `preconnect` only.
+
+13. **Active nav link**: `featured` section is tracked but has no corresponding nav link, so nothing highlights when scrolled to featured — this is intentional.
+
 ## Backend Dependencies
 
 ```
@@ -371,4 +432,8 @@ Pillow is optional — if unavailable, thumbnails fall back to serving originals
 - [ ] Add 2 more photos to Favourites (currently 8, user wanted 10)
 - [ ] Populate `photos.json` with specific titles when user provides descriptions
 - [ ] Register site in Yandex Webmaster + Google Search Console
+- [ ] #6 Show photo title in lightbox (when `photos.json` has meaningful titles)
+- [ ] #7 Pinch-to-zoom in lightbox (via Hammer.js)
+- [ ] #9 Contact section — reduce empty space, add subheading
+- [ ] #11 Hero button "Мои работы" → rename to "Избранное" to avoid confusion with gallery
 - [ ] Fine-tune if any visual issues remain

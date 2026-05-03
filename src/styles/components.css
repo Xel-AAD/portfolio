@@ -1,0 +1,878 @@
+/* ============================================================
+   10. СЕКЦИЯ «ОБО МНЕ» (ABOUT)
+   
+   Десктоп: фото слева (30% ширины), текст справа (70%).
+   Мобильный: фото над текстом (одна колонка), всё по центру.
+   
+   Фото имеет фиксированную пропорцию 3:4 (вертикальное,
+   портретное) — лицо фотографа. За фото — мягкое золотое
+   свечение (glow). Первые 3 абзаца — белые (важные),
+   остальные — серые (дополнительные).
+   ============================================================ */
+
+/* .about — обёртка секции */
+.about {
+  padding: var(--section-pad) 40px;  /* 120px вертикально, 40px горизонтально */
+  max-width: var(--max-w);            /* 1200px макс. ширина */
+  margin: 0 auto;                     /* Центрирование */
+}
+
+
+
+/* .about__inner — сетка: фото + текст */
+.about__inner {
+  display: grid;                      /* CSS Grid — двухколоночная раскладка */
+  grid-template-columns: minmax(200px, 320px) 1fr;  /* Левая: мин 200px, макс 320px  Правая: оставшееся */
+  gap: 70px;                          /* 80px между фото и текстом — просторно */
+  align-items: center;                /* Фото и текст вертикально по центру — визуальный баланс */
+}
+
+/* .about__photo-wrap — контейнер фото */
+.about__photo-wrap {
+  position: relative;
+  overflow: hidden;
+  max-width: 320px;
+  min-width: 0;
+}
+
+/* .about__photo — само фото */
+.about__photo {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 2px;
+}
+
+
+
+
+
+
+/* .about__photo-glow — мягкое золотое свечение за фото */
+.about__photo-glow {
+  position: absolute;                 /* Абсолютное — за фото */
+  inset: 20px;                       /* Отступ 20px от краёв — свечение чуть меньше фото */
+  background: var(--accent);          /* Золотой цвет */
+  opacity: 0.06;                     /* 6% — еле заметное, мягкое */
+  filter: blur(60px);                /* Сильное размытие: 60px — пятно без чётких границ */
+  border-radius: 4px;               /* Слегка скруглённое — не квадратное пятно */
+  z-index: 0;                        /* Под фото (z-index: auto) */
+}
+
+/* .about__text p — абзацы текста */
+.about__text p {
+  font-size: 1rem;                   /* 16px — базовый */
+  font-weight: 300;                   /* Light — тонкий, читабельный на тёмном фоне */
+  color: var(--text-muted);           /* Серый #777 — по умолчанию все абзацы второстепенные */
+  margin-bottom: 12px;               /* Отступ между абзацами — они не слипаются */
+  line-height: 1.8;                  /* Межстрочный: 1.8× — воздушный, легко читать длинные тексты */
+}
+
+/* Первые 3 абзаца — белые (важная информация) */
+.about__text p:first-of-type { font-size: 1.1rem; color: var(--text); }  /* Первый: чуть крупнее (17.6px) + белый — вступление */
+.about__text p:nth-of-type(2) { color: var(--text); }  /* Второй: белый — продолжение */
+.about__text p:nth-of-type(3) { color: var(--text); }  /* Третий: белый — завершение важной части */
+
+/* --- Мобильный «Обо мне» (<=768px) --- */
+
+
+
+
+
+/* ============================================================
+   11. СЕКЦИЯ «ИЗБРАННОЕ» (FEATURED)
+   
+   4-колоночная CSS Grid с кастомной раскладкой: первое фото
+   занимает 2×2 ячейки (крупное), некоторые — 2×1 (широкие).
+   Всего 10 фото из папки Favourites.
+   
+   Hover-эффект: лёгкий зум фото + снизу выезжает оверлей
+   с названием и описанием.
+   
+   Кнопка "Смотреть все работы" — та же анимация заливки,
+   что у hero__btn.
+   ============================================================ */
+
+/* .featured — обёртка секции */
+.featured {
+  padding: var(--section-pad) 40px;
+  max-width: var(--max-w);
+  margin: 0 auto;
+}
+
+.featured__grid {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.featured__col {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.featured__item {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  border-radius: 2px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.featured__item img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.featured__item:hover img {
+  transform: scale(1.04);
+}
+
+.featured__item-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, rgba(10, 10, 10, 0.7) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity 0.4s;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 20px;
+}
+
+.featured__item:hover .featured__item-overlay { opacity: 1; }
+
+.featured__item-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: #fff;
+}
+
+.featured__more {
+  text-align: center;
+  margin-top: 56px;
+}
+
+.featured__more-btn {
+  display: inline-block;
+  padding: 14px 48px;
+  border: 1px solid rgba(201, 169, 110, 0.4);
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  transition: all 0.4s;
+  position: relative;
+  overflow: hidden;
+}
+
+.featured__more-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: -1;
+}
+.featured__more-btn:hover::before { transform: scaleX(1); }
+
+.featured__more-btn:hover {
+  color: var(--bg);
+  border-color: var(--accent);
+  box-shadow: 0 0 30px var(--accent-soft);
+}
+
+
+
+
+/* ============================================================
+   12. СЕКЦИЯ «УСЛУГИ» (SERVICES)
+   
+   Две карточки в ряд: "1 час / 1500₽" и "2 часа / 2500₽".
+   Каждая карточка: иконка, длительность, название, описание,
+   цена. Снизу — кнопка "Записаться" (сплошная золотая).
+   
+   Hover на карточке: фон чуть светлее + снизу появляется
+   золотая линия (::after).
+   ============================================================ */
+
+/* .services — обёртка секции */
+.services {
+  padding: var(--section-pad) 40px;  /* 120px вертикально, 40px бока */
+  max-width: var(--max-w);            /* 1400px */
+  margin: 0 auto;                     /* Центрирование */
+  text-align: center;                 /* Всё по центру — заголовок, карточки, кнопка */
+}
+
+/* .services__grid — сетка из двух карточек */
+.services__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 56px;
+}
+
+.services__common {
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 300;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  margin-bottom: 48px;
+  line-height: 1.8;
+}
+
+.services__common span + span::before {
+  content: ' · ';
+  white-space: pre;
+}
+
+/* .services__card — карточка услуги */
+.services__card {
+  background: var(--bg-card);         /* #131313 — чуть светлее фона страницы — создаёт глубину */
+  padding: 56px 40px;               /* 56px вертикаль (просторно), 40px горизонталь */
+  transition: all 0.4s;              /* Плавная анимация при hover (фон, тень) */
+  position: relative;                /* Для ::after линии снизу */
+}
+
+/* .services__card::after — золотая линия снизу при hover */
+.services__card::after {
+  content: '';                        /* Обязательный content */
+  position: absolute;                 /* Абсолютное — от карточки */
+  bottom: 0;                         /* На нижнем краю */
+  left: 0;                           /* От левого края */
+  right: 0;                          /* До правого края — на всю ширину */
+  height: 2px;                       /* Тонкая линия */
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);  
+  /* Золотая в центре, растворяется по краям — как divider */
+  opacity: 0;                        /* Скрыта — появляется при hover */
+  transition: opacity 0.4s;          /* Плавное появление */
+}
+
+.services__card:hover {
+  background: #181818;               /* Чуть светлее #131313 — подсветка при наведении */
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);  /* Тень: 8px вниз, 40px размытие, чёрная 40% — глубина */
+}
+.services__card:hover::after { opacity: 1; }  /* Линия появляется при hover */
+
+.services__icon {
+  font-size: 1.8rem;
+  margin-bottom: 24px;
+  opacity: 0.6;
+}
+
+.services__duration {
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 24px;
+}
+
+.services__name {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 400;
+  margin-bottom: 16px;
+}
+
+.services__includes {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 28px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.services__includes li {
+  font-size: 0.95rem;
+  font-weight: 300;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.services__includes li::before {
+  content: '— ';
+  color: var(--accent);
+  opacity: 0.5;
+  font-weight: 400;
+}
+
+.services__includes strong {
+  color: var(--text);
+  font-weight: 400;
+}
+
+.services__price {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  color: var(--accent);
+}
+
+/* .services__btn — кнопка "Записаться" */
+.services__btn {
+  display: inline-block;
+  padding: 18px 56px;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  transition: all 0.3s;
+}
+.services__btn:hover {
+  box-shadow: 0 4px 24px var(--accent-soft);  /* Золотое свечение */
+  transform: translateY(-2px);       /* Приподнимается на 2px — эффект "всплывания" */
+}
+
+
+
+
+
+
+
+/* ============================================================
+   13. СЕКЦИЯ «КОНТАКТЫ» (CONTACT)
+   
+   Полноэкранный кинематографичный — как hero, но для контактов.
+   100vh + золотое свечение + крупная CTA по центру.
+   Второстепенные контакты (соцсети, email) — невидимо-мелкие
+   внизу. Драма и фокус на одном действии: написать в Telegram.
+   ============================================================ */
+
+/* .contact — полноэкранная секция */
+.contact {
+  position: relative;                /* Для .contact__bg (absolute) */
+  min-height: calc(100vh - 60px);   /* Весь экран минус футер (60px) — футер виден снизу */
+  display: flex;                     /* Центрирование контента */
+  align-items: center;               /* Вертикально */
+  justify-content: center;           /* Горизонтально */
+  overflow: hidden;                  /* Свечение не создаёт скролл */
+}
+
+/* .contact__bg — золотое свечение на фоне */
+.contact__bg {
+  position: absolute;                /* За контентом */
+  inset: 0;                          /* На весь контакт */
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(201, 169, 110, 0.08) 0%, transparent 60%);
+  /* Одно мягкое пятно по центру — фокус на CTA */
+  animation: contactGlow 12s ease-in-out infinite alternate;
+}
+
+@keyframes contactGlow {
+  0% { opacity: 0.8; transform: scale(1); }
+  100% { opacity: 1; transform: scale(1.15); }
+}
+
+/* .contact__content — центрированный контент */
+.contact__content {
+  position: relative;                /* Над bg */
+  z-index: 1;                        /* Над свечением */
+  text-align: center;                /* Всё по центру */
+  padding: 0 40px;                   /* Боковые отступы */
+}
+
+/* .contact__heading — "Контакты" */
+.contact__heading {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  margin-bottom: 56px;
+  color: var(--text);
+}
+
+/* Декоративные линии — как в hero */
+.contact__line-top,
+.contact__line-bottom {
+  width: 48px;
+  height: 1px;
+  margin: 0 auto;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+.contact__line-top { margin-bottom: 40px; }
+.contact__line-bottom { margin-top: 40px; }
+
+/* .contact__cta — кнопка "Написать в Telegram" */
+.contact__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;                         /* 12px между иконкой и текстом */
+  padding: 18px 64px;               /* Крупная — доминирует на экране */
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 0.85rem;               /* 13.6px — чуть крупнее обычных кнопок */
+  font-weight: 500;
+  letter-spacing: 0.2em;            /* Сильный трекинг */
+  text-transform: uppercase;
+  transition: all 0.3s;
+  margin-bottom: 56px;              /* Отступ до нижнего ряда — симметрично с отступом от заголовка */
+}
+
+.contact__cta-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.contact__cta-icon use { width: 100%; height: 100%; }
+
+.contact__cta:hover {
+  box-shadow: 0 6px 36px var(--accent-glow);  /* Яркое свечение — как маяк */
+  transform: translateY(-3px);       /* Выше подъём — драматичнее */
+}
+
+/* .contact__bottom — мелкий ряд внизу */
+.contact__bottom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.contact__socials {
+  display: flex;
+  gap: 16px;
+}
+
+/* .contact__social — иконка соцсети */
+.contact__social {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;                       /* 28px — маленькие, невидимые */
+  height: 28px;
+  color: var(--text-muted);
+  opacity: 0.5;                      /* Приглушённые — не конкурируют с CTA */
+  transition: color 0.3s, opacity 0.3s, transform 0.3s;
+}
+
+.contact__social svg {
+  width: 28px;
+  height: 28px;
+}
+
+.contact__social:hover {
+  color: var(--accent);
+  opacity: 1;                        /* При hover — полная видимость */
+  transform: translateY(-2px);
+}
+
+.contact__dot {
+  color: var(--text-muted);
+  font-size: 1.75rem;
+  opacity: 0.3;
+}
+
+.contact__tgk {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  opacity: 0.5;
+  letter-spacing: 0.02em;
+  transition: color 0.3s, opacity 0.3s;
+}
+
+.contact__tgk:hover {
+  color: var(--accent);
+  opacity: 1;
+}
+
+/* .contact__email — email */
+.contact__email {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  opacity: 0.5;
+  transition: color 0.3s, opacity 0.3s;
+  word-break: break-all;
+  overflow-wrap: break-word;
+}
+
+.contact__email:hover {
+  color: var(--accent);
+  opacity: 1;
+}
+
+
+
+
+
+
+/* ============================================================
+   14. СТРАНИЦА ГАЛЕРЕИ (GALLERY)
+   
+   Justified-сетка: фото разной высоты выстраиваются в ряды
+   одной высоты, как в Google Photos. Ряды разделены 3px,
+   фото в ряду — тоже 3px зазор.
+   
+   По бокам — 4 декоративные линии (неоновый эффект):
+   • 2 внешних (::before/::after на .gallery__grid)
+   • 2 внутренних (::before/::after на .gallery__grid-inner)
+   Каждая 2px с золотым свечением.
+   
+   Кнопка "Назад" — ограничена между линиями, с золотой
+   подцветкой фона.
+   ============================================================ */
+
+/* .gallery — обёртка галереи */
+.gallery {
+  padding: 50px 0 40px;             /* 50px сверху — место под кнопку "Назад" (fixed, ~44px высота) */
+  position: relative;
+}
+
+/* .gallery__back — кнопка "Назад" (на уровне <body>, как линии) */
+.gallery__back {
+  position: fixed;                    /* Привязана к viewport — как линии, не скроллится */
+  top: 0;                            /* Вверху экрана */
+  left: 24px;
+  right: 24px;
+  z-index: 160;                      /* Как линии — над галереей (150) */
+  padding: 14px 0;
+  background: rgba(201, 169, 110, 0.06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: none;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: none;                     /* Скрыта по умолчанию — видна только в портфолио */
+}
+.gallery-lines.active .gallery__back { display: block; }  /* Показывается вместе с линиями */
+.gallery__back:hover {
+  background: rgba(201, 169, 110, 0.12);  /* Золотой 12% — ярче при hover */
+  color: var(--accent);              /* Золотой текст — акцент */
+}
+
+
+/* .gallery__grid — контейнер justified-сетки */
+.gallery__grid {
+  padding: 0 46px 0 46px;
+  position: relative;
+}
+
+/* БОКОВЫЕ ЛИНИИ — реальные <div> на уровне <body>, не псевдоэлементы.
+   Псевдоэлементы ломались: .page--gallery имеет transform → fixed превращается в absolute,
+   плюс overflow:hidden обрезал. Реальные div вне .page--gallery = гарантированный fixed. */
+
+.gallery-lines {
+  display: none;                      /* Скрыты по умолчанию — видны только в портфолио */
+}
+
+.gallery-lines.active {
+  display: block;
+  z-index: 160;
+  position: relative;
+  width: 0;
+  height: 0;
+  overflow: visible;
+}
+
+.gallery-line {
+  position: fixed;                    /* Привязаны к viewport — всегда по бокам, не скроллятся */
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  z-index: 160;                      /* Над .page--gallery (150) — видны поверх */
+  pointer-events: none;
+}
+
+.gallery-line--outer-left {
+  left: 24px;
+  background: linear-gradient(180deg, transparent 5%, rgba(201, 169, 110, 0.22) 20%, rgba(201, 169, 110, 0.22) 80%, transparent 95%);
+  box-shadow: 0 0 12px rgba(201, 169, 110, 0.06);
+}
+
+.gallery-line--outer-right {
+  right: 24px;
+  background: linear-gradient(180deg, transparent 5%, rgba(201, 169, 110, 0.22) 20%, rgba(201, 169, 110, 0.22) 80%, transparent 95%);
+  box-shadow: 0 0 12px rgba(201, 169, 110, 0.06);
+}
+
+.gallery-line--inner-left {
+  left: 32px;
+  background: linear-gradient(180deg, transparent 8%, rgba(201, 169, 110, 0.18) 25%, rgba(201, 169, 110, 0.18) 75%, transparent 92%);
+  box-shadow: 0 0 8px rgba(201, 169, 110, 0.04);
+}
+
+.gallery-line--inner-right {
+  right: 32px;
+  background: linear-gradient(180deg, transparent 8%, rgba(201, 169, 110, 0.18) 25%, rgba(201, 169, 110, 0.18) 75%, transparent 92%);
+  box-shadow: 0 0 8px rgba(201, 169, 110, 0.04);
+}
+
+/* .gallery__row — один ряд justified-сетки */
+.gallery__row {
+  display: flex;                      /* Flex — фото в ряд */
+  width: 100%;                        /* На всю ширину контейнера */
+  margin-bottom: 3px;                /* 3px между рядами — как gap, но flex не имеет gap в старых браузерах */
+}
+
+/* .gallery__item — одно фото в ряду */
+.gallery__item {
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  cursor: pointer;
+  margin-right: 3px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.gallery__item:last-child { margin-right: 0; }  /* Последнее фото в ряду — без правого зазора */
+
+/* .gallery__item img — фото */
+.gallery__item img {
+  width: 100%;                       /* На всю ширину (задаётся JS) */
+  height: 100%;                      /* На всю высоту ряда */
+  object-fit: cover;                 /* Заполняет, обрезает — все фото одинаковой высоты в ряду */
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);  /* Плавный зум при hover */
+}
+.gallery__item:hover img { transform: scale(1.03); }  /* 3% зум — мягкий, не агрессивный */
+
+/* .gallery__item-overlay — оверлей с названием при hover */
+.gallery__item-overlay {
+  position: absolute;                 /* Поверх фото */
+  inset: 0;                          /* На всю площадь */
+  background: linear-gradient(0deg, rgba(10, 10, 10, 0.7) 0%, transparent 40%);  
+  /* Тёмный снизу (70%), прозрачный к середине — текст на тёмном фоне */
+  opacity: 0;                        /* Скрыт */
+  transition: opacity 0.4s;          /* Плавное появление */
+  display: flex;                      /* Flex внутри */
+  flex-direction: column;             /* Текст столбиком */
+  justify-content: flex-end;          /* Прижат вниз */
+  padding: 20px;                      /* Отступ от краёв */
+}
+.gallery__item:hover .gallery__item-overlay { opacity: 1; }  /* При hover: оверлей видимый */
+
+.gallery__item-title {
+  font-family: var(--font-display);   /* DM Serif Display */
+  font-size: 0.95rem;                /* 15.2px */
+  color: #fff;                       /* Белый */
+  margin-bottom: 4px;               /* Отступ до описания */
+}
+
+.gallery__item-desc {
+  font-size: 0.75rem;                /* 12px */
+  color: rgba(255, 255, 255, 0.6);  /* Белый 60% — второстепенный */
+  font-weight: 300;                   /* Light */
+}
+
+
+
+
+
+
+/* ============================================================
+   15. ФУТЕР (FOOTER)
+   
+   Простой копирайт внизу каждой страницы.
+   Тёмный текст, мелкий шрифт, по центру.
+   ============================================================ */
+
+.footer {
+  padding: 20px 40px;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 300;
+  letter-spacing: 0.04em;
+}
+
+
+
+
+
+
+/* ============================================================
+   16. ЛАЙТБОКС (LIGHTBOX)
+   
+   Полноэкранный просмотр фото. Появляется при клике на фото
+   в featured или gallery. Тёмный оверлей на весь экран,
+   фото по центру, кнопки навигации по бокам.
+   
+   Z-index: 200 — поверх всего (галерея 150, хедер 100).
+   Управление: клик, Esc (закрыть), ←/→ (навигация),
+   свайп на мобильном.
+   ============================================================ */
+
+/* .lightbox — контейнер лайтбокса */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.97);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  touch-action: pan-y;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.lightbox.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* .lightbox__close — кнопка ✕ */
+.lightbox__close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 2rem;
+  z-index: 10;
+  color: var(--text-muted);
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.3s;
+}
+.lightbox__close:hover { color: var(--text); }
+
+/* .lightbox__prev / .lightbox__next — стрелки навигации */
+.lightbox__prev,
+.lightbox__next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.5rem;
+  z-index: 10;
+  color: var(--text-muted);
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: color 0.3s, opacity 0.3s;
+}
+.lightbox:hover .lightbox__prev,
+.lightbox:hover .lightbox__next,
+.lightbox__prev:focus,
+.lightbox__next:focus {
+  opacity: 1;
+}
+.lightbox__prev:hover, .lightbox__next:hover { color: var(--text); }
+
+.lightbox__prev { left: 16px; }
+.lightbox__next { right: 16px; }
+
+/* .lightbox__img — оба слоя: центрирование через translate */
+.lightbox__img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 90vw;
+  max-height: 88vh;
+}
+
+/* Миниатюра — нижний слой: blur-up паттерн */
+.lightbox__img--thumb {
+  z-index: 1;
+  opacity: 0;
+  filter: blur(25px);
+  transition: opacity 0.4s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), filter 0.8s ease;
+}
+
+/* Оригинал — верхний слой: плавное проявление */
+.lightbox__img--full {
+  z-index: 2;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.6s ease, visibility 0s 0.6s;
+}
+
+.lightbox__img--full.loaded {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.6s ease, visibility 0s;
+}
+
+/* .lightbox__info — название фото */
+.lightbox__info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  padding: 20px 0;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--text);
+  opacity: 0.7;
+  z-index: 5;
+}
+
+/* .lightbox__counter — "3 / 44" */
+.lightbox__counter {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  opacity: 0.5;
+  z-index: 5;
+}
+
+/* .lightbox__bar — золотая линия загрузки внизу */
+.lightbox__bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
+  z-index: 6;
+  transform: scaleX(0);
+  transform-origin: left;
+  opacity: 0;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* Пока грузится оригинал — пульсирует */
+.lightbox.lb-loading .lightbox__bar {
+  opacity: 0.6;
+  animation: lb-bar-pulse 1.8s ease-in-out infinite;
+}
+
+/* Оригинал загружен — линия заполняется и исчезает */
+.lightbox.lb-done .lightbox__bar {
+  animation: none;
+  transform: scaleX(1);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.5s ease 0.2s;
+}
+
+@keyframes lb-bar-pulse {
+  0%, 100% { transform: scaleX(0); opacity: 0.3; }
+  50% { transform: scaleX(0.45); opacity: 0.7; }
+}
+
+
+
+
+
+

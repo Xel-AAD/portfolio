@@ -1,14 +1,15 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pathlib import Path
 from pydantic import BaseModel
 from urllib.parse import unquote
+from mimetypes import guess_type
 import json
 import random
 import re
 import hashlib
-import time
+from datetime import date
 
 try:
     from PIL import Image
@@ -34,14 +35,12 @@ ABOUT_DIR = PHOTOS_DIR / "About me"
 
 SCAN_DIRS = [FAVOURITES_DIR, GALLERY_DIR, ABOUT_DIR]
 
-app = FastAPI(title="Photo Portfolio API")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+EXTRA_MIME_TYPES = {
+    ".heic": "image/heic",
+    ".heif": "image/heic",
+    ".avif": "image/avif",
+    ".webp": "image/webp",
+}
 
 
 class Photo(BaseModel):
@@ -61,12 +60,6 @@ class PortfolioData(BaseModel):
     featured: list[Photo]
     gallery: list[Photo]
     about: AboutData = AboutData()
-
-
-_portfolio_cache: PortfolioData | None = None
-_folder_snapshot: dict[str, list[tuple[str, float]]] | None = None
-_metadata_mtime: float = 0.0
-_dim_cache: dict[str, dict] = {}
 
 
 def prettify_filename(filename: str) -> str:
@@ -97,145 +90,186 @@ def prettify_filename(filename: str) -> str:
     return ", ".join(title_parts) if title_parts else filename
 
 
-def _load_dim_cache() -> dict[str, dict]:
-    if DIMENSIONS_CACHE_FILE.exists():
-        try:
-            with open(DIMENSIONS_CACHE_FILE, "r") as f:
-                return json.load(f)
-        except Exception:
-            pass
-    return {}
+class PortfolioService:
+    def __init__(self):
+        self._cache: PortfolioData | None = None
+        self._snapshot: dict[str, list[tuple[str, float]]] | None = None
+        self._meta_mtime: float = 0.0
+        self._dim_cache: dict[str, dict] = {}
 
-
-def _save_dim_cache(cache: dict[str, dict]):
-    THUMBS_DIR.mkdir(parents=True, exist_ok=True)
-    try:
-        with open(DIMENSIONS_CACHE_FILE, "w") as f:
-            json.dump(cache, f)
-    except Exception:
-        pass
-
-
-def get_image_dimensions(filepath: Path) -> tuple[int, int]:
-    rel = str(filepath.relative_to(PHOTOS_DIR))
-    try:
-        mtime = filepath.stat().st_mtime
-    except OSError:
-        if HAS_PIL:
+    def _load_dim_cache(self) -> dict[str, dict]:
+        if DIMENSIONS_CACHE_FILE.exists():
             try:
-                with Image.open(filepath) as img:
-                    return img.size
+                with open(DIMENSIONS_CACHE_FILE, "r") as f:
+                    return json.load(f)
             except Exception:
                 pass
-        return 0, 0
+        return {}
 
-    cached = _dim_cache.get(rel)
-    if cached and cached.get("mtime") == mtime:
-        return cached["width"], cached["height"]
-
-    if not HAS_PIL:
-        return 0, 0
-
-    try:
-        with Image.open(filepath) as img:
-            w, h = img.size
-            _dim_cache[rel] = {"width": w, "height": h, "mtime": mtime}
-            return w, h
-    except Exception:
-        return 0, 0
-
-
-def thumb_path_for(original: Path) -> Path:
-    rel = original.relative_to(PHOTOS_DIR)
-    parts = list(rel.parts)
-    safe_name = hashlib.sha256(parts[-1].encode()).hexdigest()[:16] + Path(parts[-1]).suffix.lower()
-    parts[-1] = safe_name
-    return THUMBS_DIR.joinpath(*parts)
-
-
-def ensure_thumb(original: Path) -> Path:
-    thumb = thumb_path_for(original)
-    if thumb.exists():
+    def _save_dim_cache(self):
+        THUMBS_DIR.mkdir(parents=True, exist_ok=True)
         try:
-            mtime_orig = original.stat().st_mtime
-            mtime_thumb = thumb.stat().st_mtime
-            if mtime_thumb >= mtime_orig:
-                return thumb
-        except OSError:
-            pass
-
-    if not HAS_PIL:
-        return original
-
-    try:
-        thumb.parent.mkdir(parents=True, exist_ok=True)
-        with Image.open(original) as img:
-            img.thumbnail((THUMB_MAX_W, THUMB_MAX_W * 3), Image.LANCZOS)
-            if img.mode in ("RGBA", "P"):
-                img = img.convert("RGB")
-            img.save(str(thumb), "JPEG", quality=THUMB_QUALITY, progressive=True)
-        return thumb
-    except Exception:
-        return original
-
-
-def load_metadata() -> dict:
-    if METADATA_FILE.exists():
-        try:
-            with open(METADATA_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
+            with open(DIMENSIONS_CACHE_FILE, "w") as f:
+                json.dump(self._dim_cache, f)
         except Exception:
             pass
-    return {}
 
+    def get_dimensions(self, filepath: Path) -> tuple[int, int]:
+        if not HAS_PIL:
+            return 0, 0
 
-def _take_folder_snapshot() -> dict[str, list[tuple[str, float]]]:
-    snapshot = {}
-    for d in SCAN_DIRS:
-        if not d.exists():
-            snapshot[str(d)] = []
-            continue
-        entries = []
-        for f in d.iterdir():
-            if f.is_file() and f.suffix.lower() in IMAGE_EXTENSIONS and not f.name.startswith("."):
-                try:
-                    entries.append((f.name, f.stat().st_mtime))
-                except OSError:
-                    pass
-        entries.sort()
-        snapshot[str(d)] = entries
-    return snapshot
+        try:
+            mtime = filepath.stat().st_mtime
+        except OSError:
+            return 0, 0
 
+        rel = str(filepath.relative_to(PHOTOS_DIR))
+        cached = self._dim_cache.get(rel)
+        if cached and cached.get("mtime") == mtime:
+            return cached["width"], cached["height"]
 
-def _snapshot_changed(a: dict, b: dict) -> bool:
-    if a.keys() != b.keys():
-        return True
-    for k in a:
-        if a[k] != b[k]:
+        try:
+            with Image.open(filepath) as img:
+                w, h = img.size
+                self._dim_cache[rel] = {"width": w, "height": h, "mtime": mtime}
+                return w, h
+        except Exception:
+            return 0, 0
+
+    def thumb_path_for(self, original: Path) -> Path:
+        rel = original.relative_to(PHOTOS_DIR)
+        parts = list(rel.parts)
+        safe_name = hashlib.sha256(parts[-1].encode()).hexdigest()[:16] + Path(parts[-1]).suffix.lower()
+        parts[-1] = safe_name
+        return THUMBS_DIR.joinpath(*parts)
+
+    def ensure_thumb(self, original: Path) -> Path:
+        thumb = self.thumb_path_for(original)
+        if thumb.exists():
+            try:
+                mtime_orig = original.stat().st_mtime
+                mtime_thumb = thumb.stat().st_mtime
+                if mtime_thumb >= mtime_orig:
+                    return thumb
+            except OSError:
+                pass
+
+        if not HAS_PIL:
+            return original
+
+        try:
+            thumb.parent.mkdir(parents=True, exist_ok=True)
+            with Image.open(original) as img:
+                img.thumbnail((THUMB_MAX_W, THUMB_MAX_W * 3), Image.LANCZOS)
+                if img.mode in ("RGBA", "P"):
+                    img = img.convert("RGB")
+                img.save(str(thumb), "JPEG", quality=THUMB_QUALITY, progressive=True)
+            return thumb
+        except Exception:
+            return original
+
+    def load_metadata(self) -> dict:
+        if METADATA_FILE.exists():
+            try:
+                with open(METADATA_FILE, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except Exception:
+                pass
+        return {}
+
+    def _take_snapshot(self) -> dict[str, list[tuple[str, float]]]:
+        snapshot = {}
+        for d in SCAN_DIRS:
+            if not d.exists():
+                snapshot[str(d)] = []
+                continue
+            entries = []
+            for f in d.iterdir():
+                if f.is_file() and f.suffix.lower() in IMAGE_EXTENSIONS and not f.name.startswith("."):
+                    try:
+                        entries.append((f.name, f.stat().st_mtime))
+                    except OSError:
+                        pass
+            entries.sort()
+            snapshot[str(d)] = entries
+        return snapshot
+
+    @staticmethod
+    def _snapshot_changed(a: dict, b: dict) -> bool:
+        if a.keys() != b.keys():
             return True
-    return False
+        for k in a:
+            if a[k] != b[k]:
+                return True
+        return False
 
+    def scan_folder(self, folder: Path, photo_meta: dict[str, dict]) -> list[Photo]:
+        if not folder.exists():
+            return []
 
-def scan_folder(folder: Path, photo_meta: dict[str, dict]) -> list[Photo]:
-    if not folder.exists():
-        return []
+        photos: list[Photo] = []
+        image_files = sorted(
+            [
+                f
+                for f in folder.iterdir()
+                if f.is_file()
+                and f.suffix.lower() in IMAGE_EXTENSIONS
+                and not f.name.startswith(".")
+            ]
+        )
 
-    photos: list[Photo] = []
-    image_files = sorted(
-        [
-            f
-            for f in folder.iterdir()
-            if f.is_file()
-            and f.suffix.lower() in IMAGE_EXTENSIONS
-            and not f.name.startswith(".")
-        ]
-    )
+        for img_file in image_files:
+            relative_path = str(img_file.relative_to(PHOTOS_DIR))
+            src_path = f"/photos/{relative_path}"
 
-    for img_file in image_files:
+            thumb = self.ensure_thumb(img_file)
+            if thumb.is_relative_to(THUMBS_DIR):
+                thumb_rel = str(thumb.relative_to(THUMBS_DIR))
+                thumb_path_str = f"/thumbs/{thumb_rel}"
+            else:
+                thumb_path_str = src_path
+
+            meta = photo_meta.get(relative_path)
+            title = meta.get("title", prettify_filename(img_file.name)) if meta else prettify_filename(img_file.name)
+            description = meta.get("description", "") if meta else ""
+
+            w, h = self.get_dimensions(img_file)
+
+            photos.append(
+                Photo(
+                    src=src_path,
+                    thumb=thumb_path_str,
+                    title=title,
+                    description=description,
+                    width=w,
+                    height=h,
+                )
+            )
+
+        return photos
+
+    def get_about_photo(self, photo_meta: dict[str, dict]) -> Photo | None:
+        if not ABOUT_DIR.exists():
+            return None
+
+        image_files = sorted(
+            [
+                f
+                for f in ABOUT_DIR.iterdir()
+                if f.is_file()
+                and f.suffix.lower() in IMAGE_EXTENSIONS
+                and not f.name.startswith(".")
+            ]
+        )
+
+        if not image_files:
+            return None
+
+        img_file = image_files[0]
         relative_path = str(img_file.relative_to(PHOTOS_DIR))
         src_path = f"/photos/{relative_path}"
 
-        thumb = ensure_thumb(img_file)
+        thumb = self.ensure_thumb(img_file)
         if thumb.is_relative_to(THUMBS_DIR):
             thumb_rel = str(thumb.relative_to(THUMBS_DIR))
             thumb_path_str = f"/thumbs/{thumb_rel}"
@@ -243,141 +277,124 @@ def scan_folder(folder: Path, photo_meta: dict[str, dict]) -> list[Photo]:
             thumb_path_str = src_path
 
         meta = photo_meta.get(relative_path)
-        title = meta.get("title", prettify_filename(img_file.name)) if meta else prettify_filename(img_file.name)
-        description = meta.get("description", "") if meta else ""
+        title = meta.get("title", "Александр Ахметов") if meta else "Александр Ахметов"
+        description = meta.get("description", "Портретный фотограф") if meta else "Портретный фотограф"
 
-        w, h = get_image_dimensions(img_file)
+        w, h = self.get_dimensions(img_file)
 
-        photos.append(
-            Photo(
-                src=src_path,
-                thumb=thumb_path_str,
-                title=title,
-                description=description,
-                width=w,
-                height=h,
-            )
+        return Photo(
+            src=src_path,
+            thumb=thumb_path_str,
+            title=title,
+            description=description,
+            width=w,
+            height=h,
         )
 
-    return photos
+    def build(self) -> PortfolioData:
+        current_snapshot = self._take_snapshot()
+
+        try:
+            current_meta_mtime = METADATA_FILE.stat().st_mtime if METADATA_FILE.exists() else 0.0
+        except OSError:
+            current_meta_mtime = 0.0
+
+        if (
+            self._cache is not None
+            and self._snapshot is not None
+            and not self._snapshot_changed(current_snapshot, self._snapshot)
+            and current_meta_mtime == self._meta_mtime
+        ):
+            return self._cache
+
+        self._snapshot = current_snapshot
+        self._meta_mtime = current_meta_mtime
+        self._dim_cache = self._load_dim_cache()
+
+        metadata = self.load_metadata()
+        photo_meta: dict[str, dict] = {}
+        for entry in metadata.get("photos", []):
+            photo_meta[entry.get("file", "")] = entry
+
+        featured = self.scan_folder(FAVOURITES_DIR, photo_meta)
+        gallery = self.scan_folder(GALLERY_DIR, photo_meta)
+        about = AboutData(photo=self.get_about_photo(photo_meta))
+
+        self._cache = PortfolioData(featured=featured, gallery=gallery, about=about)
+        self._save_dim_cache()
+
+        return self._cache
 
 
-def get_about_photo(photo_meta: dict[str, dict]) -> Photo | None:
-    if not ABOUT_DIR.exists():
+portfolio_service = PortfolioService()
+
+app = FastAPI(title="Photo Portfolio API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://ekb.photographs.gs",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_methods=["GET"],
+    allow_headers=["*"],
+)
+
+
+@app.middleware("http")
+async def cache_control_middleware(request: Request, call_next):
+    response = await call_next(request)
+    if request.url.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "public, max-age=60"
+    return response
+
+
+def _safe_file(base_dir: Path, file_path: str) -> Path | None:
+    decoded = unquote(file_path)
+    full_path = (base_dir / decoded).resolve()
+    if not full_path.is_relative_to(base_dir.resolve()):
         return None
+    if full_path.exists() and full_path.is_file():
+        return full_path
+    return None
 
-    image_files = sorted(
-        [
-            f
-            for f in ABOUT_DIR.iterdir()
-            if f.is_file()
-            and f.suffix.lower() in IMAGE_EXTENSIONS
-            and not f.name.startswith(".")
-        ]
+
+def _file_response(full_path: Path) -> FileResponse:
+    suffix = full_path.suffix.lower()
+    media_type = EXTRA_MIME_TYPES.get(suffix) or guess_type(str(full_path))[0]
+    return FileResponse(
+        str(full_path),
+        media_type=media_type,
+        headers={"Cache-Control": "public, max-age=86400"},
     )
-
-    if not image_files:
-        return None
-
-    img_file = image_files[0]
-    relative_path = str(img_file.relative_to(PHOTOS_DIR))
-    src_path = f"/photos/{relative_path}"
-
-    thumb = ensure_thumb(img_file)
-    if thumb.is_relative_to(THUMBS_DIR):
-        thumb_rel = str(thumb.relative_to(THUMBS_DIR))
-        thumb_path_str = f"/thumbs/{thumb_rel}"
-    else:
-        thumb_path_str = src_path
-
-    meta = photo_meta.get(relative_path)
-    title = meta.get("title", "Александр Ахметов") if meta else "Александр Ахметов"
-    description = meta.get("description", "Портретный фотограф") if meta else "Портретный фотограф"
-
-    w, h = get_image_dimensions(img_file)
-
-    return Photo(
-        src=src_path,
-        thumb=thumb_path_str,
-        title=title,
-        description=description,
-        width=w,
-        height=h,
-    )
-
-
-def _build_portfolio() -> PortfolioData:
-    global _portfolio_cache, _folder_snapshot, _metadata_mtime, _dim_cache
-
-    current_snapshot = _take_folder_snapshot()
-
-    try:
-        current_meta_mtime = METADATA_FILE.stat().st_mtime if METADATA_FILE.exists() else 0.0
-    except OSError:
-        current_meta_mtime = 0.0
-
-    if (
-        _portfolio_cache is not None
-        and _folder_snapshot is not None
-        and not _snapshot_changed(current_snapshot, _folder_snapshot)
-        and current_meta_mtime == _metadata_mtime
-    ):
-        return _portfolio_cache
-
-    _folder_snapshot = current_snapshot
-    _metadata_mtime = current_meta_mtime
-    _dim_cache = _load_dim_cache()
-
-    metadata = load_metadata()
-    photo_meta: dict[str, dict] = {}
-    for entry in metadata.get("photos", []):
-        photo_meta[entry.get("file", "")] = entry
-
-    featured = scan_folder(FAVOURITES_DIR, photo_meta)
-    gallery = scan_folder(GALLERY_DIR, photo_meta)
-    about = AboutData(photo=get_about_photo(photo_meta))
-
-    _portfolio_cache = PortfolioData(featured=featured, gallery=gallery, about=about)
-    _save_dim_cache(_dim_cache)
-
-    return _portfolio_cache
 
 
 @app.get("/api/portfolio", response_model=PortfolioData)
 def get_portfolio():
-    data = _build_portfolio()
+    data = portfolio_service.build()
     featured = list(data.featured)
     gallery = list(data.gallery)
-    random.shuffle(featured)
-    random.shuffle(gallery)
+    daily_seed = date.today().toordinal()
+    rng = random.Random(daily_seed)
+    rng.shuffle(featured)
+    rng.shuffle(gallery)
     return PortfolioData(featured=featured, gallery=gallery, about=data.about)
 
 
 @app.get("/photos/{file_path:path}")
 def serve_photo(file_path: str):
-    decoded = unquote(file_path)
-    full_path = (PHOTOS_DIR / decoded).resolve()
-
-    if not str(full_path).startswith(str(PHOTOS_DIR.resolve())):
-        return FileResponse(str(DIST_DIR / "index.html"))
-
-    if full_path.exists() and full_path.is_file():
-        return FileResponse(str(full_path))
-
+    full_path = _safe_file(PHOTOS_DIR, file_path)
+    if full_path:
+        return _file_response(full_path)
     return FileResponse(str(DIST_DIR / "index.html"))
 
 
 @app.get("/thumbs/{file_path:path}")
 def serve_thumb(file_path: str):
-    decoded = unquote(file_path)
-    full_path = (THUMBS_DIR / decoded).resolve()
-
-    if not str(full_path).startswith(str(THUMBS_DIR.resolve())):
-        return FileResponse(str(DIST_DIR / "index.html"))
-
-    if full_path.exists() and full_path.is_file():
-        return FileResponse(str(full_path))
-
+    full_path = _safe_file(THUMBS_DIR, file_path)
+    if full_path:
+        return _file_response(full_path)
     return FileResponse(str(DIST_DIR / "index.html"))
 
 
@@ -390,6 +407,6 @@ def serve_spa(full_path: str):
     file_path = DIST_DIR / decoded
 
     if file_path.exists() and file_path.is_file():
-        return FileResponse(str(file_path))
+        return _file_response(file_path)
 
     return FileResponse(str(DIST_DIR / "index.html"))
