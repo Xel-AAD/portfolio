@@ -186,7 +186,7 @@
 .featured__more-btn:hover {
   color: var(--bg);
   border-color: var(--accent);
-  box-shadow: 0 0 30px var(--accent-soft);
+  box-shadow: 0 0 20px var(--accent-soft);
 }
 
 
@@ -389,7 +389,7 @@
   font-size: clamp(1.8rem, 3.5vw, 2.6rem);
   font-weight: 400;
   letter-spacing: 0.01em;
-  margin-bottom: 56px;
+  margin-bottom: 48px;
   color: var(--text);
 }
 
@@ -409,7 +409,7 @@
   display: inline-flex;
   align-items: center;
   gap: 12px;                         /* 12px между иконкой и текстом */
-  padding: 18px 64px;               /* Крупная — доминирует на экране */
+  padding: 16px 56px;               /* Крупная — доминирует на экране */
   background: var(--accent);
   color: var(--bg);
   font-size: 0.85rem;               /* 13.6px — чуть крупнее обычных кнопок */
@@ -417,7 +417,7 @@
   letter-spacing: 0.2em;            /* Сильный трекинг */
   text-transform: uppercase;
   transition: all 0.3s;
-  margin-bottom: 56px;              /* Отступ до нижнего ряда — симметрично с отступом от заголовка */
+  margin-bottom: 48px;              /* Отступ до нижнего ряда — симметрично с отступом от заголовка */
 }
 
 .contact__cta-icon {
@@ -598,25 +598,25 @@
 .gallery-line--outer-left {
   left: 24px;
   background: linear-gradient(180deg, transparent 5%, rgba(201, 169, 110, 0.22) 20%, rgba(201, 169, 110, 0.22) 80%, transparent 95%);
-  box-shadow: 0 0 12px rgba(201, 169, 110, 0.06);
+  box-shadow: 0 0 8px rgba(201, 169, 110, 0.04);
 }
 
 .gallery-line--outer-right {
   right: 24px;
   background: linear-gradient(180deg, transparent 5%, rgba(201, 169, 110, 0.22) 20%, rgba(201, 169, 110, 0.22) 80%, transparent 95%);
-  box-shadow: 0 0 12px rgba(201, 169, 110, 0.06);
+  box-shadow: 0 0 8px rgba(201, 169, 110, 0.04);
 }
 
 .gallery-line--inner-left {
   left: 32px;
   background: linear-gradient(180deg, transparent 8%, rgba(201, 169, 110, 0.18) 25%, rgba(201, 169, 110, 0.18) 75%, transparent 92%);
-  box-shadow: 0 0 8px rgba(201, 169, 110, 0.04);
+  box-shadow: 0 0 5px rgba(201, 169, 110, 0.03);
 }
 
 .gallery-line--inner-right {
   right: 32px;
   background: linear-gradient(180deg, transparent 8%, rgba(201, 169, 110, 0.18) 25%, rgba(201, 169, 110, 0.18) 75%, transparent 92%);
-  box-shadow: 0 0 8px rgba(201, 169, 110, 0.04);
+  box-shadow: 0 0 5px rgba(201, 169, 110, 0.03);
 }
 
 /* .gallery__row — один ряд justified-сетки */
