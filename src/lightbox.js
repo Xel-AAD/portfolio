@@ -106,13 +106,15 @@ export function closeLightbox() {
     _lbTimer = null
   }
 
+  const closingIndex = getLightboxIndex()
+  setLightboxIndex(-1)
+
   setTimeout(() => {
     if (getLightboxIndex() !== -1) return
     lightbox.classList.remove('open')
     lightbox.setAttribute('aria-hidden', 'true')
     document.documentElement.classList.remove('lightbox-open')
     document.documentElement.style.overflow = ''
-    setLightboxIndex(-1)
     thumb.style.transition = ''
     thumb.style.opacity = ''
     thumb.style.transform = ''
