@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main class="page page--main" id="pageMain">
+
+  <section class="hero" id="hero">
+    <div class="hero__particles" id="heroParticles"></div>
+    <div class="hero__bg"></div>
+    <div class="hero__overlay"></div>
+    <div class="hero__content">
+      <div class="hero__line-top anim-fade-up"></div>
+      <p class="hero__subtitle anim-fade-up">Портретный фотограф</p>
+      <h1 class="hero__title anim-fade-up anim-delay-1">Александр Ахметов</h1>
+      <p class="hero__desc anim-fade-up anim-delay-2">Одиночные &middot; На улице &middot; Студия</p>
+      <a href="#featured" class="hero__btn anim-fade-up anim-delay-3">Мои работы</a>
+      <div class="hero__line-bottom anim-fade-up anim-delay-4"></div>
+    </div>
+    <div class="hero__scroll-hint anim-fade-up anim-delay-4">
+      <div class="hero__scroll-line"></div>
+      <span class="hero__scroll-text">вниз</span>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section class="about" id="about">
+    <div class="about__inner">
+      <div class="about__photo-wrap anim-fade-up">
+        <div class="about__photo-glow"></div>
+        <picture>
+          {% if about_photo.thumb_avif %}<source srcset="{{ about_photo.thumb_avif }}" type="image/avif" />{% endif %}
+          {% if about_photo.thumb_webp %}<source srcset="{{ about_photo.thumb_webp }}" type="image/webp" />{% endif %}
+          <img class="about__photo" src="{{ about_photo.thumb }}" alt="{{ about_photo.title }}" width="{{ about_photo.width }}" height="{{ about_photo.height }}" />
+        </picture>
+      </div>
+      <div class="about__text anim-fade-up anim-delay-1">
+        <h2 class="section-title section-title--left">Обо мне</h2>
+        <p>Я начинающий фотограф, снимаю индивидуальные портреты в Екатеринбурге. Моя главная задача — показать вас живыми, настоящими и красивыми без натянутости. 
+          Даже если вы никогда не позировали, я помогу вам расслабиться перед камерой.</p>
+
+        <p>Также возможны съёмки в студии и парные love-story — обсуждаем отдельно, подбираем стилистику под вашу историю. 
+          Всегда открыт к вашим идеям: приносите референсы, мудборды, просто расскажите, какое настроение хотите передать. 
+          Если идей пока нет — я предложу варианты образа, локации и атмосферы.</p>
+
+        <p>Записывайтесь на съемку, чтобы увидеть себя с новой, неожиданной стороны.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section class="featured" id="featured">
+    <h2 class="section-title anim-fade-up">Избранное</h2>
+    <div class="featured__grid" id="featuredGrid"></div>
+    <div class="featured__more anim-fade-up">
+      <a href="/portfolio/" class="featured__more-btn">Открыть портфолио</a>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section class="services" id="services">
+    <h2 class="section-title anim-fade-up">Услуги</h2>
+    <div class="services__common anim-fade-up">
+      <p>Стеснение перед съемкой? Это нормально, и я знаю, как с этим работать.</p>
+      <p><strong>Снимаю:</strong> одиночные портреты. Студия и love-story — по договорённости. Открыт к вашим идеям.</p>
+      <p><strong>Получаете:</strong> все удачные кадры с профессиональной ретушью и цветокоррекцией (отбор провожу я сам). 
+        Готовые фото загружаю в Яндекс.Диск.</p>
+    </div>
+
+    <div class="services__grid">
+      <div class="services__card anim-fade-up">
+        <div class="services__icon">⚡</div>
+        <div class="services__duration">30 минут</div>
+        <h3 class="services__name">Легкая съёмка</h3>
+        <ul class="services__includes">
+          <li><strong>7-12</strong> фотографий</li>
+          <li><strong>1</strong> образ / 1 локация</li>
+          <li>Фото на <strong>следующий день</strong></li>
+        </ul>
+        <div class="services__price">800 ₽</div>
+      </div>
+
+      <div class="services__card anim-fade-up">
+        <div class="services__icon">🎯</div>
+        <div class="services__duration">1 час</div>
+        <h3 class="services__name">Стандартная съёмка</h3>
+        <ul class="services__includes">
+          <li>от <strong>20</strong> фотографий</li>
+          <li><strong>1-2</strong> образ / несколько локаций</li>
+          <li>Обработка до <strong>7</strong> рабочих дней</li>
+        </ul>
+        <div class="services__price">1 500 ₽</div>
+      </div>
+
+      <div class="services__card anim-fade-up">
+        <div class="services__icon">✦</div>
+        <div class="services__duration">1,5 часа</div>
+        <h3 class="services__name">Стандартная+</h3>
+        <ul class="services__includes">
+          <li><strong>20-30</strong> фотографий</li>
+          <li><strong>2-3</strong> образа / смена локаций</li>
+          <li>Обработка до <strong>10</strong> рабочих дней</li>
+        </ul>
+        <div class="services__price">2 000 ₽</div>
+      </div>
+
+      <div class="services__card anim-fade-up anim-delay-1">
+        <div class="services__icon">⬡</div>
+        <div class="services__duration">2-2,5 часа</div>
+        <h3 class="services__name">Расширенная съёмка</h3>
+        <ul class="services__includes">
+          <li>от <strong>50</strong> фотографий</li>
+          <li><strong>2-4</strong> образа / смена локаций</li>
+          <li>Обработка до <strong>14</strong> рабочих дней</li>
+        </ul>
+        <div class="services__price">2 500 ₽</div>
+      </div>
+    </div>
+    <a href="https://forms.yandex.ru/u/69fd045195add53a4a7a3f54" class="services__btn anim-fade-up" target="_blank" rel="noopener">Записаться</a>
+  </section>
+
+  <div class="divider"></div>
+
+  <section class="contact" id="contact">
+    <div class="contact__bg"></div>
+    <div class="contact__content">
+      <div class="contact__line-top anim-fade-up"></div>
+      <h2 class="contact__heading anim-fade-up">Контакты</h2>
+      <a href="https://t.me/xel_frames" class="contact__cta anim-fade-up" target="_blank" rel="noopener">
+        <svg class="contact__cta-icon"><use href="#icon-telegram"/></svg>
+        Написать в Telegram
+      </a>
+      <div class="contact__bottom anim-fade-up">
+        <a href="https://t.me/One_hundredth_of_a_second" class="contact__tgk" target="_blank" rel="noopener">
+          <svg width="16" height="16"><use href="#icon-telegram"/></svg>
+          Телеграм канал
+        </a>
+        <span class="contact__dot">·</span>
+        <a href="mailto:xel-frames@yandex.ru" class="contact__email">xel-frames@yandex.ru</a>
+        <span class="contact__dot">·</span>
+        <div class="contact__socials">
+          <a href="https://instagram.com/xel_frames" class="contact__social" aria-label="Instagram" target="_blank" rel="noopener">
+            <svg width="20" height="20"><use href="#icon-instagram"/></svg>
+          </a>
+          <a href="https://vk.com/xel_frames" class="contact__social" aria-label="VK" target="_blank" rel="noopener">
+            <svg width="20" height="20"><use href="#icon-vk"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="contact__review-wrap anim-fade-up">
+        <a href="https://forms.yandex.ru/u/69fd1b8e493639359f4f1c79" class="contact__review-btn" target="_blank" rel="noopener">Оставить отзыв</a>
+      </div>
+      <div class="contact__line-bottom anim-fade-up"></div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>&copy; 2026 Александр Ахметов</p>
+  </footer>
+
+</main>
+{% endblock %}

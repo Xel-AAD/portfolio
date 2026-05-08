@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Портфолио • Портретный фотограф • Екатеринбург | Александр Ахметов{% endblock %}
+{% block description %}Портретное портфолио фотографа в Екатеринбурге. Чёрно-белые и цветные портреты, студийные и уличные фотосессии.{% endblock %}
+{% block og_title %}Портфолио — Александр Ахметов{% endblock %}
+{% block og_description %}Портретное портфолио фотографа в Екатеринбурге.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+[
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Главная", "item": "https://ekb.photographs.gs/"},
+      {"@type": "ListItem", "position": 2, "name": "Портфолио", "item": "https://ekb.photographs.gs/portfolio/"}
+    ]
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "ImageGallery",
+    "name": "Портфолио",
+    "description": "Портретное портфолио фотографа в Екатеринбурге. Чёрно-белые и цветные портреты, студийные и уличные фотосессии.",
+    "url": "https://ekb.photographs.gs/portfolio/",
+    "image": [
+      {% for s in sessions %}{% for p in s.photos %}"https://ekb.photographs.gs{{ p.src }}"{% if not loop.last or not loop.parent.last %},{% endif %}{% endfor %}{% endfor %}
+    ]
+  }
+]
+</script>
+{% endblock %}
+
+{% block content %}
+<main class="page page--portfolio">
+
+  <div class="gallery-lines active">
+    <a href="/" class="gallery__back">&#10094;&ensp;На главную</a>
+    <div class="gallery-line gallery-line--outer-left"></div>
+    <div class="gallery-line gallery-line--outer-right"></div>
+    <div class="gallery-line gallery-line--inner-left"></div>
+    <div class="gallery-line gallery-line--inner-right"></div>
+  </div>
+
+  <section class="gallery" id="gallery">
+    <h1 class="section-title anim-fade-up">Портфолио</h1>
+    <div class="gallery__filter-wrap anim-fade-up">
+      <button class="gallery__filter-toggle" id="filterToggle" aria-expanded="false" aria-haspopup="listbox">
+        {% if active_session %}
+          {{ sessions | selectattr('id', 'eq', active_session) | map(attribute='title') | first }}
+        {% else %}
+          Все съёмки
+        {% endif %}
+        <span class="gallery__filter-arrow">&#9662;</span>
+      </button>
+      <div class="gallery__filter-dropdown" id="filterDropdown">
+        <button class="gallery__filter-option{% if not active_session %} gallery__filter-option--active{% endif %}" data-session="">Все съёмки</button>
+        {% for session in sessions %}
+        <button class="gallery__filter-option{% if active_session == session.id %} gallery__filter-option--active{% endif %}" data-session="{{ session.id }}">{{ session.title }}</button>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="gallery__grid">
+      <div class="gallery__grid-inner" id="galleryGrid"></div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>&copy; 2026 Александр Ахметов</p>
+  </footer>
+
+</main>
+{% endblock %}

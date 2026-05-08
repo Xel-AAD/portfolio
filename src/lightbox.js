@@ -2,6 +2,8 @@ import { $ } from './dom.js'
 import { getLightboxList, getLightboxIndex, setLightboxIndex } from './state.js'
 
 let _lbTimer = null
+let _lbCloseTimer = null
+let _lbTouchTimer = null
 const _lbT = 'translate(-50%,-50%)'
 
 function _lbSetLoading(on) {
@@ -38,6 +40,11 @@ export function openLightbox(index) {
   const info = $('#lightboxInfo')
   const counter = $('#lightboxCounter')
 
+  if (_lbCloseTimer) {
+    clearTimeout(_lbCloseTimer)
+    _lbCloseTimer = null
+  }
+
   setLightboxIndex(index)
   const photo = getLightboxList()[index]
 
@@ -57,7 +64,8 @@ export function openLightbox(index) {
   lightbox.classList.add('open')
   lightbox.classList.remove('lb-loading', 'lb-done')
   lightbox.setAttribute('aria-hidden', 'false')
-  document.body.style.overflow = 'hidden'
+  document.documentElement.classList.add('lightbox-open')
+  document.documentElement.style.overflow = 'hidden'
 
   const startZoom = () => {
     requestAnimationFrame(() => {
@@ -99,15 +107,18 @@ export function closeLightbox() {
   }
 
   setTimeout(() => {
+    if (getLightboxIndex() !== -1) return
     lightbox.classList.remove('open')
     lightbox.setAttribute('aria-hidden', 'true')
-    document.body.style.overflow = ''
+    document.documentElement.classList.remove('lightbox-open')
+    document.documentElement.style.overflow = ''
     setLightboxIndex(-1)
     thumb.style.transition = ''
     thumb.style.opacity = ''
     thumb.style.transform = ''
     thumb.style.filter = ''
     full.removeAttribute('src')
+    _lbCloseTimer = null
   }, 300)
 }
 
@@ -167,13 +178,15 @@ export function navigateLightbox(direction) {
 
 export function initLightbox() {
   const lightbox = $('#lightbox')
+  if (!lightbox) return
+
   const closeBtn = $('#lightboxClose')
   const prevBtn = $('#lightboxPrev')
   const nextBtn = $('#lightboxNext')
 
-  closeBtn.addEventListener('click', closeLightbox)
-  prevBtn.addEventListener('click', () => navigateLightbox(-1))
-  nextBtn.addEventListener('click', () => navigateLightbox(1))
+  if (closeBtn) closeBtn.addEventListener('click', closeLightbox)
+  if (prevBtn) prevBtn.addEventListener('click', () => navigateLightbox(-1))
+  if (nextBtn) nextBtn.addEventListener('click', () => navigateLightbox(1))
 
   lightbox.addEventListener('click', e => {
     if (e.target === lightbox) closeLightbox()
@@ -204,9 +217,11 @@ export function initLightbox() {
     if (Math.abs(diffY) > 100 && diffY > 0 && Math.abs(diffY) > Math.abs(diffX)) {
       closeLightbox()
     }
-    setTimeout(() => {
+    if (_lbTouchTimer) clearTimeout(_lbTouchTimer)
+    _lbTouchTimer = setTimeout(() => {
       if (prevBtn) prevBtn.style.opacity = ''
       if (nextBtn) nextBtn.style.opacity = ''
+      _lbTouchTimer = null
     }, 1500)
   }, { passive: true })
 }

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a0a" />
+  <title>{% block title %}Портретный фотограф • Екатеринбург • Фотосессия | Александр Ахметов{% endblock %}</title>
+  <meta name="description" content="{% block description %}Портретный фотограф в Екатеринбурге. Фотосессия от 700₽. Студийные и уличные портреты. Запись на съёмку{% endblock %}" />
+  <meta property="og:title" content="{% block og_title %}Александр Ахметов — Портретный фотограф{% endblock %}" />
+  <meta property="og:description" content="{% block og_description %}Студийные и уличные портреты. Съёмка от 700₽.{% endblock %}" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://ekb.photographs.gs/photos/og-cover.jpg" />
+  <meta property="og:url" content="https://ekb.photographs.gs{{ canonical_path }}" />
+  <link rel="canonical" href="https://ekb.photographs.gs{{ canonical_path }}" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="{% block tw_title %}Александр Ахметов — Портретный фотограф{% endblock %}" />
+  <meta name="twitter:description" content="{% block tw_description %}Студийные и уличные портреты. Съёмка от 700₽.{% endblock %}" />
+  <meta name="twitter:image" content="https://ekb.photographs.gs/photos/og-cover.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://forms.yandex.ru" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/assets/{{ css_file }}" />
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+    <symbol id="icon-telegram" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></symbol>
+    <symbol id="icon-instagram" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></symbol>
+    <symbol id="icon-vk" viewBox="0 0 24 24" fill="currentColor"><path d="M15.07 2H8.93C4.33 2 2 4.33 2 8.93v6.14C2 19.67 4.33 22 8.93 22h6.14C19.67 22 22 19.67 22 15.07V8.93C22 4.33 19.67 2 15.07 2zm3.08 14.27h-1.76c-.67 0-.87-.54-2.07-1.76-1.04-1.01-1.5-1.14-1.76-1.14-.36 0-.47.1-.47.6v1.61c0 .43-.14.69-1.27.69-1.87 0-3.95-1.13-5.41-3.24-2.2-3.09-2.8-5.41-2.8-5.88 0-.26.1-.5.6-.5h1.76c.45 0 .62.2.79.7.87 2.52 2.33 4.74 2.93 4.74.23 0 .33-.1.33-.63V8.86c-.07-1.16-.68-1.26-.68-1.67 0-.2.17-.4.44-.4h2.77c.37 0 .5.2.5.66v3.52c0 .38.17.51.27.51.23 0 .41-.13.83-.55 1.28-1.43 2.2-3.65 2.2-3.65.12-.26.32-.5.77-.5h1.76c.53 0 .65.27.53.66-.23 1.06-2.46 4.22-2.46 4.22-.2.33-.27.47 0 .83.2.27.85.83 1.29 1.34.8.91 1.41 1.68 1.57 2.2.17.52-.08.79-.58.79z"/></symbol>
+  </svg>
+  {% block structured_data %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    "name": "Александр Ахметов — Портретный фотограф",
+    "description": "Портретный фотограф в Екатеринбурге. Студийные и уличные портреты. Фотосессия от 700₽.",
+    "url": "https://ekb.photographs.gs",
+    "image": "https://ekb.photographs.gs/photos/og-cover.jpg",
+    "priceRange": "700₽ - 2500₽",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Екатеринбург",
+      "addressCountry": "RU"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": "56.8389",
+      "longitude": "60.6057"
+    },
+    "sameAs": [
+      "https://t.me/xel_frames",
+      "https://www.instagram.com/xel_frames",
+      "https://vk.com/xel_frames"
+    ],
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Фотосессии",
+      "itemListElement": [
+        {
+          "@type": "Offer",
+          "name": "Лёгкая съёмка 30-40 минут",
+          "description": "7-10 фотографий, 1 образ",
+          "price": "700",
+          "priceCurrency": "RUB"
+        },
+        {
+          "@type": "Offer",
+          "name": "Стандартная съёмка 1 час",
+          "description": "20 фотографий, 1-2 образа",
+          "price": "1500",
+          "priceCurrency": "RUB"
+        },
+        {
+          "@type": "Offer",
+          "name": "Стандартная+ съёмка 1.5 часа",
+          "description": "20-30 фотографий, 2-3 образа",
+          "price": "2000",
+          "priceCurrency": "RUB"
+        },
+        {
+          "@type": "Offer",
+          "name": "Расширенная съёмка 2-2.5 часа",
+          "description": "40 фотографий, 2-4 образа",
+          "price": "2500",
+          "priceCurrency": "RUB"
+        }
+      ]
+    }
+  }
+  </script>
+  {% endblock %}
+</head>
+<body>
+
+  <header class="header" id="header">
+    <nav class="nav">
+      <a href="/" class="nav__logo">Портретный фотограф — Екатеринбург</a>
+      <ul class="nav__links">
+        <li class="nav__close-wrap"><button class="nav__close" id="navClose" aria-label="Закрыть меню">&#10005;</button></li>
+        <li><a href="/#about">Обо мне</a></li>
+        <li><a href="/portfolio/">Портфолио</a></li>
+        <li><a href="/#services">Услуги</a></li>
+        <li><a href="/reviews/">Отзывы</a></li>
+        <li><a href="/#contact">Контакты</a></li>
+        <li class="nav__menu-footer">
+          <a href="https://t.me/xel_frames" target="_blank" rel="noopener" class="nav__menu-social" aria-label="Telegram">
+            <svg width="20" height="20"><use href="#icon-telegram"/></svg>
+          </a>
+          <a href="https://instagram.com/xel_frames" target="_blank" rel="noopener" class="nav__menu-social" aria-label="Instagram">
+            <svg width="20" height="20"><use href="#icon-instagram"/></svg>
+          </a>
+          <a href="https://vk.com/xel_frames" target="_blank" rel="noopener" class="nav__menu-social" aria-label="VK">
+            <svg width="20" height="20"><use href="#icon-vk"/></svg>
+          </a>
+        </li>
+      </ul>
+      <button class="nav__burger" id="navBurger" aria-label="Меню">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+  </header>
+  <div class="nav__overlay" id="navOverlay"></div>
+
+  {% block content %}{% endblock %}
+
+  <div class="lightbox" id="lightbox" role="dialog" aria-label="Просмотр фотографии" aria-hidden="true">
+    <button class="lightbox__close" id="lightboxClose" aria-label="Закрыть">&times;</button>
+    <button class="lightbox__prev" id="lightboxPrev" aria-label="Предыдущее">&#10094;</button>
+    <button class="lightbox__next" id="lightboxNext" aria-label="Следующее">&#10095;</button>
+    <img class="lightbox__img lightbox__img--thumb" id="lightboxThumb" src="" alt="" />
+    <img class="lightbox__img lightbox__img--full" id="lightboxFull" src="" alt="" />
+    <div class="lightbox__info" id="lightboxInfo"></div>
+    <div class="lightbox__counter" id="lightboxCounter"></div>
+    <div class="lightbox__bar" id="lightboxBar"></div>
+  </div>
+
+  <script>
+    window.__PAGE__ = "{{ page }}";
+    window.__LIGHTBOX_DATA__ = {{ lightbox_data | tojson }};
+    window.__GALLERY_DATA__ = {{ gallery_data | tojson }};
+    window.__ACTIVE_SESSION__ = {{ active_session | tojson }};
+  </script>
+  <script type="module" src="/assets/{{ js_file }}"></script>
+</body>
+</html>

@@ -20,22 +20,46 @@ export function initHeaderScroll() {
   const header = $('#header')
   let ticking = false
 
-  const sections = ['about', 'featured', 'services', 'contact']
+  const page = window.__PAGE__
+  let sections = []
+  let navLinks = $$('.nav__links a')
+
+  if (page === 'index') {
+    sections = ['about', 'featured', 'services', 'contact']
+  }
+
+  if (page === 'portfolio' && header) {
+    header.classList.add('header--hidden')
+  }
+
+  if (page === 'reviews' && header) {
+    header.classList.add('scrolled')
+  }
+
   const sectionEls = sections.map(id => document.getElementById(id)).filter(Boolean)
-  const navLinks = $$('.nav__links a[href^="#"]')
 
   function updateActiveNav() {
-    if (header) header.classList.toggle('scrolled', window.scrollY > 60)
-
-    let activeId = ''
-    for (const el of sectionEls) {
-      const rect = el.getBoundingClientRect()
-      if (rect.top <= 150) activeId = el.id
+    if (header && page === 'index') {
+      header.classList.toggle('scrolled', window.scrollY > 60)
     }
 
     navLinks.forEach(link => {
       const href = link.getAttribute('href')
-      const isActive = activeId !== '' && href === `#${activeId}`
+      let isActive = false
+
+      if (page === 'index') {
+        let activeId = ''
+        for (const el of sectionEls) {
+          const rect = el.getBoundingClientRect()
+          if (rect.top <= 150) activeId = el.id
+        }
+        isActive = activeId !== '' && (href === `#${activeId}` || href === `/#${activeId}`)
+      } else if (page === 'portfolio') {
+        isActive = href === '/portfolio/'
+      } else if (page === 'reviews') {
+        isActive = href === '/reviews/'
+      }
+
       link.classList.toggle('nav__link--active', isActive)
     })
   }

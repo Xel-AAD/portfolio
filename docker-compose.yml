@@ -6,4 +6,5 @@ services:
     volumes:
       - ./public/photos:/app/public/photos
       - ./backend/photos.json:/app/backend/photos.json
+      - ./backend/reviews.json:/app/backend/reviews.json
     restart: unless-stopped

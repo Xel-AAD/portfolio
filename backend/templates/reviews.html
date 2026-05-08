@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Отзывы • Портретный фотограф • Екатеринбург | Александр Ахметов{% endblock %}
+{% block description %}Отзывы клиентов о портретном фотографе Александре Ахметове в Екатеринбурге.{% endblock %}
+{% block og_title %}Отзывы — Александр Ахметов{% endblock %}
+{% block og_description %}Отзывы клиентов о портретном фотографе в Екатеринбурге.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+[
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Главная", "item": "https://ekb.photographs.gs/"},
+      {"@type": "ListItem", "position": 2, "name": "Отзывы", "item": "https://ekb.photographs.gs/reviews/"}
+    ]
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Отзывы",
+    "description": "Отзывы клиентов о портретном фотографе Александре Ахметове.",
+    "url": "https://ekb.photographs.gs/reviews/"
+    {% if reviews and avg_rating %},
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "{{ avg_rating }}",
+      "bestRating": 10,
+      "reviewCount": {{ reviews | length }}
+    },
+    "review": [
+      {% for r in reviews %}{
+        "@type": "Review",
+        "author": {"@type": "Person", "name": "{{ r.name }}"},
+        "reviewRating": {"@type": "Rating", "ratingValue": {{ r.rating }}, "bestRating": 10},
+        "reviewBody": "{{ r.text }}"
+      }{% if not loop.last %},{% endif %}{% endfor %}
+    ]
+    {% endif %}
+  }
+]
+</script>
+{% endblock %}
+
+{% block content %}
+<main class="page page--reviews">
+
+  <section class="reviews" id="reviews">
+    <div class="reviews__inner">
+      <div class="reviews__line-top anim-fade-up"></div>
+      <h1 class="section-title anim-fade-up">Отзывы</h1>
+
+      {% if reviews %}
+      <div class="reviews__grid">
+        {% for review in reviews %}
+        <div class="reviews__card anim-fade-up">
+           <div class="reviews__quote">&#8220;</div>
+           {% if review.rating %}
+           <div class="reviews__rating">{{ review.rating }}/10</div>
+           {% endif %}
+           <p class="reviews__text">{{ review.text }}</p>
+           <div class="reviews__meta">
+             <span class="reviews__name">{{ review.name }}</span>
+             {% if review.date %}
+             <span class="reviews__date"> — {{ review.date }}</span>
+             {% endif %}
+           </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="reviews__empty anim-fade-up">Пока нет отзывов. Станьте первым!</p>
+      {% endif %}
+
+      <div class="reviews__line-bottom anim-fade-up"></div>
+      <div class="reviews__actions"><a href="https://forms.yandex.ru/u/69fd1b8e493639359f4f1c79" class="reviews__btn anim-fade-up" target="_blank" rel="noopener">Оставить отзыв</a></div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>&copy; 2026 Александр Ахметов</p>
+  </footer>
+
+</main>
+{% endblock %}

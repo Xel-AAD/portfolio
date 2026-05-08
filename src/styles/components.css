@@ -61,17 +61,15 @@
 
 /* .about__text p — абзацы текста */
 .about__text p {
-  font-size: 1rem;                   /* 16px — базовый */
-  font-weight: 300;                   /* Light — тонкий, читабельный на тёмном фоне */
-  color: var(--text-muted);           /* Серый #777 — по умолчанию все абзацы второстепенные */
-  margin-bottom: 12px;               /* Отступ между абзацами — они не слипаются */
-  line-height: 1.8;                  /* Межстрочный: 1.8× — воздушный, легко читать длинные тексты */
+  font-size: 1rem;
+  font-weight: 300;
+  color: var(--text);
+  margin-bottom: 12px;
+  line-height: 1.8;
 }
 
-/* Первые 3 абзаца — белые (важная информация) */
-.about__text p:first-of-type { font-size: 1.1rem; color: var(--text); }  /* Первый: чуть крупнее (17.6px) + белый — вступление */
-.about__text p:nth-of-type(2) { color: var(--text); }  /* Второй: белый — продолжение */
-.about__text p:nth-of-type(3) { color: var(--text); }  /* Третий: белый — завершение важной части */
+.about__text p:first-of-type { font-size: 1.1rem; }
+.about__text p:last-of-type { color: var(--text-muted); }
 
 /* --- Мобильный «Обо мне» (<=768px) --- */
 
@@ -166,7 +164,7 @@
   font-weight: 400;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  transition: all 0.4s;
+  transition: color 0.4s, border-color 0.4s, box-shadow 0.4s;
   position: relative;
   overflow: hidden;
 }
@@ -220,25 +218,29 @@
 }
 
 .services__common {
-  text-align: center;
+  margin: 0 auto 48px;
   font-size: 0.95rem;
   font-weight: 300;
   color: var(--text-muted);
-  letter-spacing: 0.04em;
-  margin-bottom: 48px;
   line-height: 1.8;
+  text-align: center;
 }
 
-.services__common span + span::before {
-  content: ' · ';
-  white-space: pre;
+.services__common p + p {
+  margin-top: 8px;
+}
+
+.services__common strong {
+  color: var(--accent);
+  font-weight: 500;
+  letter-spacing: 0.04em;
 }
 
 /* .services__card — карточка услуги */
 .services__card {
   background: var(--bg-card);         /* #131313 — чуть светлее фона страницы — создаёт глубину */
   padding: 56px 40px;               /* 56px вертикаль (просторно), 40px горизонталь */
-  transition: all 0.4s;              /* Плавная анимация при hover (фон, тень) */
+  transition: background 0.4s, box-shadow 0.4s;
   position: relative;                /* Для ::after линии снизу */
 }
 
@@ -328,7 +330,7 @@
   font-weight: 500;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  transition: all 0.3s;
+  transition: box-shadow 0.3s, transform 0.3s;
 }
 .services__btn:hover {
   box-shadow: 0 4px 24px var(--accent-soft);  /* Золотое свечение */
@@ -416,7 +418,7 @@
   font-weight: 500;
   letter-spacing: 0.2em;            /* Сильный трекинг */
   text-transform: uppercase;
-  transition: all 0.3s;
+  transition: box-shadow 0.3s, transform 0.3s;
   margin-bottom: 48px;              /* Отступ до нижнего ряда — симметрично с отступом от заголовка */
 }
 
@@ -429,8 +431,53 @@
 .contact__cta-icon use { width: 100%; height: 100%; }
 
 .contact__cta:hover {
-  box-shadow: 0 6px 36px var(--accent-glow);  /* Яркое свечение — как маяк */
-  transform: translateY(-3px);       /* Выше подъём — драматичнее */
+  box-shadow: 0 6px 36px var(--accent-glow);
+  transform: translateY(-3px);
+}
+
+.contact__review-wrap {
+  text-align: center;
+  margin-top: 32px;
+  margin-bottom: 32px;
+}
+
+.contact__review-btn {
+  display: inline-block;
+  padding: 6px 20px;
+  border: 1px solid rgba(201, 169, 110, 0.4);
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text);
+  text-decoration: none;
+  transition: color 0.4s, border-color 0.4s, box-shadow 0.4s;
+  position: relative;
+  overflow: hidden;
+}
+
+.contact__review-btn:hover {
+  color: var(--bg);
+  border-color: var(--accent);
+  box-shadow: 0 0 20px rgba(201, 169, 110, 0.15);
+}
+
+.contact__review-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: -1;
+}
+
+.contact__review-btn:hover::before {
+  transform: scaleX(1);
 }
 
 /* .contact__bottom — мелкий ряд внизу */
@@ -529,17 +576,102 @@
 
 /* .gallery — обёртка галереи */
 .gallery {
-  padding: 50px 0 40px;             /* 50px сверху — место под кнопку "Назад" (fixed, ~44px высота) */
+  padding: 0px 0 40px;
   position: relative;
+}
+
+.gallery__filter-wrap {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  padding: 0 46px 30px;
+}
+
+.gallery__filter-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  background: rgba(201,169,110,0.03);
+  border: 2px solid var(--border);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 400;
+  letter-spacing: 0.09em;
+  padding: 12px 100px;
+  cursor: pointer;
+  transition: color 0.3s, border-color 0.3s;
+}
+
+.gallery__filter-toggle:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.gallery__filter-arrow {
+  font-size: 0.8rem;
+  transition: transform 0.3s;
+}
+
+.gallery__filter-wrap--open .gallery__filter-arrow {
+  transform: rotate(180deg);
+}
+
+.gallery__filter-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 200px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-50%) translateY(-8px);
+  transition: opacity 0.25s, visibility 0.25s, transform 0.25s;
+  z-index: 50;
+}
+
+.gallery__filter-wrap--open .gallery__filter-dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.gallery__filter-option {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  padding: 12px 24px;
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s;
+}
+
+.gallery__filter-option:hover {
+  color: var(--accent);
+  background: rgba(201, 169, 110, 0.06);
+}
+
+.gallery__filter-option--active {
+  color: var(--accent);
+  font-weight: 500;
 }
 
 /* .gallery__back — кнопка "Назад" (на уровне <body>, как линии) */
 .gallery__back {
-  position: fixed;                    /* Привязана к viewport — как линии, не скроллится */
-  top: 0;                            /* Вверху экрана */
-  left: 24px;
-  right: 24px;
-  z-index: 160;                      /* Как линии — над галереей (150) */
+  position: fixed;
+  top: 0;
+  left: 34px;
+  right: 34px;
+  z-index: 160;
   padding: 14px 0;
   background: rgba(201, 169, 110, 0.06);
   backdrop-filter: blur(16px);
@@ -553,10 +685,10 @@
   color: var(--text-muted);
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s;
-  display: none;                     /* Скрыта по умолчанию — видна только в портфолио */
+  transition: background 0.3s, color 0.3s;
+  text-decoration: none;
+  display: block;
 }
-.gallery-lines.active .gallery__back { display: block; }  /* Показывается вместе с линиями */
 .gallery__back:hover {
   background: rgba(201, 169, 110, 0.12);  /* Золотой 12% — ярче при hover */
   color: var(--accent);              /* Золотой текст — акцент */
@@ -567,6 +699,8 @@
 .gallery__grid {
   padding: 0 46px 0 46px;
   position: relative;
+  z-index: 1;
+  overflow: hidden;
 }
 
 /* БОКОВЫЕ ЛИНИИ — реальные <div> на уровне <body>, не псевдоэлементы.
@@ -621,9 +755,10 @@
 
 /* .gallery__row — один ряд justified-сетки */
 .gallery__row {
-  display: flex;                      /* Flex — фото в ряд */
-  width: 100%;                        /* На всю ширину контейнера */
-  margin-bottom: 3px;                /* 3px между рядами — как gap, но flex не имеет gap в старых браузерах */
+  display: flex;
+  max-width: 100%;
+  overflow: hidden;
+  margin-bottom: 5px;
 }
 
 /* .gallery__item — одно фото в ряду */
@@ -632,7 +767,7 @@
   overflow: hidden;
   flex-shrink: 0;
   cursor: pointer;
-  margin-right: 3px;
+  margin-right: 5px;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
@@ -664,7 +799,7 @@
 
 .gallery__item-title {
   font-family: var(--font-display);   /* DM Serif Display */
-  font-size: 0.95rem;                /* 15.2px */
+  font-size: 0.85rem;                /* 15.2px */
   color: #fff;                       /* Белый */
   margin-bottom: 4px;               /* Отступ до описания */
 }
@@ -678,10 +813,136 @@
 
 
 
-
-
 /* ============================================================
-   15. ФУТЕР (FOOTER)
+   15. ОТЗЫВЫ (REVIEWS)
+   ============================================================ */
+
+.reviews {
+  padding: 60px 40px;
+  min-height: calc(100vh - 80px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reviews__inner {
+  max-width: var(--max-w);
+  width: 100%;
+  margin: 0 auto;
+}
+
+.reviews__line-top,
+.reviews__line-bottom {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  margin: 20px 0;
+}
+
+.reviews__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  margin: 40px 0;
+}
+
+.reviews__card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 32px;
+  position: relative;
+}
+
+.reviews__quote {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  color: var(--accent);
+  opacity: 0.3;
+  line-height: 1;
+  position: absolute;
+  top: 16px;
+  left: 24px;
+}
+
+.reviews__rating {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.reviews__text {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--text);
+  font-weight: 300;
+  margin-bottom: 16px;
+}
+
+.reviews__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.reviews__name {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.reviews__empty {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  padding: 60px 0;
+}
+
+.reviews__actions {
+  text-align: center;
+}
+
+.reviews__btn {
+  display: inline-block;
+  padding: 14px 48px;
+  border: 1px solid rgba(201, 169, 110, 0.4);
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text);
+  text-decoration: none;
+  text-align: center;
+  transition: color 0.4s, border-color 0.4s, box-shadow 0.4s;
+  position: relative;
+  overflow: hidden;
+  margin-top: 16px;
+}
+
+.reviews__btn:hover {
+  color: var(--bg);
+  border-color: var(--accent);
+  box-shadow: 0 0 20px rgba(201, 169, 110, 0.15);
+}
+
+.reviews__btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: -1;
+}
+
+.reviews__btn:hover::before {
+  transform: scaleX(1);
+}/* ============================================================
+   16. ФУТЕР (FOOTER)
    
    Простой копирайт внизу каждой страницы.
    Тёмный текст, мелкий шрифт, по центру.
@@ -818,7 +1079,7 @@
   text-align: center;
   padding: 20px 0;
   font-family: var(--font-display);
-  font-size: 1rem;
+  font-size: 1.2rem;
   color: var(--text);
   opacity: 0.7;
   z-index: 5;
@@ -872,7 +1133,50 @@
 }
 
 
+/* ============================================================
+   404 — СТРАНИЦА НЕ НАЙДЕНА
+   ============================================================ */
 
+.not-found {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  text-align: center;
+}
 
+.not-found__inner {
+  padding: 2rem;
+}
+
+.not-found__title {
+  font-family: "DM Serif Display", serif;
+  font-size: 8rem;
+  line-height: 1;
+  color: var(--gold);
+  margin-bottom: 0.5rem;
+}
+
+.not-found__text {
+  font-size: 1.25rem;
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+}
+
+.not-found__link {
+  display: inline-block;
+  padding: 0.75rem 2rem;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: background 0.3s, color 0.3s;
+}
+
+.not-found__link:hover {
+  background: var(--gold);
+  color: var(--bg);
+}
 
 

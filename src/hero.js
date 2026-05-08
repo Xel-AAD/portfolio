@@ -1,4 +1,4 @@
-import { $, $$ } from './dom.js'
+import { $ } from './dom.js'
 
 export function initParticles() {
   const container = $('#heroParticles')
@@ -16,25 +16,4 @@ export function initParticles() {
     particle.style.animationDelay = `${Math.random() * 12}s`
     container.appendChild(particle)
   }
-}
-
-export function initParallax() {
-  let ticking = false
-
-  window.addEventListener('scroll', () => {
-    if (!ticking) {
-      requestAnimationFrame(() => {
-        const items = $$('.parallax-item')
-        items.forEach(item => {
-          const rect = item.getBoundingClientRect()
-          if (rect.top < window.innerHeight && rect.bottom > 0) {
-            const offset = (rect.top / window.innerHeight) * 12
-            item.style.transform = `translateY(${offset}px)`
-          }
-        })
-        ticking = false
-      })
-      ticking = true
-    }
-  })
 }

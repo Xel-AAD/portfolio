@@ -97,18 +97,23 @@
   }
   .nav__overlay.open { display: block; }
 
+  .hero {
+    height: 100dvh;
+    min-height: 0;
+  }
+
   .hero__content { padding: 0 24px; }
 
   .hero__subtitle {
     font-size: 0.72rem;
     letter-spacing: 0.2em;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
 
   .hero__desc {
     font-size: 0.82rem;
     letter-spacing: 0.1em;
-    margin-bottom: 32px;
+    margin-bottom: 24px;
   }
 
   .hero__btn { padding: 13px 36px; font-size: 0.78rem; letter-spacing: 0.15em; }
@@ -116,7 +121,7 @@
   .hero__line-top { margin-bottom: 28px; }
   .hero__line-bottom { margin-top: 32px; }
 
-  .hero__scroll-hint { bottom: 32px; }
+  .hero__scroll-hint { display: none; }
 
   .about { padding: 60px 24px; }
 
@@ -132,12 +137,6 @@
     max-width: 100%;
     min-width: 0;
     flex-shrink: 0;
-  }
-
-  .about__photo {
-    display: block;
-    width: 100%;
-    height: auto;
   }
 
   .about__photo-glow { display: none !important; }
@@ -160,14 +159,14 @@
   .featured__more { margin-top: 36px; }
   .featured__more-btn { padding: 12px 36px; font-size: 0.72rem; }
 
-  .services__common { font-size: 0.85rem; margin-bottom: 36px; text-align: left; }
-  .services__common span { display: block; }
-  .services__common span::before { content: '· '; }
-  .services__common span + span::before { content: '· '; }
-  .services__common br { display: none; }
+  .services { padding: 60px 24px; }
+  .services__common { font-size: 0.85rem; margin-bottom: 36px; }
+  .services__grid { grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 36px; }
   .services__card { padding: 36px 28px; }
   .services__name { font-size: 1.4rem; }
   .services__price { font-size: 1.8rem; }
+
+  .page--portfolio { padding-top: 68px; }
 
   .gallery__back {
     left: 0;
@@ -178,7 +177,18 @@
   }
 
   .gallery {
-    padding: 50px 0 0;
+    padding: 0;
+  }
+
+  .gallery__filter-wrap { padding: 0 20px 24px; }
+  .gallery__filter-toggle {
+    padding: 10px 24px;
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+  }
+  .gallery__filter-option {
+    padding: 10px 18px;
+    font-size: 0.8rem;
   }
 
   .gallery__grid {
@@ -188,40 +198,38 @@
   .gallery-line { display: none; }
   .gallery-lines.active .gallery__back { display: block; }
 
+  .reviews { padding: 40px 20px; }
+  .reviews__grid { grid-template-columns: 1fr; gap: 16px; }
+  .reviews__card { padding: 24px 20px; }
+  .reviews__rating { font-size: 1.3rem; }
+  .reviews__text { font-size: 0.85rem; }
+  .reviews__btn { padding: 12px 36px; font-size: 0.72rem; }
+
   .footer { padding: 22px 24px; }
 
   .divider { padding: 0 24px; }
 
-  .contact__content { padding: 0 24px; }
-
-  /*расстояние между заголовком и кнопкой*/
-  .contact__heading { margin-bottom: 32px; }
-
-  /*кнопка написать в телеграм*/
+  .contact__content { padding: 0 24px; display: flex; flex-direction: column; }
+  .contact__line-top { margin-bottom: 24px; order: -1; }
+  .contact__heading { margin-bottom: 0; }
   .contact__cta {
     padding: 14px 36px;
     font-size: 0.78rem;
     letter-spacing: 0.15em;
-    margin-bottom: 32px;   /*расстояние между кнопкой и почтой*/
+    margin-bottom: 0;
+    margin-top: 32px;
   }
-
   .contact__cta-icon { width: 16px; height: 16px; }
-
-  .contact__bottom { flex-direction: column; gap: 14px; }
-  .contact__email { order: 1; }
-  .contact__tgk { order: 2; }
+  .contact__bottom { flex-direction: column; gap: 14px; order: 2; margin-top: 28px; }
+  .contact__email { order: 1; font-size: 0.72rem; }
+  .contact__tgk { order: 2; font-size: 0.75rem; }
   .contact__socials { order: 3; display: flex; gap: 16px; justify-content: center; }
   .contact__dot { display: none; }
-
-
-  .contact__tgk { font-size: 0.75rem; }
   .contact__social { width: 22px; height: 22px; }
   .contact__social svg { width: 22px; height: 22px; }
-  .contact__email { font-size: 0.68rem; }
-
-  /*Линии*/
-  .contact__line-top { margin-bottom: 28px; }
-  .contact__line-bottom { margin-top: 28px; }
+  .contact__review-wrap { margin: 0; margin-top: 32px; order: 1; }
+  .contact__review-btn { padding: 8px 24px; font-size: 0.72rem; }
+  .contact__line-bottom { margin-top: 32px; order: 99; }
 
   .lightbox__prev { left: 4px; }
   .lightbox__next { right: 4px; }
@@ -232,9 +240,7 @@
     max-height: 85dvh;
   }
   .lightbox__bar { bottom: 0; }
-  .lightbox__img--thumb {
-    filter: blur(20px);
-  }
+  .lightbox__img--thumb { filter: blur(20px); }
   .lightbox__info { font-size: 0.85rem; padding: 16px 0; }
   .lightbox__counter { top: 16px; font-size: 0.65rem; }
   .lightbox__prev, .lightbox__next { font-size: 1.2rem; width: 44px; height: 44px; }
@@ -243,31 +249,17 @@
 
 @media (max-width: 600px) {
   .services { padding: 60px 20px; }
-
   .services__grid {
     grid-template-columns: 1fr;
     gap: 12px;
     margin-bottom: 36px;
   }
-
   .services__card { padding: 28px 24px; }
-
-  .services__icon {
-    font-size: 1.1rem;
-    margin-bottom: 12px;
-  }
-
+  .services__icon { font-size: 1.1rem; margin-bottom: 12px; }
   .services__duration { margin-bottom: 10px; }
-
-  .services__name {
-    font-size: 1.2rem;
-    margin-bottom: 8px;
-  }
-
-  .services__includes li { font-size: 0.8rem; padding-left: 14px; }
-
+  .services__name { font-size: 1.2rem; margin-bottom: 8px; }
+  .services__includes li { font-size: 0.8rem; }
   .services__price { font-size: 1.5rem; }
-
   .services__btn { padding: 14px 36px; }
 }
 

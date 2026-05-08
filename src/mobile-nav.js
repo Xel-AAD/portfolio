@@ -35,7 +35,7 @@ export function initMobileNav() {
 
   const navLinks = links.querySelectorAll('a, button')
   Array.from(navLinks).forEach(link => {
-    if (link.classList.contains('nav__menu-tg')) return
+    if (link.id === 'navClose') return
     link.addEventListener('click', closeMenu)
   })
 }

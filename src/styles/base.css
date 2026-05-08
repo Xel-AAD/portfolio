@@ -4,7 +4,7 @@
    1. Глобальные переменные (:root)        — цвета, шрифты, размеры
    2. Сброс стилей (*, html, body)         — убираем дефолты браузера
    3. Базовые стили (a, img, button)       — ссылки, фото, кнопки
-   4. Переключение страниц                 — анимация главная↔галерея
+   4. Страницы (page classes)              — layout для разных страниц
    5. Шапка (header, nav)                  — фиксированная навигация
    6. Мобильная навигация                  — бургер, overlay, крестик
    7. Герой (hero)                         — первый экран
@@ -52,8 +52,8 @@
   /* --- Размеры --- */
   --section-pad: 120px;             /* Вертикальный отступ секций: пустое пространство сверху и снизу */
   --max-w: 1400px;                  /* Максимальная ширина контента: 1400px — фото и карточки просторнее на десктопе */
-  --page-dur-open: 0.7s;           /* Длительность анимации ОТКРЫТИЯ галереи (fade-in + slide-up) */
-  --page-dur-close: 0.5s;          /* Длительность анимации ЗАКРЫТИЯ галереи (fade-out + slide-down). Закрытие быстрее — пользователь хочет уйти */
+  --page-dur-open: 0.7s;
+  --page-dur-close: 0.5s;
 }
 
 
@@ -141,64 +141,27 @@ button {
 
 
 /* ============================================================
-   4. ПЕРЕКЛЮЧЕНИЕ СТРАНИЦ (главная ↔ галерея)
-   
-   Обе "страницы" загружены в HTML одновременно.
-   Переключение через CSS-классы, без перезагрузки.
-   
-   Галерея — position: fixed оверлей поверх главной.
-   При открытии: opacity 0→1 + slide-up (translateY 30px→0).
-   При закрытии: opacity 1→0 + slide-down (translateY 0→30px).
-   
-   visibility с задержкой: элемент остаётся "живым" пока
-   opacity-анимация не завершится, потом становится hidden
-   (не кликабельный, не скроллится: не перехватывает события).
-   
-   pointer-events: none НЕ избыточно при visibility: hidden:
-   при закрытии pointer-events переключается мгновенно (нет
-   transition), а visibility остаётся visible ещё --page-dur.
-   Без pointer-events пользователь мог бы кликать по
-   исчезающей галерее в течение 0.6с после закрытия.
-   
-   iOS-фикс: html.gallery-open блокирует скролл body,
-   чтобы тач-события не "протекали" сквозь fixed-оверлей.
-   Класс toggles JS при открытии/закрытии галереи.
+   4. СТРАНИЦЫ И ЛАЙТБОКС
+
+   MPA: каждая страница — отдельный HTML-документ.
+   Классы page--* задают layout для разных страниц.
+   lightbox-open блокирует скролл при открытом лайтбоксе.
    ============================================================ */
 
-/* iOS-фикс: блокировка скролла главной при открытой галерее */
-html.gallery-open { overflow: hidden; }
+html.lightbox-open { overflow: hidden; }
 
-  /* На iOS Safari overflow:hidden на body не всегда работает. html — надёжнее */
-
-/* Состояние: галерея СКРЫТА (нет класса .active) */
-.page--gallery {
-  position: fixed;
-  inset: 0;
-  overflow-y: auto;
-  overflow-x: hidden;                 /* Внутренний скролл: если фото много — скроллится галерея, не главная */
-  background: var(--bg);            /* Фон галереи: тот же тёмный, чтобы не было белой вспышки при появлении */
-  opacity: 0;                       /* Полностью прозрачная — невидима */
-  visibility: hidden;               /* Не видима + не кликабельна + не скроллится (в отличие от opacity:0) */
-  pointer-events: none;             /* При закрытии: мгновенно блокирует клики, пока visibility ещё visible (задержка --page-dur-close) */
-  transform: translateY(30px);      /* Сдвинута на 30px вниз — при открытии будет "всплывать" */
-  /* --- Анимация ЗАКРЫТИЯ (убирается класс .active) --- */
-  transition: opacity var(--page-dur-close) cubic-bezier(0.4, 0, 0.2, 1),     /* opacity плавно 1→0 */
-              transform var(--page-dur-close) cubic-bezier(0.4, 0, 0.2, 1),   /* сдвиг вниз 0→30px */
-              visibility 0s var(--page-dur-close);                              /* visibility: hidden ПОСЛЕ задержки = длительности закрытия */
-  z-index: 150;                     /* Поверх хедера (z-index: 100) и контента, но под лайтбоксом (200) */
+.page--main {
+  min-height: 100vh;
 }
 
-/* Состояние: галерея ОТКРЫТА (JS добавил класс .active) */
-.page--gallery.active {
-  opacity: 1;                       /* Полностью видима */
-  visibility: visible;              /* Видима + кликабельна + скроллится */
-  pointer-events: auto;             /* Перехватывает мышь/тач — главная под ней недоступна */
-  transform: translateY(0);        /* На месте — не сдвинута (всплыла из 30px) */
-  /* --- Анимация ОТКРЫТИЯ (добавляется класс .active) --- */
-  transition: opacity var(--page-dur-open) cubic-bezier(0.4, 0, 0.2, 1),     /* opacity плавно 0→1 */
-              transform var(--page-dur-open) cubic-bezier(0.4, 0, 0.2, 1),   /* сдвиг вверх 30px→0 */
-              visibility 0s 0s;                                                /* visibility: visible МГНОВЕННО */
-  /* visibility без задержки — элемент сразу "живой", иначе opacity-анимация не видна */
+.page--portfolio {
+  min-height: 100vh;
+  padding-top: 74px;
+}
+
+.page--reviews {
+  min-height: 100vh;
+  padding-top: 80px;
 }
 
 
@@ -231,11 +194,14 @@ html.gallery-open { overflow: hidden; }
 
 /* .header.scrolled — шапка после скролла (JS добавляет класс) */
 /* .header--gallery — шапка на странице галереи (всегда с фоном, т.к. нет hero-картинки) */
-.header.scrolled,
-.header--gallery {
-  background: rgba(10, 10, 10, 0.9);   /* Тёмный фон с 90% непрозрачности — чуть виден контент под ним (blur усиливает эффект) */
-  backdrop-filter: blur(20px);          /* Размытие содержимого под шапкой: эффект "матового стекла". 20px — сильное размытие */
-  -webkit-backdrop-filter: blur(20px);  /* То же для Safari/WebKit — он не понимает backdrop-filter без -webkit- префикса */
+.header.scrolled {
+  background: rgba(10, 10, 10, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.header--hidden {
+  display: none;
 }
 
 /* .nav — внутренний контейнер навигации (логотип + ссылки) */

@@ -1,5 +1,5 @@
 User-agent: *
 Allow: /
-Disallow: /thumbs/
+Disallow: /api/
 
 Sitemap: https://ekb.photographs.gs/sitemap.xml

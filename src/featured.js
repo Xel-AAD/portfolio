@@ -1,12 +1,13 @@
 import { $ } from './dom.js'
-import { getPortfolioData } from './api.js'
 import { setLightboxList } from './state.js'
 import { openLightbox } from './lightbox.js'
 
 export function renderFeatured() {
-  const portfolioData = getPortfolioData()
+  const photos = window.__LIGHTBOX_DATA__
+  if (!photos?.length) return
+
   const grid = $('#featuredGrid')
-  if (!grid || !portfolioData.featured?.length) return
+  if (!grid) return
   grid.innerHTML = ''
 
   const style = getComputedStyle(grid)
@@ -33,7 +34,7 @@ export function renderFeatured() {
     grid.appendChild(colEl)
   }
 
-  portfolioData.featured.forEach((photo, idx) => {
+  photos.forEach((photo, idx) => {
     const w = photo.width || 3
     const h = photo.height || 4
     const imgHeight = colWidth * (h / w)
@@ -43,12 +44,26 @@ export function renderFeatured() {
     itemEl.className = 'featured__item anim-fade-up'
     itemEl.style.marginBottom = `${gap}px`
 
+    const picture = document.createElement('picture')
+    if (photo.thumb_avif) {
+      const avifSrc = document.createElement('source')
+      avifSrc.srcset = photo.thumb_avif
+      avifSrc.type = 'image/avif'
+      picture.appendChild(avifSrc)
+    }
+    if (photo.thumb_webp) {
+      const webpSrc = document.createElement('source')
+      webpSrc.srcset = photo.thumb_webp
+      webpSrc.type = 'image/webp'
+      picture.appendChild(webpSrc)
+    }
     const img = document.createElement('img')
     img.src = photo.thumb
     img.alt = photo.title
     img.loading = 'lazy'
     img.width = Math.round(colWidth)
     img.height = Math.round(imgHeight)
+    picture.appendChild(img)
 
     const overlay = document.createElement('div')
     overlay.className = 'featured__item-overlay'
@@ -58,11 +73,11 @@ export function renderFeatured() {
     title.textContent = photo.title
 
     overlay.appendChild(title)
-    itemEl.appendChild(img)
+    itemEl.appendChild(picture)
     itemEl.appendChild(overlay)
 
     itemEl.addEventListener('click', () => {
-      setLightboxList(portfolioData.featured)
+      setLightboxList(photos)
       openLightbox(idx)
     })
 
