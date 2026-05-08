@@ -238,10 +238,36 @@
 
 /* .services__card — карточка услуги */
 .services__card {
-  background: var(--bg-card);         /* #131313 — чуть светлее фона страницы — создаёт глубину */
-  padding: 56px 40px;               /* 56px вертикаль (просторно), 40px горизонталь */
+  background: var(--bg-card);
+  padding: 56px 40px;
   transition: background 0.4s, box-shadow 0.4s;
-  position: relative;                /* Для ::after линии снизу */
+  position: relative;
+  overflow: hidden;
+}
+
+.services__badge {
+  position: absolute;
+  top: 40px;
+  right: 14px;
+  padding: 4px 16px;
+  color: var(--bg);
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transform: rotate(-30deg);
+}
+
+.services__badge--green {
+  background: #4a9e4a;
+}
+
+.services__badge--cut {
+  right: -26px;
+}
+
+.services__badge--tight {
+  right: -18px;
 }
 
 /* .services__card::after — золотая линия снизу при hover */
