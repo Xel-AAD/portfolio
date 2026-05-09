@@ -13,7 +13,7 @@ COPY backend/requirements.txt backend/
 RUN pip install --no-cache-dir -r backend/requirements.txt
 COPY backend/ backend/
 COPY --from=frontend-builder /app/dist /app/dist
-COPY public/ /app/public
+RUN mkdir -p /app/public/thumbs /app/public/modern
 
 RUN adduser --disabled-password appuser && chown -R appuser /app
 USER appuser

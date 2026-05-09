@@ -5,6 +5,8 @@ services:
       - "8000:8000"
     volumes:
       - ./public/photos:/app/public/photos
+      - ./public/thumbs:/app/public/thumbs
+      - ./public/modern:/app/public/modern
       - ./backend/photos.json:/app/backend/photos.json
       - ./backend/reviews.json:/app/backend/reviews.json
     restart: unless-stopped
