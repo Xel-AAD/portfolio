@@ -86,6 +86,7 @@ let _lbLastTapY = 0
 
 /* Click vs dblclick разделитель */
 let _lbClickTimer = null
+let _lbTouchDoubleTapAt = 0                  /* Время последнего touch double-tap — блокирует click/dblclick */
 
 /* --- Применение zoom-трансформа к wrapper'у ---
    animate: true → плавный переход 0.3с (для double-tap / snap-back)
@@ -399,6 +400,7 @@ export function initLightbox() {
      Клик НА фото при zoom>1: сброс zoom (с задержкой на dblclick). */
   if (zoom) {
     zoom.addEventListener('click', e => {
+      if (Date.now() - _lbTouchDoubleTapAt < 500) return  /* Touch double-tap уже обработал */
       const onPhoto = e.target.tagName === 'IMG'
       if (onPhoto && _lbZoom.scale <= 1) return    /* Клик по фото (не зумнут) — не закрываем */
       if (!onPhoto && _lbZoom.scale <= 1) {
@@ -414,6 +416,7 @@ export function initLightbox() {
     })
 
     zoom.addEventListener('dblclick', e => {
+      if (Date.now() - _lbTouchDoubleTapAt < 500) return  /* Touch double-tap уже обработал */
       if (_lbClickTimer) {
         clearTimeout(_lbClickTimer)
         _lbClickTimer = null
@@ -614,6 +617,7 @@ export function initLightbox() {
       } else {
         _lbZoomTo(ZOOM_DOUBLE_TAP, rel.x, rel.y, true)
       }
+      _lbTouchDoubleTapAt = Date.now()           /* Блокируем последующий click/dblclick от браузера */
       _lbLastTapTime = 0                        /* Предотвращаем тройной тап */
     } else {
       _lbLastTapTime = now
