@@ -189,6 +189,7 @@
   .services__card { padding: 36px 28px; }   /* 56px 40px → 36px 28px */
   .services__name { font-size: 1.4rem; }     /* 1.7rem → 1.4rem */
   .services__price { font-size: 1.8rem; }    /* 2.2rem → 1.8rem */
+  .services__badge { top: 27px; font-size: 0.5rem; padding: 3px 12px; }
 
   /* --- Портфолио --- */
   .page--portfolio { padding-top: 68px; }    /* 74px → 68px */
