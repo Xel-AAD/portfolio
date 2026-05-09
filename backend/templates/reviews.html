@@ -32,9 +32,9 @@
     "review": [
       {% for r in reviews %}{
         "@type": "Review",
-        "author": {"@type": "Person", "name": "{{ r.name }}"},
+        "author": {"@type": "Person", "name": "{{ r.name | jsonsafe }}"},
         "reviewRating": {"@type": "Rating", "ratingValue": {{ r.rating }}, "bestRating": 10},
-        "reviewBody": "{{ r.text }}"
+        "reviewBody": "{{ r.text | jsonsafe }}"
       }{% if not loop.last %},{% endif %}{% endfor %}
     ]
     {% endif %}

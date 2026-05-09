@@ -23,7 +23,7 @@
     "description": "Портретное портфолио фотографа в Екатеринбурге. Чёрно-белые и цветные портреты, студийные и уличные фотосессии.",
     "url": "https://ekb.photographs.gs/portfolio/",
     "image": [
-      {% for s in sessions %}{% for p in s.photos %}"https://ekb.photographs.gs{{ p.src }}"{% if not loop.last or not loop.parent.last %},{% endif %}{% endfor %}{% endfor %}
+      {% for s in sessions %}{% for p in s.photos %}"https://ekb.photographs.gs{{ p.src | jsonsafe }}"{% if not loop.last or not loop.parent.last %},{% endif %}{% endfor %}{% endfor %}
     ]
   }
 ]
@@ -42,9 +42,9 @@
   </div>
 
   <section class="gallery" id="gallery">
-    <h1 class="section-title anim-fade-up">Портфолио</h1>
     <div class="gallery__filter-wrap anim-fade-up">
-      <button class="gallery__filter-toggle" id="filterToggle" aria-expanded="false" aria-haspopup="listbox">
+      <div class="gallery__filter-inner">
+        <button class="gallery__filter-toggle" id="filterToggle" aria-expanded="false" aria-haspopup="listbox">
         {% if active_session %}
           {{ sessions | selectattr('id', 'eq', active_session) | map(attribute='title') | first }}
         {% else %}
@@ -52,17 +52,22 @@
         {% endif %}
         <span class="gallery__filter-arrow">&#9662;</span>
       </button>
-      <div class="gallery__filter-dropdown" id="filterDropdown">
-        <button class="gallery__filter-option{% if not active_session %} gallery__filter-option--active{% endif %}" data-session="">Все съёмки</button>
-        {% for session in sessions %}
-        <button class="gallery__filter-option{% if active_session == session.id %} gallery__filter-option--active{% endif %}" data-session="{{ session.id }}">{{ session.title }}</button>
-        {% endfor %}
+        <div class="gallery__filter-dropdown" id="filterDropdown">
+          <button class="gallery__filter-option{% if not active_session %} gallery__filter-option--active{% endif %}" data-session="">Все съёмки</button>
+          {% for session in sessions %}
+          <button class="gallery__filter-option{% if active_session == session.id %} gallery__filter-option--active{% endif %}" data-session="{{ session.id }}">{{ session.title }}</button>
+          {% endfor %}
+        </div>
       </div>
     </div>
     <div class="gallery__grid">
       <div class="gallery__grid-inner" id="galleryGrid"></div>
     </div>
   </section>
+
+  <button class="scroll-top" id="scrollTop" aria-label="Наверх">
+    <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V3M4 7l4-4 4 4"/></svg>
+  </button>
 
   <footer class="footer">
     <p>&copy; 2026 Александр Ахметов</p>

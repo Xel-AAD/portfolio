@@ -7,6 +7,7 @@ export default defineConfig({
       '/api': 'http://localhost:8000',
       '/photos': 'http://localhost:8000',
       '/thumbs': 'http://localhost:8000',
+      '/modern': 'http://localhost:8000',
     },
   },
 })

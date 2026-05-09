@@ -14,6 +14,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <noscript><style>.anim-fade-up{opacity:1!important;transform:none!important}</style></noscript>
   <link rel="stylesheet" href="/src/style.css" />
   <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
     <symbol id="icon-telegram" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></symbol>
@@ -57,8 +58,10 @@
        For full MPA experience, run uvicorn backend and visit http://localhost:8000 -->
 
   <script>
-    // Fallback for dev mode — redirect to backend
-    window.__PAGE__ = "index";
+    // Fallback for dev mode — page type from URL param: ?page=portfolio / ?page=reviews
+    // Default: index. For full MPA experience, run uvicorn backend and visit http://localhost:8000
+    const _params = new URLSearchParams(window.location.search);
+    window.__PAGE__ = _params.get("page") || "index";
     window.__LIGHTBOX_DATA__ = [];
     window.__GALLERY_DATA__ = [];
     window.__ACTIVE_SESSION__ = null;

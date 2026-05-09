@@ -209,25 +209,25 @@
   text-align: center;                 /* Всё по центру — заголовок, карточки, кнопка */
 }
 
-/* .services__grid — сетка из двух карточек */
+/* .services__grid — сетка из четырёх карточек */
 .services__grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin-bottom: 56px;
+  grid-template-columns: repeat(2, 1fr); /* 2 колонки — просторные карточки */
+  gap: 24px;                              /* 24px между карточками по горизонтали и вертикали */
+  margin-bottom: 56px;                    /* Отступ от сетки до кнопки «Записаться» */
 }
 
 .services__common {
-  margin: 0 auto 48px;
+  margin: 0 auto 48px;                     /* Авто по бокам = центрирование, 48px снизу до карточек */
   font-size: 0.95rem;
-  font-weight: 300;
-  color: var(--text-muted);
-  line-height: 1.8;
+  font-weight: 300;                        /* Light — лёгкий, воздушный */
+  color: var(--text-muted);                /* Серый — второстепенный текст */
+  line-height: 1.8;                        /* Межстрочный 180% — просторно, читаемо */
   text-align: center;
 }
 
 .services__common p + p {
-  margin-top: 8px;
+  margin-top: 8px;                         /* 8px между двумя абзацами общего текста */
 }
 
 .services__common strong {
@@ -238,112 +238,116 @@
 
 /* .services__card — карточка услуги */
 .services__card {
-  background: var(--bg-card);
-  padding: 56px 40px;
-  transition: background 0.4s, box-shadow 0.4s;
-  position: relative;
-  overflow: hidden;
+  background: var(--bg-card);              /* #131313 — чуть светлее фона страницы */
+  padding: 56px 40px;                     /* 56px сверху/снизу — просторно внутри, 40px по бокам */
+  transition: background 0.4s, box-shadow 0.4s; /* Плавная подсветка при hover */
+  position: relative;                      /* Для badge (::absolute от карточки) */
+  overflow: hidden;                        /* Обрезает badge если он вылезает за край */
 }
 
+/* .services__badge — плашка-штамп на карточке (Рекомендовано / Выгоднее) */
 .services__badge {
-  position: absolute;
-  top: 40px;
-  right: 14px;
-  padding: 4px 16px;
-  color: var(--bg);
-  font-size: 0.6rem;
+  position: absolute;                      /* Относительно карточки */
+  top: 30px;                              /* 30px от верхнего края — около правого верхнего угла */
+  right: 16px;                            /* 16px от правого края — базовое положение */
+  padding: 4px 16px;                      /* Компактный: 4px вертикаль, 16px горизонталь */
+  color: var(--bg);                        /* Тёмный текст — контраст на цветном фоне */
+  font-size: 0.6rem;                      /* 9.6px — мелкий штамп */
   font-weight: 500;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.12em;                 /* Разреженный — стиль штампа */
   text-transform: uppercase;
-  transform: rotate(-30deg);
+  transform: rotate(-30deg);              /* Наклон 30°: левый угол ниже правого — эффект печати */
 }
 
+/* .services__badge--green — зелёный фон плашки */
 .services__badge--green {
-  background: #4a9e4a;
+  background: #4a9e4a;                    /* Зелёный — ассоциация с «рекомендация/выгода» */
 }
 
+/* .services__badge--cut — плашка «Рекомендовано»: сдвинута вправо, часть текста скрыта */
 .services__badge--cut {
-  right: -26px;
+  right: -26px;                           /* Уходит за край на 26px — буква «о» скрыта, «н» наполовину */
 }
 
+/* .services__badge--tight — плашка «Выгоднее»: почти вплотную к краю */
 .services__badge--tight {
-  right: -18px;
+  right: -18px;                           /* Уходит за край на 18px — буква «е» почти скрыта */
 }
 
 /* .services__card::after — золотая линия снизу при hover */
 .services__card::after {
-  content: '';                        /* Обязательный content */
-  position: absolute;                 /* Абсолютное — от карточки */
-  bottom: 0;                         /* На нижнем краю */
-  left: 0;                           /* От левого края */
-  right: 0;                          /* До правого края — на всю ширину */
-  height: 2px;                       /* Тонкая линия */
+  content: '';                             /* Обязательный content */
+  position: absolute;                      /* Абсолютное — от карточки */
+  bottom: 0;                              /* На нижнем краю */
+  left: 0;                                /* От левого края */
+  right: 0;                               /* До правого края — на всю ширину */
+  height: 2px;                            /* Тонкая линия */
   background: linear-gradient(90deg, transparent, var(--accent), transparent);  
   /* Золотая в центре, растворяется по краям — как divider */
-  opacity: 0;                        /* Скрыта — появляется при hover */
-  transition: opacity 0.4s;          /* Плавное появление */
+  opacity: 0;                             /* Скрыта — появляется при hover */
+  transition: opacity 0.4s;               /* Плавное появление за 0.4с */
 }
 
 .services__card:hover {
-  background: #181818;               /* Чуть светлее #131313 — подсветка при наведении */
+  background: #181818;                     /* Чуть светлее #131313 — подсветка при наведении */
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);  /* Тень: 8px вниз, 40px размытие, чёрная 40% — глубина */
 }
 .services__card:hover::after { opacity: 1; }  /* Линия появляется при hover */
 
 .services__icon {
-  font-size: 1.8rem;
-  margin-bottom: 24px;
-  opacity: 0.6;
+  font-size: 1.8rem;                      /* Крупная иконка (эмодзи) */
+  margin-bottom: 24px;                    /* Отступ до длительности */
+  opacity: 0.6;                           /* Приглушена — не доминирует */
 }
 
 .services__duration {
-  font-size: 0.8rem;
+  font-size: 0.8rem;                      /* 12.8px — мелкий */
   font-weight: 400;
-  letter-spacing: 0.25em;
+  letter-spacing: 0.25em;                /* Сильный трекинг — "1 Ч А С" */
   text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 24px;
+  color: var(--accent);                   /* Золотой — акцент */
+  margin-bottom: 24px;                    /* Отступ до названия */
 }
 
 .services__name {
-  font-family: var(--font-display);
-  font-size: 1.7rem;
+  font-family: var(--font-display);       /* DM Serif Display — серифный */
+  font-size: 1.7rem;                      /* Крупный заголовок карточки */
   font-weight: 400;
-  margin-bottom: 16px;
+  margin-bottom: 16px;                    /* Отступ до списка */
 }
 
 .services__includes {
-  list-style: none;
+  list-style: none;                        /* Без маркеров */
   padding: 0;
-  margin: 0 0 28px 0;
+  margin: 0 0 28px 0;                     /* 28px снизу — отступ до цены */
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 10px;                              /* 10px между пунктами списка */
 }
 
 .services__includes li {
   font-size: 0.95rem;
-  font-weight: 300;
-  color: var(--text-muted);
-  line-height: 1.5;
+  font-weight: 300;                        /* Light */
+  color: var(--text-muted);               /* Серый */
+  line-height: 1.5;                        /* Межстрочный 150% */
 }
 
 .services__includes li::before {
-  content: '— ';
-  color: var(--accent);
-  opacity: 0.5;
+  content: '— ';                           /* Тире перед каждым пунктом */
+  color: var(--accent);                   /* Золотое тире */
+  opacity: 0.5;                           /* Приглушено */
   font-weight: 400;
 }
 
 .services__includes strong {
-  color: var(--text);
+  color: var(--text);                      /* Белый — выделенные цифры/слова контрастнее серого текста */
   font-weight: 400;
 }
 
 .services__price {
-  font-family: var(--font-display);
-  font-size: 2.2rem;
-  color: var(--accent);
+  font-family: var(--font-display);        /* DM Serif Display — солидная цена */
+  font-size: 2.2rem;                       /* Крупная — доминирует в карточке */
+  color: var(--accent);                   /* Золотая — привлекает внимание */
 }
 
 /* .services__btn — кнопка "Записаться" */
@@ -434,18 +438,18 @@
 
 /* .contact__cta — кнопка "Написать в Telegram" */
 .contact__cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;                         /* 12px между иконкой и текстом */
-  padding: 16px 56px;               /* Крупная — доминирует на экране */
-  background: var(--accent);
-  color: var(--bg);
-  font-size: 0.85rem;               /* 13.6px — чуть крупнее обычных кнопок */
+  display: inline-flex;                    /* Flex для иконка+текст в ряд */
+  align-items: center;                    /* Иконка и текст по центру вертикально */
+  gap: 12px;                              /* 12px между иконкой и текстом */
+  padding: 16px 56px;                    /* Крупная: 16px вертикаль, 56px горизонталь — доминирует */
+  background: var(--accent);              /* Золотой фон — главная кнопка */
+  color: var(--bg);                       /* Тёмный текст на золотом — контраст */
+  font-size: 0.85rem;                    /* 13.6px */
   font-weight: 500;
-  letter-spacing: 0.2em;            /* Сильный трекинг */
+  letter-spacing: 0.2em;                 /* Сильный трекинг — "T E L E G R A M" */
   text-transform: uppercase;
   transition: box-shadow 0.3s, transform 0.3s;
-  margin-bottom: 48px;              /* Отступ до нижнего ряда — симметрично с отступом от заголовка */
+  margin-bottom: 48px;                   /* Отступ до следующего элемента — симметрично с margin-bottom заголовка */
 }
 
 .contact__cta-icon {
@@ -457,29 +461,31 @@
 .contact__cta-icon use { width: 100%; height: 100%; }
 
 .contact__cta:hover {
-  box-shadow: 0 6px 36px var(--accent-glow);
-  transform: translateY(-3px);
+  box-shadow: 0 6px 36px var(--accent-glow);  /* Золотое свечение при hover */
+  transform: translateY(-3px);                 /* Приподнимается на 3px — «всплывающая» кнопка */
 }
 
+/* .contact__review-wrap — контейнер кнопки «Оставить отзыв» */
 .contact__review-wrap {
   text-align: center;
-  margin-top: 32px;
-  margin-bottom: 32px;
+  margin-top: 32px;                        /* 32px от предыдущего элемента (bottom-ряд) */
+  margin-bottom: 32px;                     /* 32px до линии или футера */
 }
 
+/* .contact__review-btn — кнопка «Оставить отзыв» (outline-стиль) */
 .contact__review-btn {
   display: inline-block;
-  padding: 6px 20px;
-  border: 1px solid rgba(201, 169, 110, 0.4);
-  font-size: 0.68rem;
+  padding: 4px 16px;                      /* Компактная: 4px вертикаль, 16px горизонталь */
+  border: 1px solid rgba(201, 169, 110, 0.4);  /* Золотая рамка 40% — тонкая */
+  font-size: 0.6rem;                     /* Мелкая — не конкурирует с CTA */
   font-weight: 400;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.15em;                 /* Трекинг — "О Т З Ы В" */
   text-transform: uppercase;
-  color: var(--text);
+  color: var(--text);                      /* Белый текст — читаемый */
   text-decoration: none;
   transition: color 0.4s, border-color 0.4s, box-shadow 0.4s;
-  position: relative;
-  overflow: hidden;
+  position: relative;                      /* Для ::before — заливка */
+  overflow: hidden;                        /* Скрывает ::before за пределами */
 }
 
 .contact__review-btn:hover {
@@ -614,6 +620,13 @@
   padding: 0 46px 30px;
 }
 
+.gallery__filter-inner {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .gallery__filter-toggle {
   display: inline-flex;
   align-items: center;
@@ -640,29 +653,28 @@
   transition: transform 0.3s;
 }
 
-.gallery__filter-wrap--open .gallery__filter-arrow {
+.gallery__filter-inner--open .gallery__filter-arrow {
   transform: rotate(180deg);
 }
 
 .gallery__filter-dropdown {
   position: absolute;
   top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  min-width: 200px;
+  left: 0;
+  right: 0;
   background: var(--bg-card);
   border: 1px solid var(--border);
   opacity: 0;
   visibility: hidden;
-  transform: translateX(-50%) translateY(-8px);
+  transform: translateY(-8px);
   transition: opacity 0.25s, visibility 0.25s, transform 0.25s;
   z-index: 50;
 }
 
-.gallery__filter-wrap--open .gallery__filter-dropdown {
+.gallery__filter-inner--open .gallery__filter-dropdown {
   opacity: 1;
   visibility: visible;
-  transform: translateX(-50%) translateY(0);
+  transform: translateY(0);
 }
 
 .gallery__filter-option {
@@ -779,6 +791,39 @@
   box-shadow: 0 0 5px rgba(201, 169, 110, 0.03);
 }
 
+/* .scroll-top — кнопка «Наверх» в портфолио.
+   Маленький квадрат на уровне левого края фото.
+   Появляется после скролла > 2 экранов. */
+.scroll-top {
+  position: fixed;
+  bottom: 28px;
+  left: 46px;                               /* Совпадает с padding gallery__grid — на краю фото */
+  width: 64px;
+  height: 64px;
+  background: rgba(201, 169, 110, 0.1);
+  border: 1px solid rgba(201, 169, 110, 0.25);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 160;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: opacity 0.3s, visibility 0.3s, transform 0.3s, background 0.3s;
+}
+
+.scroll-top.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.scroll-top:hover {
+  background: rgba(201, 169, 110, 0.2);
+}
+
 /* .gallery__row — один ряд justified-сетки */
 .gallery__row {
   display: flex;
@@ -841,79 +886,90 @@
 
 /* ============================================================
    15. ОТЗЫВЫ (REVIEWS)
+   
+   Карточки отзывов в сетке 2 колонки. Каждая карточка:
+   кавычка (декор), рейтинг X/10, текст, имя+дата.
+   Внизу — кнопка «Оставить отзыв».
    ============================================================ */
 
 .reviews {
-  padding: 60px 40px;
-  min-height: calc(100vh - 80px);
+  padding: 40px 40px 80px;                 /* Меньше сверху, больше снизу — контент выше, кнопка ниже */
+  min-height: calc(100vh - 80px);          /* Минимум на весь экран минус хедер */
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;                 /* Контент прижат к верху */
 }
 
 .reviews__inner {
-  max-width: var(--max-w);
+  max-width: var(--max-w);                  /* 1400px */
   width: 100%;
-  margin: 0 auto;
+  margin: 0 auto;                           /* Центрирование */
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 200px);          /* Заполняет экран — кнопка уходит вниз */
 }
 
+/* Декоративные линии — как в hero и контактах */
 .reviews__line-top,
 .reviews__line-bottom {
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--accent), transparent);
-  margin: 20px 0;
+  margin: 20px 0;                          /* 20px сверху и снизу */
+}
+
+.reviews__line-bottom {
+  margin-top: auto;                        /* Прижимает линию и кнопку к низу секции */
 }
 
 .reviews__grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
-  margin: 40px 0;
+  grid-template-columns: repeat(2, 1fr);   /* 2 колонки */
+  gap: 24px;                               /* 24px между карточками */
+  margin: 40px 0;                          /* 40px сверху/снизу от линий */
 }
 
 .reviews__card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  padding: 32px;
-  position: relative;
+  background: var(--bg-card);              /* #131313 */
+  border: 1px solid var(--border);         /* Тёмная рамка — еле заметная */
+  padding: 32px;                           /* Просторно внутри */
+  position: relative;                      /* Для кавычки (absolute) */
 }
 
 .reviews__quote {
-  font-family: var(--font-display);
-  font-size: 3rem;
-  color: var(--accent);
-  opacity: 0.3;
+  font-family: var(--font-display);        /* DM Serif Display */
+  font-size: 3rem;                         /* Крупная кавычка */
+  color: var(--accent);                    /* Золотая */
+  opacity: 0.3;                            /* Приглушена — декор, не текст */
   line-height: 1;
   position: absolute;
-  top: 16px;
-  left: 24px;
+  top: 16px;                               /* 16px от верха карточки */
+  left: 24px;                              /* 24px от левого края */
 }
 
 .reviews__rating {
-  font-family: var(--font-display);
-  font-size: 1.6rem;
-  color: var(--accent);
-  margin-bottom: 8px;
+  font-family: var(--font-display);        /* DM Serif Display */
+  font-size: 1.6rem;                       /* Крупный рейтинг */
+  color: var(--accent);                    /* Золотой — заметно */
+  margin-bottom: 8px;                      /* Отступ до текста отзыва */
 }
 
 .reviews__text {
   font-size: 0.9rem;
-  line-height: 1.6;
-  color: var(--text);
-  font-weight: 300;
-  margin-bottom: 16px;
+  line-height: 1.6;                         /* Межстрочный 160% */
+  color: var(--text);                       /* Белый */
+  font-weight: 300;                         /* Light */
+  margin-bottom: 16px;                      /* Отступ до имени */
 }
 
 .reviews__meta {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 8px;                                 /* 8px между именем и датой */
   font-size: 0.8rem;
-  color: var(--text-muted);
+  color: var(--text-muted);                 /* Серый */
 }
 
 .reviews__name {
-  color: var(--accent);
+  color: var(--accent);                     /* Золотое имя — акцент */
   font-weight: 500;
 }
 
@@ -921,7 +977,7 @@
   text-align: center;
   color: var(--text-muted);
   font-size: 0.9rem;
-  padding: 60px 0;
+  padding: 60px 0;                          /* 60px вертикальный отступ */
 }
 
 .reviews__actions {
@@ -930,19 +986,19 @@
 
 .reviews__btn {
   display: inline-block;
-  padding: 14px 48px;
-  border: 1px solid rgba(201, 169, 110, 0.4);
-  font-size: 0.75rem;
+  padding: 14px 48px;                      /* 14px вертикаль, 48px горизонталь */
+  border: 1px solid rgba(201, 169, 110, 0.4);  /* Золотая рамка 40% */
+  font-size: 0.75rem;                     /* 12px */
   font-weight: 400;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.2em;                  /* Трекинг — "О Т З Ы В" */
   text-transform: uppercase;
   color: var(--text);
   text-decoration: none;
   text-align: center;
   transition: color 0.4s, border-color 0.4s, box-shadow 0.4s;
-  position: relative;
+  position: relative;                      /* Для ::before */
   overflow: hidden;
-  margin-top: 16px;
+  margin-top: 16px;                        /* 16px от сетки карточек */
 }
 
 .reviews__btn:hover {
@@ -1009,7 +1065,6 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.4s ease;
-  touch-action: pan-y;
   -webkit-user-select: none;
   user-select: none;
 }
@@ -1064,6 +1119,27 @@
 .lightbox__prev { left: 16px; }
 .lightbox__next { right: 16px; }
 
+/* .lightbox__zoom — контейнер для zoom-трансформ.
+   Покрывает весь лайтбокс (inset: 0), получает все тач-события.
+   touch-action: none — браузер не обрабатывает жесты, всё делаем в JS.
+   transform задаётся JS: translate(panX, panY) scale(zoomScale).
+   Курсор: zoom-in (можно зумить) / grab (можно тянуть когда зумнут). */
+.lightbox__zoom {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  touch-action: none;
+  cursor: zoom-in;
+}
+
+.lightbox__zoom--zoomed {
+  cursor: grab;
+}
+
+.lightbox__zoom--zoomed:active {
+  cursor: grabbing;
+}
+
 /* .lightbox__img — оба слоя: центрирование через translate */
 .lightbox__img {
   position: absolute;
@@ -1109,6 +1185,7 @@
   color: var(--text);
   opacity: 0.7;
   z-index: 5;
+  pointer-events: none;
 }
 
 /* .lightbox__counter — "3 / 44" */
@@ -1122,6 +1199,7 @@
   color: var(--text-muted);
   opacity: 0.5;
   z-index: 5;
+  pointer-events: none;
 }
 
 /* .lightbox__bar — золотая линия загрузки внизу */
@@ -1137,6 +1215,7 @@
   transform-origin: left;
   opacity: 0;
   transition: opacity 0.4s ease, transform 0.4s ease;
+  pointer-events: none;
 }
 
 /* Пока грузится оригинал — пульсирует */
@@ -1161,48 +1240,51 @@
 
 /* ============================================================
    404 — СТРАНИЦА НЕ НАЙДЕНА
+   
+   Крупная золотая цифра 404, текст «Страница не найдена»,
+   кнопка «На главную». Вертикально и горизонтально по центру.
    ============================================================ */
 
 .not-found {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 80vh;
+  min-height: 80vh;                         /* 80% высоты экрана — центрирование */
   text-align: center;
 }
 
 .not-found__inner {
-  padding: 2rem;
+  padding: 2rem;                            /* 32px — отступ от краёв */
 }
 
 .not-found__title {
   font-family: "DM Serif Display", serif;
-  font-size: 8rem;
-  line-height: 1;
-  color: var(--gold);
-  margin-bottom: 0.5rem;
+  font-size: 8rem;                          /* Огромная цифра 404 */
+  line-height: 1;                           /* Без межстрочного — плотно */
+  color: var(--accent);                     /* Золотая — акцент */
+  margin-bottom: 0.5rem;                    /* 8px до подзаголовка */
 }
 
 .not-found__text {
-  font-size: 1.25rem;
-  color: var(--text-muted);
-  margin-bottom: 2rem;
+  font-size: 1.25rem;                       /* 20px — подзаголовок */
+  color: var(--text-muted);                 /* Серый */
+  margin-bottom: 2rem;                      /* 32px до кнопки */
 }
 
 .not-found__link {
   display: inline-block;
-  padding: 0.75rem 2rem;
-  border: 1px solid var(--gold);
-  color: var(--gold);
+  padding: 0.75rem 2rem;                   /* 12px вертикаль, 32px горизонталь */
+  border: 1px solid var(--accent);          /* Золотая рамка */
+  color: var(--accent);                     /* Золотой текст */
   font-size: 0.95rem;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.04em;                  /* Лёгкий трекинг */
   text-transform: uppercase;
-  transition: background 0.3s, color 0.3s;
+  transition: background 0.3s, color 0.3s;  /* Плавная заливка при hover */
 }
 
 .not-found__link:hover {
-  background: var(--gold);
-  color: var(--bg);
+  background: var(--accent);                /* Золотой фон */
+  color: var(--bg);                         /* Тёмный текст — инверсия */
 }
 
 

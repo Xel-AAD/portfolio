@@ -435,7 +435,7 @@ html.lightbox-open { overflow: hidden; }
   font-weight: 400;                   /* Normal */
   letter-spacing: 0.2em;            /* Разреженный — "С М О Т Р Е Т Ь" */
   text-transform: uppercase;          /* Все заглавные */
-  transition: all 0.4s;              /* Плавная анимация ВСЕХ свойств при hover (цвет, тень, рамка) */
+  transition: color 0.4s, border-color 0.4s, box-shadow 0.4s;  /* Плавная анимация конкретных свойств при hover */
   position: relative;                 /* Для ::before — позиционируется от кнопки */
   overflow: hidden;                   /* Скрываем ::before когда он за пределами кнопки */
 }

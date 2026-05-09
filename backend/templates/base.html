@@ -21,12 +21,9 @@
   <link rel="preconnect" href="https://forms.yandex.ru" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="/assets/{{ css_file }}" />
-  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
-    <symbol id="icon-telegram" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></symbol>
-    <symbol id="icon-instagram" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></symbol>
-    <symbol id="icon-vk" viewBox="0 0 24 24" fill="currentColor"><path d="M15.07 2H8.93C4.33 2 2 4.33 2 8.93v6.14C2 19.67 4.33 22 8.93 22h6.14C19.67 22 22 19.67 22 15.07V8.93C22 4.33 19.67 2 15.07 2zm3.08 14.27h-1.76c-.67 0-.87-.54-2.07-1.76-1.04-1.01-1.5-1.14-1.76-1.14-.36 0-.47.1-.47.6v1.61c0 .43-.14.69-1.27.69-1.87 0-3.95-1.13-5.41-3.24-2.2-3.09-2.8-5.41-2.8-5.88 0-.26.1-.5.6-.5h1.76c.45 0 .62.2.79.7.87 2.52 2.33 4.74 2.93 4.74.23 0 .33-.1.33-.63V8.86c-.07-1.16-.68-1.26-.68-1.67 0-.2.17-.4.44-.4h2.77c.37 0 .5.2.5.66v3.52c0 .38.17.51.27.51.23 0 .41-.13.83-.55 1.28-1.43 2.2-3.65 2.2-3.65.12-.26.32-.5.77-.5h1.76c.53 0 .65.27.53.66-.23 1.06-2.46 4.22-2.46 4.22-.2.33-.27.47 0 .83.2.27.85.83 1.29 1.34.8.91 1.41 1.68 1.57 2.2.17.52-.08.79-.58.79z"/></symbol>
-  </svg>
+  <noscript><style>.anim-fade-up{opacity:1!important;transform:none!important}</style></noscript>
+  {% for css in css_files %}<link rel="stylesheet" href="/assets/{{ css }}" />{% endfor %}
+  {% include "_icons.html" %}
   {% block structured_data %}
   <script type="application/ld+json">
   {
@@ -127,8 +124,10 @@
     <button class="lightbox__close" id="lightboxClose" aria-label="Закрыть">&times;</button>
     <button class="lightbox__prev" id="lightboxPrev" aria-label="Предыдущее">&#10094;</button>
     <button class="lightbox__next" id="lightboxNext" aria-label="Следующее">&#10095;</button>
+  <div class="lightbox__zoom" id="lightboxZoom">
     <img class="lightbox__img lightbox__img--thumb" id="lightboxThumb" src="" alt="" />
     <img class="lightbox__img lightbox__img--full" id="lightboxFull" src="" alt="" />
+  </div>
     <div class="lightbox__info" id="lightboxInfo"></div>
     <div class="lightbox__counter" id="lightboxCounter"></div>
     <div class="lightbox__bar" id="lightboxBar"></div>
@@ -140,6 +139,6 @@
     window.__GALLERY_DATA__ = {{ gallery_data | tojson }};
     window.__ACTIVE_SESSION__ = {{ active_session | tojson }};
   </script>
-  <script type="module" src="/assets/{{ js_file }}"></script>
+  {% for js in js_files %}<script type="module" src="/assets/{{ js }}"></script>{% endfor %}
 </body>
 </html>

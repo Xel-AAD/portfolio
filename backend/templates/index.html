@@ -30,7 +30,7 @@
         <picture>
           {% if about_photo.thumb_avif %}<source srcset="{{ about_photo.thumb_avif }}" type="image/avif" />{% endif %}
           {% if about_photo.thumb_webp %}<source srcset="{{ about_photo.thumb_webp }}" type="image/webp" />{% endif %}
-          <img class="about__photo" src="{{ about_photo.thumb }}" alt="{{ about_photo.title }}" width="{{ about_photo.width }}" height="{{ about_photo.height }}" />
+          <img class="about__photo" src="{{ about_photo.thumb }}" alt="{{ about_photo.title }}" width="{{ about_photo.width }}" height="{{ about_photo.height }}" loading="lazy" />
         </picture>
       </div>
       <div class="about__text anim-fade-up anim-delay-1">
