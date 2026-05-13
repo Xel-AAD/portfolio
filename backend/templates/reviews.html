@@ -5,6 +5,10 @@
 {% block og_title %}Отзывы — Александр Ахметов{% endblock %}
 {% block og_description %}Отзывы клиентов о портретном фотографе в Екатеринбурге.{% endblock %}
 
+<!-- JSON-LD — структурированные данные отзывов для поисковиков.
+     Google может показать рейтинг (звёзды) прямо в результатах поиска.
+     AggregateRating — средний рейтинг всех отзывов.
+     Review — каждый отдельный отзыв. -->
 {% block structured_data %}
 <script type="application/ld+json">
 [
@@ -22,6 +26,7 @@
     "name": "Отзывы",
     "description": "Отзывы клиентов о портретном фотографе Александре Ахметове.",
     "url": "https://ekb.photographs.gs/reviews/"
+    <!-- aggregateRating + review — только если есть отзывы с рейтингом -->
     {% if reviews and avg_rating %},
     "aggregateRating": {
       "@type": "AggregateRating",
@@ -30,6 +35,8 @@
       "reviewCount": {{ reviews | length }}
     },
     "review": [
+      <!-- | jsonsafe — экранирует спецсимволы для JSON внутри <script>.
+           Без него кавычки в тексте отзыва сломали бы JSON. -->
       {% for r in reviews %}{
         "@type": "Review",
         "author": {"@type": "Person", "name": "{{ r.name | jsonsafe }}"},
@@ -44,22 +51,33 @@
 {% endblock %}
 
 {% block content %}
+<!-- page--reviews — CSS: padding-top 80px (под хедер) -->
 <main class="page page--reviews">
 
   <section class="reviews" id="reviews">
     <div class="reviews__inner">
+      <!-- Верхняя линия -->
       <div class="reviews__line-top anim-fade-up"></div>
+      <!-- Заголовок -->
       <h1 class="section-title anim-fade-up">Отзывы</h1>
 
       {% if reviews %}
+      <!-- Сетка карточек отзывов.
+           Десктоп: 2 колонки (grid-template-columns: repeat(2, 1fr)).
+           Телефон: 1 колонка (см. responsive.css). -->
       <div class="reviews__grid">
         {% for review in reviews %}
+        <!-- Карточка одного отзыва -->
         <div class="reviews__card anim-fade-up">
+           <!-- Декоративная кавычка " — золотая, крупная, еле заметная -->
            <div class="reviews__quote">&#8220;</div>
+           <!-- Рейтинг X/10 — показывается только если указан -->
            {% if review.rating %}
            <div class="reviews__rating">{{ review.rating }}/10</div>
            {% endif %}
+           <!-- Текст отзыва -->
            <p class="reviews__text">{{ review.text }}</p>
+           <!-- Имя + дата -->
            <div class="reviews__meta">
              <span class="reviews__name">{{ review.name }}</span>
              {% if review.date %}
@@ -70,10 +88,14 @@
         {% endfor %}
       </div>
       {% else %}
+      <!-- Если отзывов нет — показываем приглашение -->
       <p class="reviews__empty anim-fade-up">Пока нет отзывов. Станьте первым!</p>
       {% endif %}
 
+      <!-- Нижняя линия — margin-top: auto прижимает её и кнопку к низу.
+           Если отзывов мало — линия уходит вниз (кнопка всегда в самом низу). -->
       <div class="reviews__line-bottom anim-fade-up"></div>
+      <!-- Кнопка "Оставить отзыв" — ведёт на Яндекс.Форму -->
       <div class="reviews__actions"><a href="https://forms.yandex.ru/u/69fd1b8e493639359f4f1c79" class="reviews__btn anim-fade-up" target="_blank" rel="noopener">Оставить отзыв</a></div>
     </div>
   </section>

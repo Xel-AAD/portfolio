@@ -2,70 +2,10 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Портретный фотограф • Екатеринбург • Фотосессия | Александр Ахметов</title>
-  <meta name="description" content="Портретный фотограф в Екатеринбурге. Фотосессия от 700₽. Студийные и уличные портреты. Запись на съёмку" />
-  <meta property="og:title" content="Александр Ахметов — Портретный фотограф" />
-  <meta property="og:description" content="Студийные и уличные портреты. Съёмка от 700₽." />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="/photos/og-cover.jpg" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-  <noscript><style>.anim-fade-up{opacity:1!important;transform:none!important}</style></noscript>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="/src/style.css" />
-  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
-    <symbol id="icon-telegram" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></symbol>
-    <symbol id="icon-instagram" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></symbol>
-    <symbol id="icon-vk" viewBox="0 0 24 24" fill="currentColor"><path d="M15.07 2H8.93C4.33 2 2 4.33 2 8.93v6.14C2 19.67 4.33 22 8.93 22h6.14C19.67 22 22 19.67 22 15.07V8.93C22 4.33 19.67 2 15.07 2zm3.08 14.27h-1.76c-.67 0-.87-.54-2.07-1.76-1.04-1.01-1.5-1.14-1.76-1.14-.36 0-.47.1-.47.6v1.61c0 .43-.14.69-1.27.69-1.87 0-3.95-1.13-5.41-3.24-2.2-3.09-2.8-5.41-2.8-5.88 0-.26.1-.5.6-.5h1.76c.45 0 .62.2.79.7.87 2.52 2.33 4.74 2.93 4.74.23 0 .33-.1.33-.63V8.86c-.07-1.16-.68-1.26-.68-1.67 0-.2.17-.4.44-.4h2.77c.37 0 .5.2.5.66v3.52c0 .38.17.51.27.51.23 0 .41-.13.83-.55 1.28-1.43 2.2-3.65 2.2-3.65.12-.26.32-.5.77-.5h1.76c.53 0 .65.27.53.66-.23 1.06-2.46 4.22-2.46 4.22-.2.33-.27.47 0 .83.2.27.85.83 1.29 1.34.8.91 1.41 1.68 1.57 2.2.17.52-.08.79-.58.79z"/></symbol>
-  </svg>
 </head>
 <body>
-
-  <header class="header" id="header">
-    <nav class="nav">
-      <a href="/" class="nav__logo">Портретный фотограф — Екатеринбург</a>
-      <ul class="nav__links">
-        <button class="nav__close" id="navClose" aria-label="Закрыть меню">&#10005;</button>
-        <li><a href="/#about">Обо мне</a></li>
-        <li><a href="/portfolio/">Портфолио</a></li>
-        <li><a href="/#services">Услуги</a></li>
-        <li><a href="/reviews/">Отзывы</a></li>
-        <li><a href="/#contact">Контакты</a></li>
-        <li class="nav__menu-footer">
-          <a href="https://t.me/xel_frames" target="_blank" rel="noopener" class="nav__menu-social" aria-label="Telegram">
-            <svg width="20" height="20"><use href="#icon-telegram"/></svg>
-          </a>
-          <a href="https://instagram.com/xel_frames" target="_blank" rel="noopener" class="nav__menu-social" aria-label="Instagram">
-            <svg width="20" height="20"><use href="#icon-instagram"/></svg>
-          </a>
-          <a href="https://vk.com/xel_frames" target="_blank" rel="noopener" class="nav__menu-social" aria-label="VK">
-            <svg width="20" height="20"><use href="#icon-vk"/></svg>
-          </a>
-        </li>
-      </ul>
-      <button class="nav__burger" id="navBurger" aria-label="Меню">
-        <span></span><span></span><span></span>
-      </button>
-    </nav>
-  </header>
-  <div class="nav__overlay" id="navOverlay"></div>
-
-  <!-- DEV NOTE: In production, pages are rendered by Jinja2 templates.
-       This file is only used by Vite dev server (npm run dev).
-       For full MPA experience, run uvicorn backend and visit http://localhost:8000 -->
-
-  <script>
-    // Fallback for dev mode — page type from URL param: ?page=portfolio / ?page=reviews
-    // Default: index. For full MPA experience, run uvicorn backend and visit http://localhost:8000
-    const _params = new URLSearchParams(window.location.search);
-    window.__PAGE__ = _params.get("page") || "index";
-    window.__LIGHTBOX_DATA__ = [];
-    window.__GALLERY_DATA__ = [];
-    window.__ACTIVE_SESSION__ = null;
-  </script>
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>

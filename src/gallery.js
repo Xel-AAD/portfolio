@@ -15,6 +15,7 @@
 import { $, $$ } from './dom.js'
 import { setLightboxList } from './state.js'
 import { openLightbox } from './lightbox.js'
+import { initScrollAnimations } from './scroll.js'
 
 /* Целевая высота ряда фото */
 const ROW_HEIGHT = 350                       /* Десктоп: 350px — крупные, детальные фото */
@@ -232,6 +233,32 @@ export function initGallery() {
   renderGrid(_currentPhotos)
   setLightboxList(_currentPhotos)
 
+  /* --- Обработка popstate (кнопки Назад/Вперёд в браузере) ---
+     Когда URL меняется через history.back()/forward(), перечитываем
+     параметр session и переключаем фильтр без перезагрузки. */
+  window.addEventListener('popstate', () => {
+    const params = new URLSearchParams(window.location.search)
+    const sessionId = params.get('session') || ''
+
+    if (sessionId) {
+      const session = galleryData.find(s => s.id === sessionId)
+      if (session) {
+        _currentPhotos = session.photos
+        if (toggle) toggle.innerHTML = `${session.title}<span class="gallery__filter-arrow">&#9662;</span>`
+      }
+    } else {
+      _currentPhotos = shuffle(allPhotos, _seededRandom(_dayOfYear()))
+      if (toggle) toggle.innerHTML = `Все съёмки<span class="gallery__filter-arrow">&#9662;</span>`
+    }
+
+    $$('.gallery__filter-option').forEach(b => b.classList.remove('gallery__filter-option--active'))
+    const activeBtn = document.querySelector(`.gallery__filter-option[data-session="${sessionId}"]`)
+    if (activeBtn) activeBtn.classList.add('gallery__filter-option--active')
+
+    renderGrid(_currentPhotos)
+    setLightboxList(_currentPhotos)
+  })
+
   /* --- Фильтры по съёмкам --- */
   const wrap = $('.gallery__filter-wrap')
   const inner = $('.gallery__filter-inner')
@@ -275,7 +302,8 @@ export function initGallery() {
           toggle.innerHTML = `Все съёмки<span class="gallery__filter-arrow">&#9662;</span>`
         }
 
-        wrap.classList.remove('gallery__filter-wrap--open') /* Закрываем dropdown */
+        inner.classList.remove('gallery__filter-inner--open') /* Закрываем dropdown */
+    toggle.setAttribute('aria-expanded', 'false')
 
         renderGrid(_currentPhotos)            /* Перерисовываем сетку */
         setLightboxList(_currentPhotos)        /* Обновляем список для лайтбокса */
@@ -284,8 +312,8 @@ export function initGallery() {
         const url = sessionId ? `/portfolio/?session=${sessionId}` : '/portfolio/'
         history.replaceState(null, '', url)
 
-        /* Перерегистрируем anim-fade-up — новые элементы не в Observer */
-        import('./scroll.js').then(m => m.initScrollAnimations())
+        /* Регистрируем новые .anim-fade-up элементы в Observer */
+        initScrollAnimations()
       })
     })
   }

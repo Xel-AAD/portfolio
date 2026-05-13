@@ -1,19 +1,3 @@
-# ============================================================
-# MAIN.PY — Весь бэкенд в одном файле
-#
-# Структура (сверху вниз):
-# 1. Импорты и конфигурация
-# 2. Модели (Photo)
-# 3. Утилиты (prettify_filename, prettify_session_name)
-# 4. PortfolioService — ядро: сканирование фото, кеш, миниатюры, WebP/AVIF
-# 5. FastAPI-приложение: middleware, exception handlers
-# 6. Вспомогательные функции (_safe_file, _file_response, _find_assets)
-# 7. Маршруты страниц (/, /portfolio/, /reviews/)
-# 8. Маршрут sitemap
-# 9. API-маршруты (/api/portfolio, /api/gallery)
-# 10. Статические файлы (/photos/, /thumbs/, /modern/, /assets/, favicon.ico)
-# ============================================================
-
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -29,6 +13,7 @@ import random
 import re
 import time
 import hashlib
+import threading
 from datetime import date
 
 # --- Опциональные зависимости ---
@@ -73,6 +58,8 @@ IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".tiff", ".bmp", ".heic", 
 # Параметры миниатюр
 THUMB_MAX_W = 1200              # Максимальная ширина миниатюры: 1200px — достаточно для ретина-экранов
 THUMB_QUALITY = 80              # JPEG quality: 80 — баланс качества и размера
+DISPLAY_MAX_W = 1920            # Максимальная ширина для лайтбокса: 1920px — достаточно для Full HD
+DISPLAY_QUALITY = 85            # JPEG quality для лайтбокса: 85 — хорошее качество при малом размере
 
 # Папки фото по назначению
 FAVOURITES_DIR = PHOTOS_DIR / "Favourites"   # Лучшие фото → секция featured на главной
@@ -98,6 +85,7 @@ EXTRA_MIME_TYPES = {
 # ============================================================
 class Photo(BaseModel):
     src: str              # URL оригинала: "/photos/Gallery/19-04-2026.../photo.jpg"
+    display_src: str = "" # URL оптимизированной версии для лайтбокса: "/modern/display/36a8bf075d48adff.jpg" (1920px, quality 85)
     thumb: str            # URL JPEG-миниатюры: "/thumbs/Favourites/36a8bf075d48adff.jpg"
     thumb_webp: str = "" # URL WebP-миниатюры: "/modern/Favourites/36a8bf075d48adff.webp" (пустая = нет)
     thumb_avif: str = "" # URL AVIF-миниатюры: "/modern/Favourites/36a8bf075d48adff.avif" (пустая = нет)
@@ -160,7 +148,7 @@ def prettify_filename(filename: str) -> str:
     if num:
         title_parts.append(f"№{num}")
 
-    return ", ".join(title_parts) if title_parts else filename  # Fallback: исходное имя
+    return ", ".join(title_parts) if title_parts else "Фотография"  # Fallback: если имя не распарсилось
 
 
 def prettify_session_name(dirname: str) -> str:
@@ -180,11 +168,11 @@ def prettify_session_name(dirname: str) -> str:
         if len(y) == 2:
             y = "20" + y                       # "26" → "2026"
         date_str = f"{int(d)} {MONTHS_RU.get(mo, mo)} {y}"  # "19 апреля 2026"
-        if rest:
-            name = f"{rest} — {date_str}"     # "Dmitriy Potapov — 19 апреля 2026"
-        else:
-            name = date_str                    # Только дата — нет имени клиента
-        return name
+    if rest:
+        name = rest # "Dmitriy Potapov" (без даты)
+    else:
+        name = date_str # Только дата — нет имени клиента
+    return name
     # Fallback: не похоже на дату — просто заменяем дефисы на пробелы
     return dirname.replace("-", " ").replace("_", " ")
 
@@ -364,6 +352,45 @@ class PortfolioService:
 
         return webp_url, avif_url
 
+    # ensure_display — гарантирует что display-версия (1920px) существует.
+    # Display-версия — JPEG, ресайзнутый до DISPLAY_MAX_W по большей стороне,
+    # quality DISPLAY_QUALITY. Используется в лайтбоксе вместо полного оригинала.
+    # Это экономит трафик посетителей и место на диске (20MB → ~300-500KB).
+    # Сохраняется в /modern/display/{sha256[:16]}_d.jpg
+    def ensure_display(self, original: Path) -> Path:
+        rel = original.relative_to(PHOTOS_DIR)
+        parts = list(rel.parts)
+        safe_name = hashlib.sha256(parts[-1].encode()).hexdigest()[:16] + "_d.jpg"
+        display_path = MODERN_DIR / "display" / safe_name
+
+        if display_path.exists():
+            try:
+                mtime_orig = original.stat().st_mtime
+                mtime_disp = display_path.stat().st_mtime
+                if mtime_disp >= mtime_orig:
+                    return display_path
+            except OSError:
+                pass
+
+        if not HAS_PIL:
+            return original
+
+        try:
+            display_path.parent.mkdir(parents=True, exist_ok=True)
+            with Image.open(original) as img:
+                w, h = img.size
+                if w > DISPLAY_MAX_W or h > DISPLAY_MAX_W:
+                    ratio = min(DISPLAY_MAX_W / w, DISPLAY_MAX_W / h)
+                    new_w = int(w * ratio)
+                    new_h = int(h * ratio)
+                    img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+                if img.mode in ("RGBA", "P"):
+                    img = img.convert("RGB")
+                img.save(str(display_path), "JPEG", quality=DISPLAY_QUALITY, progressive=True)
+            return display_path
+        except Exception:
+            return original
+
     # load_metadata — загружает photos.json (заголовки и описания).
     # Если файл пуст или не существует — пустой словарь.
     # Без записей — заголовок = prettify_filename(), описание = "".
@@ -441,6 +468,15 @@ class PortfolioService:
         if thumb.is_relative_to(THUMBS_DIR):    # WebP/AVIF только если миниатюра создана
             thumb_webp, thumb_avif = self.ensure_modern(thumb)
 
+        # Display-версия для лайтбокса (1920px, quality 85)
+        display = self.ensure_display(img_file)
+        display_src = ""
+        if display.is_relative_to(MODERN_DIR):
+            display_rel = str(display.relative_to(MODERN_DIR))
+            display_src = f"/modern/{display_rel}"
+        elif display != img_file:
+            display_src = src_path
+
         meta = photo_meta.get(relative_path)    # Ищем запись в photos.json по пути
         title = meta.get("title", prettify_filename(img_file.name)) if meta else prettify_filename(img_file.name)
         description = meta.get("description", "") if meta else ""
@@ -449,6 +485,7 @@ class PortfolioService:
 
         return Photo(
             src=src_path,
+            display_src=display_src,
             thumb=thumb_path_str,
             thumb_webp=thumb_webp,
             thumb_avif=thumb_avif,
@@ -557,7 +594,11 @@ class PortfolioService:
     # 2. photos.json изменился (mtime)
     # Если ничего не менялось — возвращает кеш за 0мс.
     #
-    # Первый запрос может быть медленным (генерация миниатюр).
+    # Если кеш устарел, но старый кеш существует — возвращает старый
+    # и запускает перестроение в фоновом потоке (threading).
+    # Это предотвращает блокировку сервера на время генерации миниатюр.
+    #
+    # Первый запрос при холодном старте (кеша нет) — синхронный.
     # Последующие — мгновенные.
     def build(self) -> dict:
         current_snapshot = self._take_snapshot()
@@ -576,11 +617,22 @@ class PortfolioService:
         ):
             return self._cache                  # Кеш валиден — возвращаем мгновенно
 
-        # Кеш невалиден — пересканируем
+        # Кеш невалиден — обновляем снапшот
         self._snapshot = current_snapshot
         self._meta_mtime = current_meta_mtime
-        self._dim_cache = self._load_dim_cache()  # Перезагружаем кеш размеров с диска
 
+        # Если есть старый кеш — отдаём его и перестраиваем в фоне
+        if self._cache is not None:
+            thread = threading.Thread(target=self._rebuild, daemon=True)
+            thread.start()
+            return self._cache
+
+        # Нет кеша вообще (холодный старт) — перестраиваем синхронно
+        self._rebuild()
+        return self._cache
+
+    def _rebuild(self):
+        self._dim_cache = self._load_dim_cache()
         metadata = self.load_metadata()
         photo_meta: dict[str, dict] = {}
         for entry in metadata.get("photos", []):
@@ -591,14 +643,12 @@ class PortfolioService:
         about = self.get_about_photo(photo_meta)
 
         self._cache = {
-            "featured": featured,                # Фото для секции «Избранное» на главной
-            "sessions": sessions,                # Съёмки для фильтров галереи
-            "gallery": gallery,                  # Все фото (для «Все съёмки»)
-            "about": about,                      # Фото фотографа
+            "featured": featured,
+            "sessions": sessions,
+            "gallery": gallery,
+            "about": about,
         }
-        self._save_dim_cache()                   # Сохраняем размеры на диск для следующего запуска
-
-        return self._cache
+        self._save_dim_cache()
 
 
 # ============================================================
@@ -699,7 +749,11 @@ async def rate_limit_middleware(request: Request, call_next):
     if path.startswith(("/assets/", "/photos/", "/thumbs/", "/modern/", "/favicon")):
         return await call_next(request)
 
-    ip = request.client.host if request.client else "unknown"
+    forwarded = request.headers.get("x-forwarded-for", "")
+    if forwarded:
+        ip = forwarded.split(",")[0].strip()
+    else:
+        ip = request.client.host if request.client else "unknown"
     now = time.time()
 
     requests = _rate_limits.get(ip, [])

@@ -475,9 +475,9 @@
 /* .contact__review-btn — кнопка «Оставить отзыв» (outline-стиль) */
 .contact__review-btn {
   display: inline-block;
-  padding: 4px 16px;                      /* Компактная: 4px вертикаль, 16px горизонталь */
+  padding: 10px 22px;                      /* Компактная: 4px вертикаль, 16px горизонталь */
   border: 1px solid rgba(201, 169, 110, 0.4);  /* Золотая рамка 40% — тонкая */
-  font-size: 0.6rem;                     /* Мелкая — не конкурирует с CTA */
+  font-size: 0.8rem;                     /* Мелкая — не конкурирует с CTA */
   font-weight: 400;
   letter-spacing: 0.15em;                 /* Трекинг — "О Т З Ы В" */
   text-transform: uppercase;
@@ -922,9 +922,10 @@
 
 .reviews__grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);   /* 2 колонки */
-  gap: 24px;                               /* 24px между карточками */
-  margin: 40px 0;                          /* 40px сверху/снизу от линий */
+  grid-template-columns: repeat(2, 1fr); /* 2 колонки */
+  gap: 24px; /* 24px между карточками */
+  margin: 40px 0; /* 40px сверху/снизу от линий */
+  align-items: start; /* Карточки по высоте контента, не растягиваются */
 }
 
 .reviews__card {

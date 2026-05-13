@@ -3,6 +3,8 @@
 {% block content %}
 <main class="page page--main" id="pageMain">
 
+
+  <!-- HERO -->
   <section class="hero" id="hero">
     <div class="hero__particles" id="heroParticles"></div>
     <div class="hero__bg"></div>
@@ -23,16 +25,29 @@
 
   <div class="divider"></div>
 
+
+  <!-- ОБО МНЕ -->
   <section class="about" id="about">
     <div class="about__inner">
+      <!-- Фото фотографа с золотым свечением за ним -->
       <div class="about__photo-wrap anim-fade-up">
+        <!-- Свечение — мягкое золотое пятно за фото -->
         <div class="about__photo-glow"></div>
+        <!-- <picture> — прогрессивная загрузка фото.
+             Браузер выбирает первый <source> который понимает:
+             1. AVIF (самый компактный) — если поддерживается
+             2. WebP (компактный) — если поддерживается
+             3. JPEG (fallback) — понимают все -->
         <picture>
           {% if about_photo.thumb_avif %}<source srcset="{{ about_photo.thumb_avif }}" type="image/avif" />{% endif %}
           {% if about_photo.thumb_webp %}<source srcset="{{ about_photo.thumb_webp }}" type="image/webp" />{% endif %}
+          <!-- img — JPEG fallback
+               loading="lazy" — не грузить фото пока не прокрутишь до него.
+               width/height — чтобы браузер зарезервировал место (без CLS). -->
           <img class="about__photo" src="{{ about_photo.thumb }}" alt="{{ about_photo.title }}" width="{{ about_photo.width }}" height="{{ about_photo.height }}" loading="lazy" />
         </picture>
       </div>
+      <!-- Текст о фотографе -->
       <div class="about__text anim-fade-up anim-delay-1">
         <h2 class="section-title section-title--left">Обо мне</h2>
         <p>Я начинающий фотограф, снимаю индивидуальные портреты в Екатеринбурге. Моя главная задача — показать вас живыми, настоящими и красивыми без натянутости. 
@@ -49,6 +64,8 @@
 
   <div class="divider"></div>
 
+
+  <!-- ИЗБРАННОЕ -->
   <section class="featured" id="featured">
     <h2 class="section-title anim-fade-up">Избранное</h2>
     <div class="featured__grid" id="featuredGrid"></div>
@@ -59,6 +76,8 @@
 
   <div class="divider"></div>
 
+
+  <!-- УСЛУГИ -->
   <section class="services" id="services">
     <h2 class="section-title anim-fade-up">Услуги</h2>
     <div class="services__common anim-fade-up">
@@ -69,6 +88,8 @@
     </div>
 
     <div class="services__grid">
+
+      <!-- Карточка 1-->
       <div class="services__card anim-fade-up">
         <div class="services__icon">⚡</div>
         <div class="services__duration">30 минут</div>
@@ -81,6 +102,7 @@
         <div class="services__price">800 ₽</div>
       </div>
 
+      <!-- Карточка 2 -->
       <div class="services__card anim-fade-up">
         <span class="services__badge services__badge--green services__badge--cut">Рекомендовано</span>
         <div class="services__icon">🎯</div>
@@ -94,6 +116,7 @@
         <div class="services__price">1 500 ₽</div>
       </div>
 
+      <!-- Карточка 3-->
       <div class="services__card anim-fade-up">
         <div class="services__icon">✦</div>
         <div class="services__duration">1,5 часа</div>
@@ -106,6 +129,7 @@
         <div class="services__price">2 000 ₽</div>
       </div>
 
+      <!-- Карточка 4 -->
       <div class="services__card anim-fade-up anim-delay-1">
         <span class="services__badge services__badge--green services__badge--tight">Выгоднее</span>
         <div class="services__icon">⬡</div>
@@ -119,11 +143,15 @@
         <div class="services__price">2 500 ₽</div>
       </div>
     </div>
+    <!-- Кнопка "Записаться" — ведёт на Яндекс.Форму.
+         target="_blank" — открывает в новой вкладке.
+         rel="noopener" — безопасность (новая вкладка не имеет доступа к старой). -->
     <a href="https://forms.yandex.ru/u/69fd045195add53a4a7a3f54" class="services__btn anim-fade-up" target="_blank" rel="noopener">Записаться</a>
   </section>
 
   <div class="divider"></div>
 
+  <!-- КОНТАКТЫ -->
   <section class="contact" id="contact">
     <div class="contact__bg"></div>
     <div class="contact__content">
@@ -157,6 +185,7 @@
     </div>
   </section>
 
+  <!-- Футер -->
   <footer class="footer">
     <p>&copy; 2026 Александр Ахметов</p>
   </footer>

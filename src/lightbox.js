@@ -248,9 +248,9 @@ export function openLightbox(index) {
       })
     })
 
-    /* Параллельно загружаем полноразмерное фото */
+    /* Параллельно загружаем фото для лайтбокса: display_src (1920px) или оригинал */
     if (getLightboxIndex() === index) {
-      _lbLoadFull(full, photo.src, index)
+      _lbLoadFull(full, photo.display_src || photo.src, index)
     }
   }
 
@@ -364,7 +364,7 @@ export function navigateLightbox(direction) {
         thumb.style.opacity = '1'
         thumb.style.transform = `${_lbT} scale(1)`
       })
-      _lbLoadFull(full, photo.src, newIdx)
+      _lbLoadFull(full, photo.display_src || photo.src, newIdx)
     }
 
     if (thumb.complete && thumb.naturalWidth > 0) {
@@ -564,6 +564,14 @@ export function initLightbox() {
       _lbZoom.y = _lbZoomAtPanY + (touches[0].clientY - _lbPanStartY)
       _lbApplyZoom()
     }
+  }, { passive: true })
+
+  /* --- touchcancel — прерывание жеста (звонок, уведомление) ---
+     Сбрасываем флаги pan/pinch, чтобы следующее касание не
+     воспринималось как продолжение прерванного жеста. */
+  lightbox.addEventListener('touchcancel', () => {
+    _lbPinchActive = false
+    _lbPanActive = false
   }, { passive: true })
 
   lightbox.addEventListener('touchend', e => {
