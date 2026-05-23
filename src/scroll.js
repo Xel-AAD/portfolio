@@ -107,7 +107,7 @@ export function initHeaderScroll() {
       })
       ticking = true
     }
-  })
+  }, { passive: true })
 
   /* Первичная проверка — при загрузке страницы */
   updateActiveNav()

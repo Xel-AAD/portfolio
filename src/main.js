@@ -1,15 +1,16 @@
 /* ============================================================
-   MAIN.JS — Точка входа фронтенда
-   
-   Вызывается при DOMContentLoaded. Инициализирует все модули
-   в зависимости от текущей страницы (window.__PAGE__).
-   
-   Также:
-   • Восстанавливает позицию скролла из sessionStorage
-   • Сохраняет позицию скролла при уходе (beforeunload)
-   • Логотип: скроллит наверх на главной, очищает scrollY на других
-   • Resize: перерисовывает галерею/featured при смене ширины
-   ============================================================ */
+MAIN.JS — Точка входа фронтенда
+
+Вызывается при DOMContentLoaded. Инициализирует все модули
+в зависимости от текущей страницы (window.__PAGE__).
+
+Также:
+• Восстанавливает позицию скролла из sessionStorage (per-page)
+• Сохраняет позицию скролла при уходе (beforeunload, per-page)
+• Логотип: скроллит наверх на главной (без перехода),
+  на других страницах — переход на / без анимации
+• Resize: перерисовывает галерею/featured при смене ширины
+============================================================ */
 import { renderFeatured } from './featured.js'
 import { initGallery, renderCurrentGallery } from './gallery.js'
 import { initLightbox } from './lightbox.js'
@@ -17,11 +18,15 @@ import { initScrollAnimations, initHeaderScroll, initHeroAnimations } from './sc
 import { initMobileNav } from './mobile-nav.js'
 import { initParticles } from './hero.js'
 import { setLightboxList } from './state.js'
+import { initPageTransition } from './page-transition.js'
 
-/* --- Resize-обработчик ---
-   При изменении ширины окна — перерисовывает сетки фото
-   (featured или gallery), т.к. размеры зависят от containerWidth.
-   debounce 200мс — не перерисовываем на каждый пиксель ресайза. */
+const SCROLL_KEY = '__scroll__'
+
+function getScrollKey(page) {
+  return SCROLL_KEY + page
+}
+
+/* --- Resize-обработчик --- */
 function initResizeHandler() {
   let resizeTimer
   let lastWidth = window.innerWidth
@@ -29,94 +34,81 @@ function initResizeHandler() {
     clearTimeout(resizeTimer)
     resizeTimer = setTimeout(() => {
       const newWidth = window.innerWidth
-      if (newWidth !== lastWidth) {          /* Только если ширина реально изменилась (не только высота) */
+      if (newWidth !== lastWidth) {
         lastWidth = newWidth
         if (window.__PAGE__ === 'index') {
-          renderFeatured()                  /* Перерасчёт masonry-сетки */
-          initScrollAnimations()            /* Новые элементы нужно зарегистрировать */
+          renderFeatured()
+          initScrollAnimations()
         }
         if (window.__PAGE__ === 'portfolio') {
-          renderCurrentGallery()            /* Перерасчёт justified-строк */
+          renderCurrentGallery()
           initScrollAnimations()
         }
       }
-    }, 200) /* 200мс debounce */
+    }, 200)
   })
 }
 
-/* --- Главная функция инициализации ---
-   Вызывается один раз при загрузке страницы.
-   Инициализирует модули в зависимости от типа страницы. */
+/* --- Главная функция инициализации --- */
 function init() {
-  const page = window.__PAGE__              /* Задаётся бэкендом в base.html: "index" / "portfolio" / "reviews" */
-  const savedScroll = sessionStorage.getItem('scrollY')
+  const page = window.__PAGE__
 
-  /* Главная страница: featured-сетка, hero-частицы, анимации */
-  if (page === 'index') {
-    renderFeatured()                         /* Рисует masonry-сетку из фото Favourites */
-    initScrollAnimations()                   /* Регистрирует .anim-fade-up элементы в Observer */
-    initHeaderScroll()                       /* Хедер: .scrolled при скролле + активная ссылка */
-    initHeroAnimations()                     /* Мгновенное появление hero-элементов через 200мс */
-    initParticles()                          /* 25 летающих золотых частиц */
-
-    if (window.__LIGHTBOX_DATA__?.length) {
-      setLightboxList(window.__LIGHTBOX_DATA__) /* Список фото для лайтбокса */
-    }
-  }
-
-  /* Страница портфолио: галерея + фильтры */
-  if (page === 'portfolio') {
-    initGallery()                            /* Justified-сетка + фильтры по съёмкам */
-    initScrollAnimations()
-    initHeaderScroll()                       /* Хедер скрыт (.header--hidden) */
-  }
-
-  /* Страница отзывов: только анимации и хедер */
-  if (page === 'reviews') {
-    initScrollAnimations()
-    initHeaderScroll()                       /* Хедер всегда с фоном (.scrolled) */
-  }
-
-  /* Общие модули для всех страниц */
-  initLightbox()                             /* Клик по фото → полноэкранный просмотр */
-  initMobileNav()                            /* Бургер-меню на мобильных */
-  initResizeHandler()                        /* Перерисовка при ресайзе */
-
-  /* Восстановление позиции скролла.
-     requestAnimationFrame — чтобы DOM успел отрисоваться до скролла,
-     иначе браузер может скроллить до рендера контента.
-     behavior: 'instant' — мгновенный переход, без плавной прокрутки.
-     Плавный scroll (CSS scroll-behavior: smooth) не нужен при восстановлении —
-     пользователь ожидает оказаться сразу на том же месте. */
+  /* Восстановление скролла для текущей страницы */
+  const savedScroll = sessionStorage.getItem(getScrollKey(page))
   if (savedScroll !== null) {
     requestAnimationFrame(() => {
       window.scrollTo({ top: parseInt(savedScroll, 10), behavior: 'instant' })
     })
   }
+
+  if (page === 'index') {
+    try { renderFeatured() } catch (e) { console.error('[init] renderFeatured:', e) }
+    try { initScrollAnimations() } catch (e) { console.error('[init] initScrollAnimations:', e) }
+    try { initHeaderScroll() } catch (e) { console.error('[init] initHeaderScroll:', e) }
+    try { initHeroAnimations() } catch (e) { console.error('[init] initHeroAnimations:', e) }
+    try { initParticles() } catch (e) { console.error('[init] initParticles:', e) }
+
+    if (window.__LIGHTBOX_DATA__?.length) {
+      setLightboxList(window.__LIGHTBOX_DATA__)
+    }
+  }
+
+  if (page === 'portfolio') {
+    try { initGallery() } catch (e) { console.error('[init] initGallery:', e) }
+    try { initScrollAnimations() } catch (e) { console.error('[init] initScrollAnimations:', e) }
+    try { initHeaderScroll() } catch (e) { console.error('[init] initHeaderScroll:', e) }
+  }
+
+  if (page === 'reviews') {
+    try { initScrollAnimations() } catch (e) { console.error('[init] initScrollAnimations:', e) }
+    try { initHeaderScroll() } catch (e) { console.error('[init] initHeaderScroll:', e) }
+  }
+
+  try { initLightbox() } catch (e) { console.error('[init] initLightbox:', e) }
+  try { initMobileNav() } catch (e) { console.error('[init] initMobileNav:', e) }
+  initResizeHandler()
+  try { initPageTransition() } catch (e) { console.error('[init] initPageTransition:', e) }
 }
 
-/* Отключаем браузерное автоматическое восстановление скролла —
-   мы управляем этим сами через sessionStorage + scrollTo('instant').
-   Без этого браузер может прокрутить дважды (свой + наш). */
 if ('scrollRestoration' in history) {
   history.scrollRestoration = 'manual'
 }
 
-/* Перед уходом со страницы — сохраняем текущую позицию скролла.
-   При возврате (кнопка «Назад») — скролл восстановится.
-   sessionStorage — живёт только в текущей вкладке. */
+/* Перед уходом со страницы — сохраняем позицию скролла для текущей страницы */
 window.addEventListener('beforeunload', () => {
-  sessionStorage.setItem('scrollY', String(window.scrollY))
+  sessionStorage.setItem(getScrollKey(window.__PAGE__), String(window.scrollY))
 })
 
-/* Логотип: на главной — smooth scroll наверх (без перезагрузки),
-   на других страницах — переход на / с очисткой scrollY
-   (чтобы не восстановилась старая позиция с середины страницы). */
+/* Логотип: на главной — smooth scroll наверх (без перехода, без анимации).
+На других страницах — прямой переход на / без page-wash анимации
+и со сбросом скролла главной. */
 document.querySelector('.nav__logo')?.addEventListener('click', (e) => {
-  sessionStorage.removeItem('scrollY')      /* Очищаем — чтобы / открылась с hero */
   if (window.__PAGE__ === 'index') {
-    e.preventDefault()                       /* Не переходим по ссылке — скроллим */
-    window.scrollTo({ top: 0, behavior: 'smooth' }) /* Плавный скролл наверх */
+    e.preventDefault()
+    e.stopImmediatePropagation()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  } else {
+    sessionStorage.setItem(getScrollKey('index'), '0')
   }
 })
 

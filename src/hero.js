@@ -11,8 +11,10 @@
 import { $ } from './dom.js'
 
 export function initParticles() {
-  const container = $('#heroParticles')
-  if (!container) return
+ const container = $('#heroParticles')
+ if (!container) return
+
+ if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
   /* 25 частиц — достаточно для атмосферы, не перегружает GPU */
   for (let i = 0; i < 25; i++) {

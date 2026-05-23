@@ -15,11 +15,15 @@
 import { $, $$ } from './dom.js'
 import { setLightboxList } from './state.js'
 import { openLightbox } from './lightbox.js'
-import { initScrollAnimations } from './scroll.js'
 
 /* Целевая высота ряда фото */
 const ROW_HEIGHT = 350                       /* Десктоп: 350px — крупные, детальные фото */
 const ROW_HEIGHT_MOBILE = 180                /* Мобайл: 180px — компактнее, больше фото на экране */
+
+/* Настройка предзагрузки: изображения начинают загружаться, когда до границы
+   видимой области остаётся 300px (rootMargin). Чем больше значение, тем
+   раньше начнётся загрузка и плавнее скролл, но выше трафик. */
+const LAZY_ROOT_MARGIN = '300px 0px 300px 0px'
 
 /* Seeded PRNG (Mulberry32) — детерминированный рандом.
    Одинаковый seed = одинаковый порядок фото.
@@ -106,6 +110,27 @@ function buildJustifiedRows(photos, containerWidth, targetRowHeight, gap = 5) {
   return rows
 }
 
+/* --- Управляемая ленивая загрузка через IntersectionObserver --- */
+const lazyLoader = new IntersectionObserver(
+  (entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const img = entry.target
+        // переносим URL из data-src в src и прекращаем наблюдение
+        if (img.dataset.src) {
+          img.src = img.dataset.src
+          img.removeAttribute('data-src')
+        }
+        lazyLoader.unobserve(img)
+      }
+    })
+  },
+  {
+    rootMargin: LAZY_ROOT_MARGIN, // предзагрузка за 300px до входа в зону видимости
+    threshold: 0.01               // достаточно, чтобы элемент начал появляться
+  }
+)
+
 /* renderGrid — создаёт DOM-элементы для justified-сетки.
    Каждый ряд — div.gallery__row, фото внутри — div.gallery__item. */
 function renderGrid(photos) {
@@ -135,29 +160,20 @@ function renderGrid(photos) {
       const itemIndex = globalIdx++
 
       const itemEl = document.createElement('div')
-      itemEl.className = 'gallery__item anim-fade-up'
+      itemEl.className = 'gallery__item'     /* ← убран anim-fade-up */
       itemEl.style.width = `${Math.round(item.displayWidth)}px`  /* Точная ширина фото */
       itemEl.style.height = `${Math.round(row.rowHeight)}px`     /* Высота = высота ряда */
 
-      /* <picture> с AVIF → WebP → JPEG fallback */
-      const picture = document.createElement('picture')
-      if (item.thumb_avif) {
-        const avifSrc = document.createElement('source')
-        avifSrc.srcset = item.thumb_avif
-        avifSrc.type = 'image/avif'
-        picture.appendChild(avifSrc)
-      }
-      if (item.thumb_webp) {
-        const webpSrc = document.createElement('source')
-        webpSrc.srcset = item.thumb_webp
-        webpSrc.type = 'image/webp'
-        picture.appendChild(webpSrc)
-      }
       const img = document.createElement('img')
-      img.src = item.thumb                    /* JPEG fallback */
+      // Вместо src пишем data-src, src оставляем пустым (или можно вообще не указывать)
+      img.dataset.src = item.src
       img.alt = item.title
-      img.loading = 'lazy'                   /* Ленивая загрузка — фото за экраном не грузятся */
-      picture.appendChild(img)
+      // loading="lazy" больше не нужен — управляем загрузкой сами
+      img.width = Math.round(item.displayWidth)
+      img.height = Math.round(row.rowHeight)
+
+      // Регистрируем в Observer для предзагрузки
+      lazyLoader.observe(img)
 
       /* Оверлей с названием + описанием при hover */
       const overlay = document.createElement('div')
@@ -174,7 +190,8 @@ function renderGrid(photos) {
         desc.textContent = item.description
         overlay.appendChild(desc)
       }
-      itemEl.appendChild(picture)
+
+      itemEl.appendChild(img)
       itemEl.appendChild(overlay)
 
       /* Клик → открываем лайтбокс на этом фото */
@@ -203,11 +220,18 @@ export function initGallery() {
   /* --- Кнопка «Наверх» --- */
   const scrollTopBtn = $('#scrollTop')
   if (scrollTopBtn) {
+    let _scrollTicking = false
     const checkScroll = () => {
       const show = window.scrollY > window.innerHeight * 2
       scrollTopBtn.classList.toggle('visible', show)
+      _scrollTicking = false
     }
-    window.addEventListener('scroll', checkScroll, { passive: true })
+    window.addEventListener('scroll', () => {
+      if (!_scrollTicking) {
+        requestAnimationFrame(checkScroll)
+        _scrollTicking = true
+      }
+    }, { passive: true })
     checkScroll()
     scrollTopBtn.addEventListener('click', () => {
       const filterWrap = $('.gallery__filter-wrap')
@@ -233,6 +257,21 @@ export function initGallery() {
   renderGrid(_currentPhotos)
   setLightboxList(_currentPhotos)
 
+  /* --- Фильтры по съёмкам --- */
+  const wrap = $('.gallery__filter-wrap')
+  const inner = $('.gallery__filter-inner')
+  const toggle = $('#filterToggle')
+  const dropdown = $('#filterDropdown')
+
+  function _updateToggleLabel(text) {
+    if (!toggle) return
+    toggle.textContent = text
+    const arrow = document.createElement('span')
+    arrow.className = 'gallery__filter-arrow'
+    arrow.textContent = '\u25BE'
+    toggle.appendChild(arrow)
+  }
+
   /* --- Обработка popstate (кнопки Назад/Вперёд в браузере) ---
      Когда URL меняется через history.back()/forward(), перечитываем
      параметр session и переключаем фильтр без перезагрузки. */
@@ -244,11 +283,11 @@ export function initGallery() {
       const session = galleryData.find(s => s.id === sessionId)
       if (session) {
         _currentPhotos = session.photos
-        if (toggle) toggle.innerHTML = `${session.title}<span class="gallery__filter-arrow">&#9662;</span>`
+        _updateToggleLabel(session.title)
       }
     } else {
       _currentPhotos = shuffle(allPhotos, _seededRandom(_dayOfYear()))
-      if (toggle) toggle.innerHTML = `Все съёмки<span class="gallery__filter-arrow">&#9662;</span>`
+      _updateToggleLabel('Все съёмки')
     }
 
     $$('.gallery__filter-option').forEach(b => b.classList.remove('gallery__filter-option--active'))
@@ -257,13 +296,8 @@ export function initGallery() {
 
     renderGrid(_currentPhotos)
     setLightboxList(_currentPhotos)
+    /* initScrollAnimations() больше не вызывается */
   })
-
-  /* --- Фильтры по съёмкам --- */
-  const wrap = $('.gallery__filter-wrap')
-  const inner = $('.gallery__filter-inner')
-  const toggle = $('#filterToggle')
-  const dropdown = $('#filterDropdown')
 
   if (toggle && dropdown && inner) {
     /* Клик по тоглу — открыть/закрыть выпадающий список */
@@ -294,16 +328,16 @@ export function initGallery() {
           const session = galleryData.find(s => s.id === sessionId)
           if (session) {
             _currentPhotos = session.photos
-            toggle.innerHTML = `${session.title}<span class="gallery__filter-arrow">&#9662;</span>`
+            _updateToggleLabel(session.title)
           }
         } else {
           /* Все съёмки — детерминированный shuffle */
           _currentPhotos = shuffle(allPhotos, _seededRandom(_dayOfYear()))
-          toggle.innerHTML = `Все съёмки<span class="gallery__filter-arrow">&#9662;</span>`
+          _updateToggleLabel('Все съёмки')
         }
 
         inner.classList.remove('gallery__filter-inner--open') /* Закрываем dropdown */
-    toggle.setAttribute('aria-expanded', 'false')
+        toggle.setAttribute('aria-expanded', 'false')
 
         renderGrid(_currentPhotos)            /* Перерисовываем сетку */
         setLightboxList(_currentPhotos)        /* Обновляем список для лайтбокса */
@@ -312,8 +346,7 @@ export function initGallery() {
         const url = sessionId ? `/portfolio/?session=${sessionId}` : '/portfolio/'
         history.replaceState(null, '', url)
 
-        /* Регистрируем новые .anim-fade-up элементы в Observer */
-        initScrollAnimations()
+        /* initScrollAnimations() удалён — анимация появления отключена */
       })
     })
   }

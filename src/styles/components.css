@@ -1,33 +1,19 @@
-/* ============================================================
-   10. СЕКЦИЯ «ОБО МНЕ» (ABOUT)
-   
-   Десктоп: фото слева (30% ширины), текст справа (70%).
-   Мобильный: фото над текстом (одна колонка), всё по центру.
-   
-   Фото имеет фиксированную пропорцию 3:4 (вертикальное,
-   портретное) — лицо фотографа. За фото — мягкое золотое
-   свечение (glow). Первые 3 абзаца — белые (важные),
-   остальные — серые (дополнительные).
-   ============================================================ */
-
-/* .about — обёртка секции */
+/* СЕКЦИЯ «ОБО МНЕ»  */
 .about {
   padding: var(--section-pad) 40px;  /* 120px вертикально, 40px горизонтально */
-  max-width: var(--max-w);            /* 1200px макс. ширина */
-  margin: 0 auto;                     /* Центрирование */
+  max-width: var(--max-w);            
+  margin: 0 auto;                     
 }
 
-
-
-/* .about__inner — сетка: фото + текст */
+/* сетка: фото + текст */
 .about__inner {
-  display: grid;                      /* CSS Grid — двухколоночная раскладка */
+  display: grid;                      
   grid-template-columns: minmax(200px, 320px) 1fr;  /* Левая: мин 200px, макс 320px  Правая: оставшееся */
-  gap: 70px;                          /* 80px между фото и текстом — просторно */
-  align-items: center;                /* Фото и текст вертикально по центру — визуальный баланс */
+  gap: 70px;                          /* 70px между фото и текстом */
+  align-items: center;             
 }
 
-/* .about__photo-wrap — контейнер фото */
+/* контейнер фото */
 .about__photo-wrap {
   position: relative;
   overflow: hidden;
@@ -35,7 +21,7 @@
   min-width: 0;
 }
 
-/* .about__photo — само фото */
+/* само фото */
 .about__photo {
   display: block;
   width: 100%;
@@ -43,23 +29,18 @@
   border-radius: 2px;
 }
 
-
-
-
-
-
-/* .about__photo-glow — мягкое золотое свечение за фото */
+/* мягкое золотое свечение за фото */
 .about__photo-glow {
   position: absolute;                 /* Абсолютное — за фото */
   inset: 20px;                       /* Отступ 20px от краёв — свечение чуть меньше фото */
-  background: var(--accent);          /* Золотой цвет */
-  opacity: 0.06;                     /* 6% — еле заметное, мягкое */
+  background: var(--accent);          
+  opacity: 0.05;                    
   filter: blur(60px);                /* Сильное размытие: 60px — пятно без чётких границ */
   border-radius: 4px;               /* Слегка скруглённое — не квадратное пятно */
   z-index: 0;                        /* Под фото (z-index: auto) */
 }
 
-/* .about__text p — абзацы текста */
+/* абзацы текста */
 .about__text p {
   font-size: 1rem;
   font-weight: 300;
@@ -69,29 +50,17 @@
 }
 
 .about__text p:first-of-type { font-size: 1.1rem; }
-.about__text p:last-of-type { color: var(--text-muted); }
-
-/* --- Мобильный «Обо мне» (<=768px) --- */
+.about__text p:nth-last-child(-n+2) { color: var(--text-muted); }
 
 
 
-
-
-/* ============================================================
-   11. СЕКЦИЯ «ИЗБРАННОЕ» (FEATURED)
+/*  СЕКЦИЯ «ИЗБРАННОЕ» (FEATURED)
    
    4-колоночная CSS Grid с кастомной раскладкой: первое фото
    занимает 2×2 ячейки (крупное), некоторые — 2×1 (широкие).
-   Всего 10 фото из папки Favourites.
-   
-   Hover-эффект: лёгкий зум фото + снизу выезжает оверлей
-   с названием и описанием.
-   
-   Кнопка "Смотреть все работы" — та же анимация заливки,
-   что у hero__btn.
-   ============================================================ */
+   Всего 10 фото из папки Favourites. */
 
-/* .featured — обёртка секции */
+/* обёртка секции */
 .featured {
   padding: var(--section-pad) 40px;
   max-width: var(--max-w);
@@ -711,6 +680,7 @@
   right: 34px;
   z-index: 160;
   padding: 14px 0;
+  overflow: hidden;
   background: rgba(201, 169, 110, 0.06);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -894,7 +864,7 @@
 
 .reviews {
   padding: 40px 40px 80px;                 /* Меньше сверху, больше снизу — контент выше, кнопка ниже */
-  min-height: calc(100vh - 80px);          /* Минимум на весь экран минус хедер */
+  min-height: calc(100vh - 67px);          /* Минимум на весь экран минус хедер */
   display: flex;
   align-items: flex-start;                 /* Контент прижат к верху */
 }
@@ -905,7 +875,7 @@
   margin: 0 auto;                           /* Центрирование */
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 200px);          /* Заполняет экран — кнопка уходит вниз */
+  min-height: calc(100vh - 67px - 100px); /* Заполняет экран минус хедер и футер */
 }
 
 /* Декоративные линии — как в hero и контактах */
@@ -1259,7 +1229,7 @@
 }
 
 .not-found__title {
-  font-family: "DM Serif Display", serif;
+  font-family: var(--font-display);
   font-size: 8rem;                          /* Огромная цифра 404 */
   line-height: 1;                           /* Без межстрочного — плотно */
   color: var(--accent);                     /* Золотая — акцент */
@@ -1287,5 +1257,3 @@
   background: var(--accent);                /* Золотой фон */
   color: var(--bg);                         /* Тёмный текст — инверсия */
 }
-
-

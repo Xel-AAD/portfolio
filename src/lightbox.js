@@ -31,10 +31,11 @@
 import { $ } from './dom.js'
 import { getLightboxList, getLightboxIndex, setLightboxIndex } from './state.js'
 
-let _lbTimer = null                          /* Таймер навигации (250мс задержка между фото) */
-let _lbCloseTimer = null                     /* Таймер анимации закрытия (300мс) */
-let _lbTouchTimer = null                     /* Таймер видимости стрелок на мобайле (1500мс) */
-const _lbT = 'translate(-50%,-50%)'          /* Центрирование: сдвиг на -50% по обеим осям */
+let _lbTimer = null /* Таймер навигации (250мс задержка между фото) */
+let _lbCloseTimer = null /* Таймер анимации закрытия (300мс) */
+let _lbTouchTimer = null /* Таймер видимости стрелок на мобайле (1500мс) */
+let _lbPreviousFocus = null /* Элемент, на котором был фокус до открытия лайтбокса */
+const _lbT = 'translate(-50%,-50%)' /* Центрирование: сдвиг на -50% по обеим осям */
 
 /* ============================================================
    ZOOM — состояние и утилиты
@@ -191,6 +192,28 @@ function _lbLoadFull(full, src, idx) {
   }
 }
 
+/* --- Focus trap --- Keeps Tab/Shift+Tab inside lightbox while open */
+function _lbFocusTrap(e) {
+ if (e.key !== 'Tab') return
+ const lightbox = $('#lightbox')
+ if (!lightbox) return
+ const focusable = lightbox.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+ if (!focusable.length) return
+ const first = focusable[0]
+ const last = focusable[focusable.length - 1]
+ if (e.shiftKey) {
+ if (document.activeElement === first) {
+ e.preventDefault()
+ last.focus()
+ }
+ } else {
+ if (document.activeElement === last) {
+ e.preventDefault()
+ first.focus()
+ }
+ }
+}
+
 /* --- openLightbox --- Открывает лайтбокс на фото с заданным индексом.
    Анимация: миниатюра зумится от 0.92→1 за 0.45с (cubic-bezier). */
 export function openLightbox(index) {
@@ -219,20 +242,25 @@ export function openLightbox(index) {
   full.classList.remove('loaded')
   full.removeAttribute('src')                 /* Очищаем src — чтобы не показывало прошлое фото */
 
-  /* Подготавливаем миниатюру: невидимая, маленькая, размытая */
-  thumb.style.transition = 'none'            /* Без анимации — устанавливаем начальную позицию */
-  thumb.style.opacity = '0'
-  thumb.style.transform = `${_lbT} scale(0.92)` /* Чуть меньше — будет «вырастать» */
-  thumb.style.filter = 'blur(25px)'          /* Сильно размытая — фокус на контуре, не на деталях */
-  thumb.src = photo.thumb
-  thumb.alt = photo.title
+ /* Подготавливаем миниатюру: невидимая, маленькая, размытая */
+ thumb.style.transition = 'none'
+ thumb.style.opacity = '0'
+ thumb.style.transform = `${_lbT} scale(0.92)`
+ thumb.style.filter = 'blur(25px)'
+ thumb.src = photo.src
+ thumb.alt = photo.title
 
   /* Показываем лайтбокс */
   lightbox.classList.add('open')
   lightbox.classList.remove('lb-loading', 'lb-done')
-  lightbox.setAttribute('aria-hidden', 'false')
-  document.documentElement.classList.add('lightbox-open') /* Блокирует скролл (CSS: overflow:hidden) */
-  document.documentElement.style.overflow = 'hidden'
+ lightbox.setAttribute('aria-hidden', 'false')
+  document.documentElement.classList.add('lightbox-open')
+
+ /* Focus trap: save previously focused element, move focus to lightbox */
+ _lbPreviousFocus = document.activeElement
+ document.addEventListener('keydown', _lbFocusTrap)
+ const closeBtn = $('#lightboxClose')
+ if (closeBtn) closeBtn.focus()
 
   /* startZoom — когда миниатюра загрузилась, запускаем анимацию зума.
      Двойной requestAnimationFrame — гарантирует, что браузер отрендерил
@@ -248,10 +276,10 @@ export function openLightbox(index) {
       })
     })
 
-    /* Параллельно загружаем фото для лайтбокса: display_src (1920px) или оригинал */
-    if (getLightboxIndex() === index) {
-      _lbLoadFull(full, photo.display_src || photo.src, index)
-    }
+ /* Параллельно загружаем фото для лайтбокса */
+ if (getLightboxIndex() === index) {
+ _lbLoadFull(full, photo.src, index)
+ }
   }
 
   /* Ждём загрузки миниатюры, потом запускаем зум */
@@ -289,8 +317,11 @@ export function closeLightbox() {
   /* СБРАСЫВАЕМ ИНДЕКС ДО setTimeout — иначе проверка ниже не сработает.
      Багфикс: раньше setLightboxIndex(-1) стоял ПОСЛЕ проверки,
      и return всегда срабатывал — лайтбокс не закрывался. */
-  const closingIndex = getLightboxIndex()
-  setLightboxIndex(-1)
+ const closingIndex = getLightboxIndex()
+ setLightboxIndex(-1)
+
+ /* Remove focus trap */
+ document.removeEventListener('keydown', _lbFocusTrap)
 
   /* После анимации (300мс) — окончательно убираем лайтбокс */
   setTimeout(() => {
@@ -299,17 +330,22 @@ export function closeLightbox() {
 
     lightbox.classList.remove('open')
     lightbox.setAttribute('aria-hidden', 'true')
-    document.documentElement.classList.remove('lightbox-open')
-    document.documentElement.style.overflow = ''  /* Возвращаем скролл */
+  document.documentElement.classList.remove('lightbox-open')
 
     /* Сбрасываем inline-стили — возвращаем к CSS-значениям */
     thumb.style.transition = ''
     thumb.style.opacity = ''
     thumb.style.transform = ''
     thumb.style.filter = ''
-    full.removeAttribute('src')
-    _lbCloseTimer = null
-  }, 300) /* 300мс — совпадает с длительностью transition миниатюры */
+ full.removeAttribute('src')
+ _lbCloseTimer = null
+
+ /* Return focus to the element that had it before opening */
+ if (_lbPreviousFocus && typeof _lbPreviousFocus.focus === 'function') {
+ _lbPreviousFocus.focus()
+ _lbPreviousFocus = null
+ }
+ }, 300) /* 300мс — совпадает с длительностью transition миниатюры */
 }
 
 /* --- navigateLightbox --- Переключает фото (вперёд/назад).
@@ -353,8 +389,8 @@ export function navigateLightbox(direction) {
 
     /* Подготавливаем новую миниатюру */
     full.removeAttribute('src')
-    thumb.src = photo.thumb
-    thumb.alt = photo.title
+ thumb.src = photo.src
+ thumb.alt = photo.title
     thumb.style.filter = 'blur(25px)'         /* Размытая — полный размер будет поверх */
 
     /* Анимация появления нового фото */
@@ -364,7 +400,7 @@ export function navigateLightbox(direction) {
         thumb.style.opacity = '1'
         thumb.style.transform = `${_lbT} scale(1)`
       })
-      _lbLoadFull(full, photo.display_src || photo.src, newIdx)
+      _lbLoadFull(full, photo.src, newIdx)
     }
 
     if (thumb.complete && thumb.naturalWidth > 0) {
@@ -431,16 +467,27 @@ export function initLightbox() {
     })
   }
 
-  /* --- Scroll wheel zoom (десктоп) ---
-     Мультипликативный factor (×0.92 / ×1.08) — плавнее чем аддитивный.
-     zoomTo от курсора — точка под курсором остаётся на месте. */
+  /* --- Scroll wheel / trackpad pinch zoom (десктоп) ---
+  Обычная мышь: deltaY в шагах (±1, ±3), mode=line → мультипликативный фактор.
+  Трекпад pinch: ctrlKey=true, deltaY в пикселях, mode=pixel → аддитивный расчёт.
+  zoomTo от курсора — точка под курсором остаётся на месте. */
   if (zoom) {
     zoom.addEventListener('wheel', e => {
       if (!lightbox.classList.contains('open')) return
       e.preventDefault()
-      const factor = e.deltaY > 0 ? 0.92 : 1.08
       const rel = _lbRelCenter(e.clientX, e.clientY)
-      _lbZoomTo(_lbZoom.scale * factor, rel.x, rel.y)
+      let newScale
+      if (e.ctrlKey) {
+        /* Трекпад pinch: deltaY в пикселях, |deltaY| ~1-10 за событие.
+           Нормализуем к пропорциональному изменению масштаба. */
+        const factor = 1 - e.deltaY * 0.01
+        newScale = _lbZoom.scale * Math.max(0.8, Math.min(1.2, factor))
+      } else {
+        /* Мышь: deltaY целочисленный → мультипликативный шаг. */
+        const factor = e.deltaY > 0 ? 0.92 : 1.08
+        newScale = _lbZoom.scale * factor
+      }
+      _lbZoomTo(newScale, rel.x, rel.y)
       /* Автовозврат если zoom слишком мал */
       if (_lbZoom.scale < ZOOM_SNAP && _lbZoom.scale > ZOOM_MIN) {
         _lbResetZoom(true)

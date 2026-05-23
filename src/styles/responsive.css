@@ -46,7 +46,7 @@
     gap: 28px;                                /* 28px между ссылками */
     transform: translateX(100%);              /* Сдвинута на 100% вправо — скрыта */
     transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1); /* Плавный выезд */
-    z-index: 99;                              /* Над overlay (98) */
+  z-index: 101; /* Над header (100) и overlay (98) */
     -webkit-overflow-scrolling: touch;        /* Плавный скролл на iOS */
     overflow-y: auto;                         /* Скролл если ссылок много */
   }
@@ -192,7 +192,8 @@
   .services__badge { top: 27px; font-size: 0.5rem; padding: 3px 12px; }
 
   /* --- Портфолио --- */
-  .page--portfolio { padding-top: 68px; }    /* 74px → 68px */
+.page--portfolio { padding-top: 52px; } /* мобильный хедер: 16+16+~20px ≈ 52px */
+.page--reviews { padding-top: 52px; }
 
   .gallery__back {
     left: 0;                                  /* На всю ширину (без боковых линий) */

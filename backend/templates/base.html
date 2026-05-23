@@ -9,13 +9,14 @@
   <meta property="og:title" content="{% block og_title %}Александр Ахметов — Портретный фотограф{% endblock %}" />
   <meta property="og:description" content="{% block og_description %}Студийные и уличные портреты. Съёмка от 800₽.{% endblock %}" />
   <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://ekb.photographs.gs/photos/og-cover.jpg" />
+  <meta property="og:image" content="https://ekb.photographs.gs/photos/og-cover.webp" />
   <meta property="og:url" content="https://ekb.photographs.gs{{ canonical_path }}" />
   <link rel="canonical" href="https://ekb.photographs.gs{{ canonical_path }}" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="preconnect" href="https://forms.yandex.ru" />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+ <link rel="preconnect" href="https://fonts.googleapis.com" />
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+ <link rel="preconnect" href="https://forms.yandex.ru" />
+ <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+ <noscript><link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" /></noscript>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <noscript><style>.anim-fade-up{opacity:1!important;transform:none!important}</style></noscript>
   {% for css in css_files %}<link rel="stylesheet" href="/assets/{{ css }}" />{% endfor %}
@@ -29,7 +30,7 @@
     "name": "Александр Ахметов — Портретный фотограф",
     "description": "Портретный фотограф в Екатеринбурге. Студийные и уличные портреты. Фотосессия от 800₽.",
     "url": "https://ekb.photographs.gs",
-    "image": "https://ekb.photographs.gs/photos/og-cover.jpg",
+    "image": "https://ekb.photographs.gs/photos/og-cover.webp",
     "priceRange": "700₽ - 2500₽",
     "address": {
       "@type": "PostalAddress",
@@ -88,8 +89,8 @@
 
 
   <!-- ХЕДЕР — навигация по сайту -->
-  <header class="header" id="header">
-    <nav class="nav">
+ <header class="header" id="header">
+ <nav class="nav" aria-label="Основная навигация">
       <!-- Логотип -->
       <a href="/" class="nav__logo">Портретный фотограф — Екатеринбург</a>
       <!-- Ссылки меню. На десктопе: ряд справа -->
@@ -115,7 +116,7 @@
         </li>
       </ul>
       <!-- Бургер-кнопка ☰ -->
-      <button class="nav__burger" id="navBurger" aria-label="Меню">
+      <button class="nav__burger" id="navBurger" aria-label="Меню" aria-expanded="false" aria-controls="navOverlay">
         <span></span><span></span><span></span>
       </button>
     </nav>
@@ -123,7 +124,7 @@
 
 
   <!-- Затемнение фона при открытом мобильном меню -->
-  <div class="nav__overlay" id="navOverlay"></div>
+  <div class="nav__overlay" id="navOverlay" role="presentation" aria-hidden="true"></div>
 
   <!--  — место для контента конкретной страницы.
        index.html вставит сюда hero + about + featured + services + contact.
@@ -133,7 +134,7 @@
 
 
   <!-- ЛАЙТБОКС -->
-  <div class="lightbox" id="lightbox" role="dialog" aria-label="Просмотр фотографии" aria-hidden="true">
+  <div class="lightbox" id="lightbox" role="dialog" aria-label="Просмотр фотографии" aria-hidden="true" aria-modal="true">
     <!-- Кнопка закрытия ✕ (правый верхний угол) -->
     <button class="lightbox__close" id="lightboxClose" aria-label="Закрыть">&times;</button>
     <!-- Стрелка ←  -->
@@ -159,7 +160,7 @@
   </div>
 
 
-  <script>
+  <script nonce="{{ csp_nonce }}">
     // window.__PAGE__ — тип текущей страницы.
     window.__PAGE__ = "{{ page }}";
     // window.__LIGHTBOX_DATA__ — массив фото для лайтбокса.

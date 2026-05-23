@@ -60,44 +60,29 @@ export function renderFeatured() {
     /* Ищем самую короткую колонку — туда идёт фото */
     const shortest = columns.reduce((min, col, i) => col.height < columns[min].height ? i : min, 0)
 
-    /* DOM-элемент фото */
-    const itemEl = document.createElement('div')
-    itemEl.className = 'featured__item anim-fade-up'
-    itemEl.style.marginBottom = `${gap}px`    /* 10px отступ до следующего фото в колонке */
+ /* DOM-элемент фото */
+ const itemEl = document.createElement('div')
+ itemEl.className = 'featured__item anim-fade-up'
+ itemEl.style.marginBottom = `${gap}px` /* 10px отступ до следующего фото в колонке */
 
-    /* <picture> с AVIF → WebP → JPEG fallback (современные форматы приоритетнее) */
-    const picture = document.createElement('picture')
-    if (photo.thumb_avif) {
-      const avifSrc = document.createElement('source')
-      avifSrc.srcset = photo.thumb_avif       /* AVIF — самый лёгкий формат (40-75% меньше JPEG) */
-      avifSrc.type = 'image/avif'
-      picture.appendChild(avifSrc)
-    }
-    if (photo.thumb_webp) {
-      const webpSrc = document.createElement('source')
-      webpSrc.srcset = photo.thumb_webp       /* WebP — средний (47-63% меньше JPEG) */
-      webpSrc.type = 'image/webp'
-      picture.appendChild(webpSrc)
-    }
-    const img = document.createElement('img')
-    img.src = photo.thumb                     /* JPEG — fallback для старых браузеров */
-    img.alt = photo.title
-    img.loading = 'lazy'                      /* Ленивая загрузка — не грузим фото за пределами экрана */
-    img.width = Math.round(colWidth)          /* width/height — предотвращают CLS (сдвиг контента) */
-    img.height = Math.round(imgHeight)
-    picture.appendChild(img)
+ const img = document.createElement('img')
+ img.src = photo.src
+ img.alt = photo.title
+ img.loading = 'lazy'
+ img.width = Math.round(colWidth)
+ img.height = Math.round(imgHeight)
 
-    /* Оверлей с названием при hover */
-    const overlay = document.createElement('div')
-    overlay.className = 'featured__item-overlay'
+ /* Оверлей с названием при hover */
+ const overlay = document.createElement('div')
+ overlay.className = 'featured__item-overlay'
 
-    const title = document.createElement('h3')
-    title.className = 'featured__item-title'
-    title.textContent = photo.title
+ const title = document.createElement('h3')
+ title.className = 'featured__item-title'
+ title.textContent = photo.title
 
-    overlay.appendChild(title)
-    itemEl.appendChild(picture)
-    itemEl.appendChild(overlay)
+ overlay.appendChild(title)
+ itemEl.appendChild(img)
+ itemEl.appendChild(overlay)
 
     /* Клик → открываем лайтбокс на этом фото */
     itemEl.addEventListener('click', () => {
