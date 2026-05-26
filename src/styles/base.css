@@ -186,17 +186,17 @@ html.lightbox-open { overflow: hidden; }
 
 .page--portfolio {
   min-height: 100vh;
-  padding-top: 67px;
+  padding-top: 48px;
 }
 
 .page--404 {
   min-height: 100vh;
-  padding-top: 67px;
+  padding-top: 48px;
 }
 
 .page--reviews {
   min-height: 100vh;
-  padding-top: 67px;
+  padding-top: 48px;
 }
 
 .svg-sprite {
@@ -221,7 +221,7 @@ html.lightbox-open { overflow: hidden; }
   left: 0;
   width: 100%;
   z-index: 100;
-  overflow: hidden;
+  clip-path: inset(0 0 0 0);
   transition: background 0.3s,
   box-shadow 0.3s;
 }
@@ -236,34 +236,53 @@ html.lightbox-open { overflow: hidden; }
   display: none;
 }
 
-/* .nav — внутренний контейнер навигации (логотип + ссылки) */
+/* .nav — внутренний контейнер навигации (логотип + бургер) */
 .nav {
-  display: flex;                     /* Flexbox: элементы в ряд */
-  align-items: center;               /* Вертикальное центрирование: лого и ссылки на одной линии */
-  justify-content: space-between;    /* Логотип — влево, ссылки — вправо, пространство между ними */
-  max-width: var(--max-w);           /* Макс. 1200px — чтобы на 4K мониторе не растягивалась */
-  margin: 0 auto;                    /* Авто-отступы слева/справа = центрирование внутри 100% шапки */
-  padding: 24px 40px;               /* 24px сверху/снизу (высота шапки), 40px по бокам — отступ от краёв экрана */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 16px 40px;
+  position: relative;
 }
-
 
 /* .nav__logo */
 .nav__logo {
-  font-family: var(--font-display);  
-  font-size: 1.25rem;                
-  letter-spacing: 0.01em;            
-  transition: opacity 0.3s;         
+font-family: var(--font-display);
+font-size: 1.25rem;
+letter-spacing: 0.01em;
+transition: opacity 0.3s;
 }
-.nav__logo:hover { opacity: 0.75; }   /* При наведении: 75% прозрачности */
+.nav__logo:hover { opacity: 0.75; }
 
-
-/* .nav__links */
+/* .nav__links — фиксированное позиционирование (вне header в DOM,
+чтобы не обрезаться clip-path на .header). На десктопе — по правому
+краю контента, по вертикали — по центру хедера. */
 .nav__links {
-  flex: 1;                              /* Заполняет всё пространство от лого до правого края контента */
-  display: flex;                        /* Ссылки в ряд, не столбик */
-  justify-content: flex-end;            /* Ссылки прижаты к правому краю — "Контакты" на одной линии с фото */
-  gap: 40px;                            /* 40px между ссылками */
-  list-style: none;                     /* Убираем маркеры списка (точки) — <ul> по умолчанию их ставит */
+position: fixed;
+right: 0;
+left: 0;
+top: 0;
+display: flex;
+justify-content: flex-end;
+gap: 40px;
+list-style: none;
+max-width: var(--max-w);
+margin: 0 auto;
+padding: 0 40px;
+  height: 48px;
+align-items: center;
+pointer-events: none;
+z-index: 101;
+will-change: transform;
+}
+
+.nav__links a,
+.nav__links button,
+.nav__links .nav__close-wrap,
+.nav__links .nav__menu-footer {
+pointer-events: auto;
 }
 
 /* .nav__links a — каждая ссылка меню */
@@ -300,6 +319,7 @@ html.lightbox-open { overflow: hidden; }
 .nav__burger.active span:nth-child(3) { transform: translateY(-5px) rotate(-45deg); }
 
 /* .nav__close — кнопка закрытия мобильного меню (✕) */
+.nav__close-wrap { display: none; }
 .nav__close { display: none; }
 .nav__menu-footer { display: none; }
 
@@ -523,18 +543,19 @@ html.lightbox-open { overflow: hidden; }
 
 /* базовый стиль h2 */
 .section-title {
-  font-family: var(--font-display);   
-  font-size: clamp(1.8rem, 3.5vw, 2.6rem);  /* Адаптивный: мин 28.8px, предп. 3.5% ширины, макс 41.6px */
-  font-weight: 400;                  
-  text-align: center;                 
-  letter-spacing: 0.01em;            
-  margin-bottom: 20px;               /* Отступ до контента секции */
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3.5vw, 2.6rem); /* Адаптивный: мин 28.8px, предп. 3.5% ширины, макс 41.6px */
+  font-weight: 400;
+  text-align: center;
+  letter-spacing: 0.01em;
+  margin-top: 30px;
+  margin-bottom: 30px;
 }
 
 /* модификатор для "Обо мне" */
 .section-title--left {
   text-align: left;                  
-  margin-bottom: 23px;               
+  margin-bottom: 14px;               
 }
 
 

@@ -1,35 +1,26 @@
 /* ============================================================
-   GALLERY.JS — Justified-сетка портфолио + фильтры по съёмкам
-   
-   Justified-раскладка: фото разной пропорции выстраиваются в ряды
-   фиксированной высоты. Ширина каждого фото подбирается так,
-   чтобы ряд ровно заполнил контейнер (как в Google Photos/Flickr).
-   
-   Фильтры: кнопка-тогл с выпадающим списком съёмок.
-   «Все съёмки» — фото в случайном порядке (shuffle).
-   Конкретная съёмка — фото в оригинальном порядке.
-   
-   При смене фильтра — URL обновляется через history.replaceState
-   (без перезагрузки, но с правильным URL для шаринга).
-   ============================================================ */
+GALLERY.JS — Masonry-сетка портфолио + фильтры по съёмкам
+
+Masonry с неравными колонками (4 десктоп / 2 мобайл).
+Колонки разной ширины — края размываются.
+Одинаковый gap между всеми фото.
+Каждое фото получает случайную высоту из диапазона:
+- Portrait: высокая (380–560 десктоп, 240–380 мобайл)
+- Landscape: низкая (240–360 десктоп, 150–240 мобайл)
+============================================================ */
 import { $, $$ } from './dom.js'
 import { setLightboxList } from './state.js'
 import { openLightbox } from './lightbox.js'
 
-/* Целевая высота ряда фото */
-const ROW_HEIGHT = 350                       /* Десктоп: 350px — крупные, детальные фото */
-const ROW_HEIGHT_MOBILE = 180                /* Мобайл: 180px — компактнее, больше фото на экране */
-
-/* Настройка предзагрузки: изображения начинают загружаться, когда до границы
-   видимой области остаётся 300px (rootMargin). Чем больше значение, тем
-   раньше начнётся загрузка и плавнее скролл, но выше трафик. */
+const GAP = 6
 const LAZY_ROOT_MARGIN = '300px 0px 300px 0px'
 
-/* Seeded PRNG (Mulberry32) — детерминированный рандом.
-   Одинаковый seed = одинаковый порядок фото.
-   Seed = день года (как на главной) — каждый день новый порядок,
-   но в течение дня одинаковый для всех пользователей.
-   Устраняет CLS: при навигации назад раскладка не прыгает. */
+const HEIGHT_RANGE_DESKTOP = { portrait: [380, 560], landscape: [240, 360] }
+const HEIGHT_RANGE_MOBILE = { portrait: [240, 380], landscape: [150, 240] }
+
+const COL_WEIGHTS_DESKTOP = [1.05, 0.95, 1.0, 1.0]
+const COL_WEIGHTS_MOBILE = [1, 1]
+
 function _seededRandom(seed) {
   return function() {
     seed |= 0; seed = seed + 0x6D2B79F5 | 0
@@ -39,9 +30,6 @@ function _seededRandom(seed) {
   }
 }
 
-/* Fisher-Yates shuffle с опциональным PRNG.
-   Без rng — Math.random() (недетерминированный).
-   С rng — seeded (детерминированный, стабильный порядок). */
 function shuffle(arr, rng) {
   const a = [...arr]
   for (let i = a.length - 1; i > 0; i--) {
@@ -51,72 +39,17 @@ function shuffle(arr, rng) {
   return a
 }
 
-/* День года для seed — совпадает с бэкендом (date.toordinal()). */
 function _dayOfYear() {
   const now = new Date()
   const start = new Date(now.getFullYear(), 0, 0)
   return Math.floor((now - start) / 86400000)
 }
 
-/* buildJustifiedRows — ядро justified-алгоритма.
-   Раскладывает фото в ряды фиксированной высоты.
-   Каждый ряд заполняет контейнер по ширине точно.
-   Последний ряд — не растягивается (может быть короче). */
-function buildJustifiedRows(photos, containerWidth, targetRowHeight, gap = 5) {
-  if (!photos.length || containerWidth <= 0) return []
-
-  const rows = []
-  let currentRow = []
-  let currentRowWidth = 0
-
-  for (const photo of photos) {
-    const w = photo.width || targetRowHeight * 0.75  /* Дефолт 3:4 — вертикальный портрет */
-    const h = photo.height || targetRowHeight
-    const aspectRatio = w / h
-    const displayWidth = aspectRatio * targetRowHeight  /* Ширина фото при целевой высоте */
-
-    currentRow.push({ ...photo, aspectRatio, displayWidth })
-    currentRowWidth += displayWidth + gap
-
-    /* Ряд заполнен когда суммарная ширина ≥ контейнер */
-    if (currentRowWidth - gap >= containerWidth) {
-      const totalGap = (currentRow.length - 1) * gap
-      /* Пересчёт высоты ряда: containerWidth / sum(aspectRatio) — ряд точно заполняет ширину */
-      const adjustedRowHeight = (containerWidth - totalGap) / currentRow.reduce((s, i) => s + i.aspectRatio, 0)
-
-      currentRow.forEach(item => {
-        item.displayWidth = item.aspectRatio * adjustedRowHeight /* Ширина при новой высоте */
-      })
-      rows.push({ items: currentRow, rowHeight: adjustedRowHeight })
-      currentRow = []
-      currentRowWidth = 0
-    }
-  }
-
-  /* Последний ряд: может быть не заполнен.
-     Ограничиваем высоту до 1.2× target — чтобы не растянулся
-     одинокий портрет на всю ширину. */
-  if (currentRow.length > 0) {
-    const totalGap = (currentRow.length - 1) * gap
-    const totalAspect = currentRow.reduce((s, i) => s + i.aspectRatio, 0)
-    const lastRowHeight = Math.min((containerWidth - totalGap) / totalAspect, targetRowHeight * 1.2)
-
-    currentRow.forEach(item => {
-      item.displayWidth = item.aspectRatio * lastRowHeight
-    })
-    rows.push({ items: currentRow, rowHeight: lastRowHeight })
-  }
-
-  return rows
-}
-
-/* --- Управляемая ленивая загрузка через IntersectionObserver --- */
 const lazyLoader = new IntersectionObserver(
   (entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         const img = entry.target
-        // переносим URL из data-src в src и прекращаем наблюдение
         if (img.dataset.src) {
           img.src = img.dataset.src
           img.removeAttribute('data-src')
@@ -126,236 +59,226 @@ const lazyLoader = new IntersectionObserver(
     })
   },
   {
-    rootMargin: LAZY_ROOT_MARGIN, // предзагрузка за 300px до входа в зону видимости
-    threshold: 0.01               // достаточно, чтобы элемент начал появляться
+    rootMargin: LAZY_ROOT_MARGIN,
+    threshold: 0.01
   }
 )
 
-/* renderGrid — создаёт DOM-элементы для justified-сетки.
-   Каждый ряд — div.gallery__row, фото внутри — div.gallery__item. */
 function renderGrid(photos) {
   const grid = $('#galleryGrid')
   if (!grid || !photos?.length) return
-  grid.innerHTML = ''                         /* Очищаем перед перерисовкой */
+  grid.innerHTML = ''
 
-  /* Вычисляем ширину контейнера за вычетом padding */
   const style = getComputedStyle(grid)
   const containerWidth = grid.clientWidth
-    - parseFloat(style.paddingLeft)
-    - parseFloat(style.paddingRight)
+  - parseFloat(style.paddingLeft)
+  - parseFloat(style.paddingRight)
 
-  const gap = 5                              /* 5px зазор между фото — должен совпадать с CSS margin-right/margin-bottom */
-  const targetRowHeight = window.innerWidth <= 768 ? ROW_HEIGHT_MOBILE : ROW_HEIGHT
+  if (containerWidth <= 0) return
 
-  const rows = buildJustifiedRows(photos, containerWidth, targetRowHeight, gap)
+  const isMobile = window.innerWidth <= 768
+  const colCount = isMobile ? 2 : 4
+  const weights = isMobile ? COL_WEIGHTS_MOBILE : COL_WEIGHTS_DESKTOP
+  const heightRange = isMobile ? HEIGHT_RANGE_MOBILE : HEIGHT_RANGE_DESKTOP
+  const rng = _seededRandom(77)
 
-  let globalIdx = 0                          /* Глобальный индекс для лайтбокса (0, 1, 2, ...) */
+  const totalWeight = weights.reduce((s, w) => s + w, 0)
+  const totalGap = GAP * (colCount - 1)
+  const available = containerWidth - totalGap
+  const colWidths = weights.map(w => available * (w / totalWeight))
 
-  rows.forEach((row) => {
-    const rowEl = document.createElement('div')
-    rowEl.className = 'gallery__row'
-    rowEl.style.height = `${Math.round(row.rowHeight)}px` /* Фиксированная высота ряда */
+  const columns = Array.from({ length: colCount }, () => ({
+    el: null,
+    height: 0,
+  }))
 
-    row.items.forEach((item) => {
-      const itemIndex = globalIdx++
+  for (let i = 0; i < colCount; i++) {
+    const colEl = document.createElement('div')
+    colEl.className = 'gallery__col'
+    colEl.style.width = `${Math.round(colWidths[i])}px`
+    if (i > 0) colEl.style.marginLeft = `${GAP}px`
+    columns[i].el = colEl
+    grid.appendChild(colEl)
+  }
 
-      const itemEl = document.createElement('div')
-      itemEl.className = 'gallery__item'     /* ← убран anim-fade-up */
-      itemEl.style.width = `${Math.round(item.displayWidth)}px`  /* Точная ширина фото */
-      itemEl.style.height = `${Math.round(row.rowHeight)}px`     /* Высота = высота ряда */
+  let globalIdx = 0
 
-      const img = document.createElement('img')
-      // Вместо src пишем data-src, src оставляем пустым (или можно вообще не указывать)
-      img.dataset.src = item.src
-      img.alt = item.title
-      // loading="lazy" больше не нужен — управляем загрузкой сами
-      img.width = Math.round(item.displayWidth)
-      img.height = Math.round(row.rowHeight)
+  photos.forEach((photo) => {
+    const itemIndex = globalIdx++
+    const w = photo.width || 3
+    const h = photo.height || 4
+    const isLandscape = w > h
+    const range = isLandscape ? heightRange.landscape : heightRange.portrait
+    const itemHeight = Math.round(range[0] + rng() * (range[1] - range[0]))
 
-      // Регистрируем в Observer для предзагрузки
-      lazyLoader.observe(img)
+    const shortest = columns.reduce((min, col, i) => col.height < columns[min].height ? i : min, 0)
+    const colW = colWidths[shortest]
 
-      /* Оверлей с названием + описанием при hover */
-      const overlay = document.createElement('div')
-      overlay.className = 'gallery__item-overlay'
+    const itemEl = document.createElement('div')
+    itemEl.className = 'gallery__item'
+    itemEl.style.width = `${Math.round(colW)}px`
+    itemEl.style.height = `${itemHeight}px`
+    itemEl.style.marginBottom = `${GAP}px`
 
-      const title = document.createElement('h3')
-      title.className = 'gallery__item-title'
-      title.textContent = item.title
+    const img = document.createElement('img')
+    img.dataset.src = photo.src
+    img.alt = photo.title
+    img.width = Math.round(colW)
+    img.height = itemHeight
 
-      overlay.appendChild(title)
-      if (item.description) {
-        const desc = document.createElement('p')
-        desc.className = 'gallery__item-desc'
-        desc.textContent = item.description
-        overlay.appendChild(desc)
-      }
+    lazyLoader.observe(img)
 
-      itemEl.appendChild(img)
-      itemEl.appendChild(overlay)
+    const overlay = document.createElement('div')
+    overlay.className = 'gallery__item-overlay'
 
-      /* Клик → открываем лайтбокс на этом фото */
-      itemEl.addEventListener('click', () => {
-        setLightboxList(photos)
-        openLightbox(itemIndex)
-      })
-      rowEl.appendChild(itemEl)
+    const title = document.createElement('h3')
+    title.className = 'gallery__item-title'
+    title.textContent = photo.title
+
+    overlay.appendChild(title)
+    if (photo.description) {
+      const desc = document.createElement('p')
+      desc.className = 'gallery__item-desc'
+      desc.textContent = photo.description
+      overlay.appendChild(desc)
+    }
+
+    itemEl.appendChild(img)
+    itemEl.appendChild(overlay)
+
+    itemEl.addEventListener('click', () => {
+      setLightboxList(photos)
+      openLightbox(itemIndex)
     })
 
-    grid.appendChild(rowEl)
+    columns[shortest].el.appendChild(itemEl)
+    columns[shortest].height += itemHeight + GAP
   })
 }
 
-let _currentPhotos = []                      /* Текущий отображаемый список фото */
+let _currentPhotos = []
 
-/* initGallery — точка входа для страницы портфолио.
-   Определяет активную съёмку, рисует сетку, вешает фильтры. */
 export function initGallery() {
-  const galleryData = window.__GALLERY_DATA__  /* Массив съёмок из бэкенда: [{id, title, photos}] */
-  if (!galleryData?.length) return
+const galleryData = window.__GALLERY_DATA__
+if (!galleryData?.length) return
 
-  const allPhotos = galleryData.flatMap(s => s.photos) /* Все фото всех съёмок */
-  const activeSession = window.__ACTIVE_SESSION__      /* ID выбранной съёмки или null */
+const allPhotos = galleryData.flatMap(s => s.photos)
+const activeSession = window.__ACTIVE_SESSION__
 
-  /* --- Кнопка «Наверх» --- */
-  const scrollTopBtn = $('#scrollTop')
-  if (scrollTopBtn) {
-    let _scrollTicking = false
-    const checkScroll = () => {
-      const show = window.scrollY > window.innerHeight * 2
-      scrollTopBtn.classList.toggle('visible', show)
-      _scrollTicking = false
-    }
-    window.addEventListener('scroll', () => {
-      if (!_scrollTicking) {
-        requestAnimationFrame(checkScroll)
-        _scrollTicking = true
-      }
-    }, { passive: true })
-    checkScroll()
-    scrollTopBtn.addEventListener('click', () => {
-      const filterWrap = $('.gallery__filter-wrap')
-      if (filterWrap) {
-        filterWrap.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      } else {
-        window.scrollTo({ top: 0, behavior: 'smooth' })
-      }
-    })
-  }
-
-  if (activeSession) {
-    /* Конкретная съёмка — фото в оригинальном порядке */
-    const session = galleryData.find(s => s.id === activeSession)
-    if (session) {
-      _currentPhotos = session.photos
-    }
-  } else {
-    /* «Все съёмки» — детерминированный shuffle (seed = день года) */
-    _currentPhotos = shuffle(allPhotos, _seededRandom(_dayOfYear()))
-  }
-
-  renderGrid(_currentPhotos)
-  setLightboxList(_currentPhotos)
-
-  /* --- Фильтры по съёмкам --- */
-  const wrap = $('.gallery__filter-wrap')
-  const inner = $('.gallery__filter-inner')
-  const toggle = $('#filterToggle')
-  const dropdown = $('#filterDropdown')
-
-  function _updateToggleLabel(text) {
-    if (!toggle) return
-    toggle.textContent = text
-    const arrow = document.createElement('span')
-    arrow.className = 'gallery__filter-arrow'
-    arrow.textContent = '\u25BE'
-    toggle.appendChild(arrow)
-  }
-
-  /* --- Обработка popstate (кнопки Назад/Вперёд в браузере) ---
-     Когда URL меняется через history.back()/forward(), перечитываем
-     параметр session и переключаем фильтр без перезагрузки. */
-  window.addEventListener('popstate', () => {
-    const params = new URLSearchParams(window.location.search)
-    const sessionId = params.get('session') || ''
-
-    if (sessionId) {
-      const session = galleryData.find(s => s.id === sessionId)
-      if (session) {
-        _currentPhotos = session.photos
-        _updateToggleLabel(session.title)
-      }
-    } else {
-      _currentPhotos = shuffle(allPhotos, _seededRandom(_dayOfYear()))
-      _updateToggleLabel('Все съёмки')
-    }
-
-    $$('.gallery__filter-option').forEach(b => b.classList.remove('gallery__filter-option--active'))
-    const activeBtn = document.querySelector(`.gallery__filter-option[data-session="${sessionId}"]`)
-    if (activeBtn) activeBtn.classList.add('gallery__filter-option--active')
-
-    renderGrid(_currentPhotos)
-    setLightboxList(_currentPhotos)
-    /* initScrollAnimations() больше не вызывается */
-  })
-
-  if (toggle && dropdown && inner) {
-    /* Клик по тоглу — открыть/закрыть выпадающий список */
-    toggle.addEventListener('click', () => {
-      const open = inner.classList.toggle('gallery__filter-inner--open')
-      toggle.setAttribute('aria-expanded', String(open)) /* Для доступности */
-    })
-
-    /* Клик вне выпадающего списка — закрыть его */
-    document.addEventListener('click', (e) => {
-      if (!inner.contains(e.target)) {
-        inner.classList.remove('gallery__filter-inner--open')
-        toggle.setAttribute('aria-expanded', 'false')
-      }
-    })
-
-    /* Клик по опции фильтра — сменить съёмку */
-    $$('.gallery__filter-option').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const sessionId = btn.dataset.session  /* "" = все съёмки, "2-05-26 Maxim" = конкретная */
-
-        /* Обновляем визуал: подсвечиваем активную опцию */
-        $$('.gallery__filter-option').forEach(b => b.classList.remove('gallery__filter-option--active'))
-        btn.classList.add('gallery__filter-option--active')
-
-        if (sessionId) {
-          /* Конкретная съёмка */
-          const session = galleryData.find(s => s.id === sessionId)
-          if (session) {
-            _currentPhotos = session.photos
-            _updateToggleLabel(session.title)
-          }
-        } else {
-          /* Все съёмки — детерминированный shuffle */
-          _currentPhotos = shuffle(allPhotos, _seededRandom(_dayOfYear()))
-          _updateToggleLabel('Все съёмки')
-        }
-
-        inner.classList.remove('gallery__filter-inner--open') /* Закрываем dropdown */
-        toggle.setAttribute('aria-expanded', 'false')
-
-        renderGrid(_currentPhotos)            /* Перерисовываем сетку */
-        setLightboxList(_currentPhotos)        /* Обновляем список для лайтбокса */
-
-        /* Обновляем URL без перезагрузки — для шаринга и аналитики */
-        const url = sessionId ? `/portfolio/?session=${sessionId}` : '/portfolio/'
-        history.replaceState(null, '', url)
-
-        /* initScrollAnimations() удалён — анимация появления отключена */
-      })
-    })
-  }
+const scrollTopBtn = $('#scrollTop')
+if (scrollTopBtn) {
+let _scrollTicking = false
+const checkScroll = () => {
+const show = window.scrollY > window.innerHeight * 2
+scrollTopBtn.classList.toggle('visible', show)
+_scrollTicking = false
+}
+window.addEventListener('scroll', () => {
+if (!_scrollTicking) {
+requestAnimationFrame(checkScroll)
+_scrollTicking = true
+}
+}, { passive: true })
+checkScroll()
+scrollTopBtn.addEventListener('click', () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+})
 }
 
-/* renderCurrentGallery — перерисовка текущей сетки.
-   Вызывается при resize — ширина контейнера изменилась. */
+if (activeSession) {
+const session = galleryData.find(s => s.id === activeSession)
+if (session) {
+_currentPhotos = session.photos
+}
+} else {
+_currentPhotos = shuffle(allPhotos, _seededRandom(_dayOfYear()))
+}
+
+renderGrid(_currentPhotos)
+setLightboxList(_currentPhotos)
+
+const inner = $('.gallery__filter-inner')
+const toggle = $('#filterToggle')
+const dropdown = $('#filterDropdown')
+
+function _updateToggleLabel(text) {
+if (!toggle) return
+toggle.textContent = text
+const arrow = document.createElement('span')
+arrow.className = 'gallery__filter-arrow'
+arrow.textContent = '\u25BE'
+toggle.appendChild(arrow)
+}
+
+window.addEventListener('popstate', () => {
+const params = new URLSearchParams(window.location.search)
+const sessionId = params.get('session') || ''
+
+if (sessionId) {
+const session = galleryData.find(s => s.id === sessionId)
+if (session) {
+_currentPhotos = session.photos
+_updateToggleLabel(session.title)
+}
+} else {
+_currentPhotos = shuffle(allPhotos, _seededRandom(_dayOfYear()))
+_updateToggleLabel('Все съёмки')
+}
+
+$$('.gallery__filter-option').forEach(b => b.classList.remove('gallery__filter-option--active'))
+const activeBtn = document.querySelector(`.gallery__filter-option[data-session="${sessionId}"]`)
+if (activeBtn) activeBtn.classList.add('gallery__filter-option--active')
+
+renderGrid(_currentPhotos)
+setLightboxList(_currentPhotos)
+})
+
+if (toggle && dropdown && inner) {
+toggle.addEventListener('click', () => {
+const open = inner.classList.toggle('gallery__filter-inner--open')
+toggle.setAttribute('aria-expanded', String(open))
+})
+
+document.addEventListener('click', (e) => {
+if (!inner.contains(e.target)) {
+inner.classList.remove('gallery__filter-inner--open')
+toggle.setAttribute('aria-expanded', 'false')
+}
+})
+
+$$('.gallery__filter-option').forEach(btn => {
+btn.addEventListener('click', () => {
+const sessionId = btn.dataset.session
+
+$$('.gallery__filter-option').forEach(b => b.classList.remove('gallery__filter-option--active'))
+btn.classList.add('gallery__filter-option--active')
+
+if (sessionId) {
+const session = galleryData.find(s => s.id === sessionId)
+if (session) {
+_currentPhotos = session.photos
+_updateToggleLabel(session.title)
+}
+} else {
+_currentPhotos = shuffle(allPhotos, _seededRandom(_dayOfYear()))
+_updateToggleLabel('Все съёмки')
+}
+
+inner.classList.remove('gallery__filter-inner--open')
+toggle.setAttribute('aria-expanded', 'false')
+
+renderGrid(_currentPhotos)
+setLightboxList(_currentPhotos)
+
+const url = sessionId ? `/portfolio/?session=${sessionId}` : '/portfolio/'
+history.replaceState(null, '', url)
+})
+})
+}
+}
+
 export function renderCurrentGallery() {
-  if (_currentPhotos.length) {
-    renderGrid(_currentPhotos)
-  }
+if (_currentPhotos.length) {
+renderGrid(_currentPhotos)
+}
 }

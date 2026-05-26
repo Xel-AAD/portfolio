@@ -35,6 +35,9 @@ from xml.sax.saxutils import escape as _xml_escape
 
 _HASHED_RE = re.compile(r'-[a-f0-9]{8,}\.')
 
+def _natural_key(s: str):
+    return [int(c) if c.isdigit() else c.lower() for c in re.split(r'(\d+)', s)]
+
 try:
     from PIL import Image as _PILImage
 except ImportError:
@@ -209,7 +212,7 @@ class PortfolioService:
         image_files = sorted([
             f for f in folder.iterdir()
             if f.is_file() and f.suffix.lower() in IMAGE_EXTENSIONS and not f.name.startswith(".")
-        ])
+        ], key=lambda f: _natural_key(f.name))
         return [self._photo_from_file(f, photo_meta) for f in image_files]
 
     def scan_gallery_sessions(self, photo_meta: dict[str, dict]) -> tuple[list[dict], list[Photo]]:
@@ -222,7 +225,7 @@ class PortfolioService:
         subdirs = sorted([
             d for d in GALLERY_DIR.iterdir()
             if d.is_dir() and not d.name.startswith(".")
-        ])
+        ], key=lambda d: _natural_key(d.name))
 
         if not subdirs:
             photos = self.scan_folder(GALLERY_DIR, photo_meta)
@@ -250,7 +253,7 @@ class PortfolioService:
         image_files = sorted([
             f for f in ABOUT_DIR.iterdir()
             if f.is_file() and f.suffix.lower() in IMAGE_EXTENSIONS and not f.name.startswith(".")
-        ])
+        ], key=lambda f: _natural_key(f.name))
         if not image_files:
             return None
         return self._photo_from_file(image_files[0], photo_meta)

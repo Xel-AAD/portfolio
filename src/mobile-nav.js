@@ -16,34 +16,36 @@ MOBILE-NAV.JS — Бургер-меню на мобильных
 import { $ } from './dom.js'
 
 export function initMobileNav() {
-  const burger = $('#navBurger')
-  const links = $('.nav__links')
-  const overlay = $('#navOverlay')
-  const closeBtn = $('#navClose')
+const burger = $('#navBurger')
+const links = $('#navLinks')
+const overlay = $('#navOverlay')
+const closeBtn = $('#navClose')
 
-  if (!burger || !links) return
+if (!burger || !links) return
 
-  function closeMenu() {
-    burger.classList.remove('active')
-    burger.setAttribute('aria-expanded', 'false')
-    links.classList.remove('open')
-    if (overlay) {
-      overlay.classList.remove('open')
-      overlay.setAttribute('aria-hidden', 'true')
-    }
-    document.body.style.overflow = ''
-  }
+function closeMenu() {
+burger.classList.remove('active')
+burger.setAttribute('aria-expanded', 'false')
+links.classList.remove('open')
+if (overlay) {
+overlay.classList.remove('open')
+overlay.setAttribute('aria-hidden', 'true')
+}
+document.body.style.overflow = ''
+}
 
-  function openMenu() {
-    burger.classList.add('active')
-    burger.setAttribute('aria-expanded', 'true')
-    links.classList.add('open')
-    if (overlay) {
-      overlay.classList.add('open')
-      overlay.setAttribute('aria-hidden', 'false')
-    }
-    document.body.style.overflow = 'hidden'
-  }
+function openMenu() {
+burger.classList.add('active')
+burger.setAttribute('aria-expanded', 'true')
+links.classList.add('open')
+if (overlay) {
+overlay.classList.add('open')
+overlay.setAttribute('aria-hidden', 'false')
+}
+document.body.style.overflow = 'hidden'
+}
+
+window.__closeMobileMenu = closeMenu
 
   burger.addEventListener('click', () => {
     if (links.classList.contains('open')) {

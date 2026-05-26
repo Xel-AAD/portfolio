@@ -47,17 +47,18 @@ export function initHeaderScroll() {
   let ticking = false                       /* Флаг: requestAnimationFrame в полёте? */
   const page = window.__PAGE__
   let sections = []
-  let navLinks = $$('.nav__links a')
+  let navLinks = [...$$('#navLinks a')].filter(a => a.id !== 'navClose')
 
   if (page === 'index') {
     /* На главной — отслеживаем секции для активной ссылки */
     sections = ['about', 'featured', 'services', 'contact']
   }
 
-  if (page === 'portfolio' && header) {
-    /* На портфолио — хедер скрыт полностью */
-    header.classList.add('header--hidden')
-  }
+if (page === 'portfolio' && header) {
+  header.classList.add('header--hidden')
+  const navLinks = document.getElementById('navLinks')
+  if (navLinks) navLinks.style.display = 'none'
+}
 
   if (page === 'reviews' && header) {
     /* На отзывах — хедер всегда с фоном */
@@ -99,15 +100,17 @@ export function initHeaderScroll() {
   /* Слушатель скролла с throttling через requestAnimationFrame.
      Без throttling — updateActiveNav() вызывалась бы 60+ раз/сек,
      что ненужно и тратит CPU. */
-  window.addEventListener('scroll', () => {
-    if (!ticking) {
-      requestAnimationFrame(() => {
-        updateActiveNav()
-        ticking = false
-      })
-      ticking = true
-    }
-  }, { passive: true })
+window.addEventListener('scroll', () => {
+if (!ticking) {
+requestAnimationFrame(() => {
+updateActiveNav()
+ticking = false
+})
+ticking = true
+}
+}, { passive: true })
+
+window.addEventListener('pageshow', () => { ticking = false })
 
   /* Первичная проверка — при загрузке страницы */
   updateActiveNav()

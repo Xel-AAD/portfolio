@@ -279,6 +279,13 @@ export function initPageTransition() {
     if (!isInternalLink(href) || isSamePageAnchor(href)) return
     if (link.target === '_blank' || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return
 
+const navPanel = link.closest('.nav__links')
+if (navPanel && navPanel.classList.contains('open')) {
+if (typeof window.__closeMobileMenu === 'function') {
+window.__closeMobileMenu()
+}
+}
+
     e.preventDefault()
     pendingUrl = href
     showWash()

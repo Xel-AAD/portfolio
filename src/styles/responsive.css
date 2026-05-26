@@ -29,27 +29,39 @@
 
   .nav__burger { display: flex; }            /* Скрыт на десктопе → виден на мобильном */
 
-  /* --- Мобильная панель навигации (выезжает справа) --- */
-  .nav__links {
-    position: fixed;                          /* Привязана к viewport — не скроллится со страницей */
-    top: 0;
-    right: 0;                                 /* Прижата к правому краю */
-    width: 260px;                             /* Ширина панели: 260px — не на весь экран */
-    height: 100vh;
-    height: 100dvh;                           /* dvh — учитывает мобильную адресную строку */
-    background: var(--bg);                    /* Тёмный фон — как страница */
-    flex-direction: column;                   /* Ссылки столбиком, не в ряд */
-    align-items: flex-start;
-    justify-content: flex-start;
-    padding: 80px 40px 40px;                 /* 80px сверху (под крестик), 40px бока/низ */
-    padding-top: calc(80px + env(safe-area-inset-top, 0px)); /* + notch на iPhone */
-    gap: 28px;                                /* 28px между ссылками */
-    transform: translateX(100%);              /* Сдвинута на 100% вправо — скрыта */
-    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1); /* Плавный выезд */
-  z-index: 101; /* Над header (100) и overlay (98) */
-    -webkit-overflow-scrolling: touch;        /* Плавный скролл на iOS */
-    overflow-y: auto;                         /* Скролл если ссылок много */
-  }
+/* --- Мобильная панель навигации (выезжает справа) --- */
+.nav__links {
+position: fixed;
+top: 0;
+right: 0;
+left: auto;
+width: 260px;
+height: 100vh;
+height: 100dvh;
+max-width: none;
+margin: 0;
+padding: 80px 40px 40px;
+padding-top: calc(80px + env(safe-area-inset-top, 0px));
+background: var(--bg);
+flex-direction: column;
+align-items: flex-start;
+justify-content: flex-start;
+gap: 28px;
+transform: translateX(100%);
+transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+z-index: 101;
+-webkit-overflow-scrolling: touch;
+overflow-y: auto;
+pointer-events: auto;
+will-change: transform;
+}
+
+.nav__links a,
+.nav__links button,
+.nav__links .nav__close-wrap,
+.nav__links .nav__menu-footer {
+pointer-events: auto;
+}
 
   .nav__links.open { transform: translateX(0); } /* Открыта: сдвиг = 0 */
 
@@ -65,8 +77,9 @@
     border-top: 1px solid var(--border);      /* Тонкая линия-разделитель */
   }
 
-  /* --- Кнопка закрытия меню (✕) --- */
-  .nav__close {
+/* --- Кнопка закрытия меню (✕) --- */
+.nav__close-wrap { display: list-item; }
+.nav__close {
     position: absolute;
     top: 20px;                               /* 20px от верха панели */
     right: 20px;                             /* 20px от правого края */
@@ -137,7 +150,7 @@
     margin-bottom: 24px;                     /* 44px → 24px */
   }
 
-  .hero__btn { padding: 13px 36px; font-size: 0.78rem; letter-spacing: 0.15em; } /* Компактнее */
+  .hero__btn { padding: 11px 28px; font-size: 0.72rem; letter-spacing: 0.15em; }
 
   .hero__line-top { margin-bottom: 28px; }   /* 40px → 28px */
   .hero__line-bottom { margin-top: 32px; }   /* 48px → 32px */
@@ -151,7 +164,7 @@
     display: flex;                            /* Grid → Flex: одна колонка */
     flex-direction: column;                   /* Фото над текстом */
     align-items: center;
-    gap: 32px;                                /* 70px → 32px между фото и текстом */
+    gap: 1px;
   }
 
   .about__photo-wrap {
@@ -171,16 +184,18 @@
     overflow-wrap: break-word;               /* Длинные слова переносятся */
     word-break: break-word;
   }
-  .about__text p { font-size: 0.9rem; line-height: 1.7; } /* Мельче, просторнее межстрочный */
+  .about__text p { font-size: 0.9rem; line-height: 1.7; margin-bottom: 18px; } /* Мельче, просторнее межстрочный */
   .about__text p:first-of-type { font-size: 1rem; }
 
+  
   /* --- Избранное --- */
-  .featured { padding: 80px 24px; }          /* 120px 40px → 80px 24px */
-  .featured__grid { gap: 6px; }              /* 10px → 6px: фото ближе друг к другу */
-  .featured__item-overlay { padding: 12px; } /* 20px → 12px */
-  .featured__item-title { font-size: 0.85rem; }
-  .featured__more { margin-top: 36px; }      /* 56px → 36px */
-  .featured__more-btn { padding: 12px 36px; font-size: 0.72rem; }
+.featured { padding: 0 24px; }
+.featured .section-title { margin-top: 40px; margin-bottom: 20px; }
+.featured__more { margin-top: 0px; margin-bottom: 60px; }
+.featured__grid { gap: 6px; }
+.featured__item-overlay { padding: 12px; }
+.featured__item-title { font-size: 0.85rem; }
+  .featured__more-btn { padding: 12px 30px; font-size: 0.67rem; }
 
   /* --- Услуги --- */
   .services { padding: 60px 24px; }          /* 120px 40px → 60px 24px */
@@ -192,41 +207,42 @@
   .services__badge { top: 27px; font-size: 0.5rem; padding: 3px 12px; }
 
   /* --- Портфолио --- */
-.page--portfolio { padding-top: 52px; } /* мобильный хедер: 16+16+~20px ≈ 52px */
+.page--portfolio { padding-top: 42px; } /* мобильный хедер: 16+16+~20px ≈ 52px */
 .page--reviews { padding-top: 52px; }
 
-  .gallery__back {
-    left: 0;                                  /* На всю ширину (без боковых линий) */
-    right: 0;
-    width: auto;
-    margin: 0;
-    padding: 14px 24px;                      /* Компактнее */
-  }
+.gallery__back {
+  left: 0;
+  right: 0;
+  width: auto;
+  margin: 0;
+  padding: 14px 20px;
+}
 
-  .gallery {
-    padding: 0;                               /* Без вертикального отступа */
-  }
+.gallery {
+  padding: 0;
+}
 
-  .gallery__filter-wrap { padding: 0 20px 24px; } /* 46px → 20px бока, 30px → 24px низ */
-  .gallery__filter-toggle {
-    padding: 10px 24px;                      /* 12px 100px → 10px 24px */
-    font-size: 0.8rem;
-    letter-spacing: 0.06em;
-  }
-  .gallery__filter-option {
-    padding: 10px 18px;
-    font-size: 0.8rem;
-  }
+.gallery__filter-wrap { padding: 0 20px 20px; margin-top: 18px; }
+.gallery__filter-inner { width: 100%; }
+.gallery__filter-toggle {
+padding: 10px 20px;
+font-size: 0.8rem;
+letter-spacing: 0.06em;
+width: 100%;
+}
+.gallery__filter-option {
+  padding: 10px 18px;
+  font-size: 0.8rem;
+}
 
-  .gallery__grid {
-    padding: 0 16px;                         /* 46px → 16px: фото почти на весь экран */
-  }
+.gallery__grid {
+  padding: 0 20px;
+}
+.gallery-line { display: none; }
+.gallery-lines.active .gallery__back { display: block; }
 
-  .gallery-line { display: none; }           /* Скрываем декоративные боковые линии */
-  .gallery-lines.active .gallery__back { display: block; }
-
-  .scroll-top {
-    left: 16px;                             /* Совпадает с padding gallery__grid на мобайле */
+.scroll-top {
+    left: 20px; /* Совпадает с padding gallery__grid на мобайле */
     bottom: 16px;
     width: 42px;
     height: 42px;
@@ -235,11 +251,13 @@
   /* --- Отзывы --- */
   .reviews { padding: 24px 20px 60px; align-items: flex-start; }           /* Меньше сверху, больше снизу */
   .reviews__inner { min-height: calc(100vh - 160px); }
-  .reviews__grid { grid-template-columns: 1fr; gap: 16px; } /* 2 колонки → 1, 24px → 16px gap */
-  .reviews__card { padding: 24px 20px; }    /* 32px → 24px 20px */
-  .reviews__rating { font-size: 1.3rem; }   /* 1.6rem → 1.3rem */
+.reviews__grid { grid-template-columns: 1fr; gap: 16px; margin: 0; }
+.reviews__line-bottom { margin-top: 30px; }
+.reviews__card { padding: 24px 20px; }
+.reviews__quote { top: 12px; left: 16px; font-size: 2.2rem; }
+.reviews__rating { font-size: 1.3rem; margin-top: 20px; margin-bottom: 6px; }
   .reviews__text { font-size: 0.85rem; }
-  .reviews__btn { padding: 12px 36px; font-size: 0.72rem; }
+  .reviews__btn { padding: 14px 44px; font-size: 0.78rem; }
 
   .footer { padding: 22px 24px; }
 
@@ -253,23 +271,23 @@
   }
   .contact__line-top { margin-bottom: 24px; order: -1; } /* Самая первая, 24px до заголовка */
   .contact__heading { margin-bottom: 0; }   /* Убираем десктопный 48px — управляем через margin-top у CTA */
-  .contact__cta {
-    padding: 14px 36px;                     /* 16px 56px → 14px 36px */
-    font-size: 0.78rem;
-    letter-spacing: 0.15em;
-    margin-bottom: 0;                        /* Убираем десктопный 48px — flex управляет отступами */
-    margin-top: 32px;                        /* Отступ от заголовка = 32px */
-  }
-  .contact__cta-icon { width: 16px; height: 16px; } /* 20px → 16px */
-  .contact__bottom { flex-direction: column; gap: 14px; order: 2; margin-top: 28px; } /* Столбик, 28px от отзыва */
-  .contact__email { order: 1; font-size: 0.72rem; }  /* Первая в bottom-столбике */
-  .contact__tgk { order: 2; font-size: 0.75rem; }    /* Вторая */
-  .contact__socials { order: 3; display: flex; gap: 16px; justify-content: center; } /* Третьи */
-  .contact__dot { display: none; }           /* Скрываем точки-разделители — всё столбиком */
-  .contact__social { width: 22px; height: 22px; }   /* 28px → 22px */
-  .contact__social svg { width: 22px; height: 22px; }
-  .contact__review-wrap { margin: 0; margin-top: 32px; order: 1; } /* 32px от CTA, между CTA и bottom */
-  .contact__review-btn { padding: 6px 18px; font-size: 0.6rem; }
+.contact__cta {
+  padding: 10px 24px;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  margin-bottom: 0;
+  margin-top: 24px;
+}
+.contact__cta-icon { width: 14px; height: 14px; }
+.contact__bottom { flex-direction: column; gap: 14px; order: 2; margin-top: 24px; }
+.contact__email { order: 1; font-size: 0.72rem; }
+.contact__tgk { order: 2; font-size: 0.75rem; }
+.contact__socials { order: 3; display: flex; gap: 16px; justify-content: center; }
+.contact__dot { display: none; }
+.contact__social { width: 22px; height: 22px; }
+.contact__social svg { width: 22px; height: 22px; }
+.contact__review-wrap { margin: 0; margin-top: 24px; order: 1; }
+.contact__review-btn { padding: 8px 20px; font-size: 0.65rem; letter-spacing: 0.12em; }
   .contact__line-bottom { margin-top: 32px; order: 99; } /* Самая последняя */
 
   /* --- Лайтбокс --- */
@@ -286,7 +304,8 @@
   .lightbox__zoom { cursor: default; }
   .lightbox__info { font-size: 0.85rem; padding: 16px 0; }
   .lightbox__counter { top: 16px; font-size: 0.65rem; }
-  .lightbox__prev, .lightbox__next { font-size: 1.2rem; width: 44px; height: 44px; } /* 44px — тач-таргет */
+  .lightbox__prev, .lightbox__next { font-size: 1.2rem; width: 44px; height: 44px; opacity: 0.6; }
+.lightbox:hover .lightbox__prev, .lightbox:hover .lightbox__next, .lightbox__prev:focus, .lightbox__next:focus { opacity: 1; }
   .lightbox__close { font-size: 1.6rem; width: 44px; height: 44px; }
 }
 

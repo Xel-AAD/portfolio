@@ -96,7 +96,11 @@ if ('scrollRestoration' in history) {
 
 /* Перед уходом со страницы — сохраняем позицию скролла для текущей страницы */
 window.addEventListener('beforeunload', () => {
-  sessionStorage.setItem(getScrollKey(window.__PAGE__), String(window.scrollY))
+sessionStorage.setItem(getScrollKey(window.__PAGE__), String(window.scrollY))
+})
+
+window.addEventListener('pagehide', () => {
+sessionStorage.setItem(getScrollKey(window.__PAGE__), String(window.scrollY))
 })
 
 /* Логотип: на главной — smooth scroll наверх (без перехода, без анимации).

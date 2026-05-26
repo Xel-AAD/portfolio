@@ -50,33 +50,46 @@
 }
 
 .about__text p:first-of-type { font-size: 1.1rem; }
-.about__text p:nth-last-child(-n+2) { color: var(--text-muted); }
+.about__text p:nth-last-child(-n+1) { color: var(--text-muted); }
 
 
 
-/*  СЕКЦИЯ «ИЗБРАННОЕ» (FEATURED)
-   
-   4-колоночная CSS Grid с кастомной раскладкой: первое фото
-   занимает 2×2 ячейки (крупное), некоторые — 2×1 (широкие).
-   Всего 10 фото из папки Favourites. */
+/* СЕКЦИЯ «ИЗБРАННОЕ» (FEATURED)
+
+3-колоночная masonry-сетка (2 на мобайл).
+Каждое фото сохраняет пропорции, колонки выравниваются
+по верху и низу — без «лесенки». */
 
 /* обёртка секции */
 .featured {
-  padding: var(--section-pad) 40px;
+  padding: 0 40px;
   max-width: var(--max-w);
   margin: 0 auto;
 }
 
+.featured .section-title {
+  margin-top: var(--section-pad);
+  margin-bottom: 30px;
+}
+
 .featured__grid {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.featured__more {
+  margin-bottom: var(--section-pad);
+}
+
+.featured__grid {
+display: flex;
+gap: 10px;
+align-items: flex-start;
 }
 
 .featured__col {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
+display: flex;
+flex-direction: column;
+gap: 0;
 }
 
 .featured__item {
@@ -122,12 +135,13 @@
 
 .featured__more {
   text-align: center;
-  margin-top: 56px;
+  margin-top: 30px;
+  margin-bottom: var(--section-pad);
 }
 
 .featured__more-btn {
   display: inline-block;
-  padding: 14px 48px;
+  padding: 16px 48px;
   border: 1px solid rgba(201, 169, 110, 0.4);
   font-size: 0.75rem;
   font-weight: 400;
@@ -582,11 +596,12 @@
 }
 
 .gallery__filter-wrap {
-  position: relative;
-  z-index: 20;
-  display: flex;
-  justify-content: center;
-  padding: 0 46px 30px;
+	position: relative;
+	z-index: 20;
+	display: flex;
+	justify-content: center;
+	padding: 0 46px 22px;
+	margin-top: 22px;
 }
 
 .gallery__filter-inner {
@@ -613,11 +628,11 @@
 }
 
 .gallery__filter-toggle:hover {
-  color: var(--accent);
-  border-color: var(--accent);
+	color: var(--accent);
+	border-color: var(--accent);
 }
-
-.gallery__filter-arrow {
+.gallery__filter-toggle {
+	background: rgba(201,169,110,0.08);
   font-size: 0.8rem;
   transition: transform 0.3s;
 }
@@ -680,7 +695,7 @@
   right: 34px;
   z-index: 160;
   padding: 14px 0;
-  overflow: hidden;
+  clip-path: inset(0 0 0 0);
   background: rgba(201, 169, 110, 0.06);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -696,132 +711,60 @@
   transition: background 0.3s, color 0.3s;
   text-decoration: none;
   display: block;
-}
-.gallery__back:hover {
-  background: rgba(201, 169, 110, 0.12);  /* Золотой 12% — ярче при hover */
-  color: var(--accent);              /* Золотой текст — акцент */
-}
-
-
-/* .gallery__grid — контейнер justified-сетки */
-.gallery__grid {
-  padding: 0 46px 0 46px;
-  position: relative;
-  z-index: 1;
-  overflow: hidden;
-}
-
-/* БОКОВЫЕ ЛИНИИ — реальные <div> на уровне <body>, не псевдоэлементы.
-   Псевдоэлементы ломались: .page--gallery имеет transform → fixed превращается в absolute,
-   плюс overflow:hidden обрезал. Реальные div вне .page--gallery = гарантированный fixed. */
-
-.gallery-lines {
-  display: none;                      /* Скрыты по умолчанию — видны только в портфолио */
-}
-
-.gallery-lines.active {
-  display: block;
-  z-index: 160;
-  position: relative;
-  width: 0;
-  height: 0;
-  overflow: visible;
-}
-
-.gallery-line {
-  position: fixed;                    /* Привязаны к viewport — всегда по бокам, не скроллятся */
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  z-index: 160;                      /* Над .page--gallery (150) — видны поверх */
-  pointer-events: none;
-}
-
-.gallery-line--outer-left {
-  left: 24px;
-  background: linear-gradient(180deg, transparent 5%, rgba(201, 169, 110, 0.22) 20%, rgba(201, 169, 110, 0.22) 80%, transparent 95%);
-  box-shadow: 0 0 8px rgba(201, 169, 110, 0.04);
-}
-
-.gallery-line--outer-right {
-  right: 24px;
-  background: linear-gradient(180deg, transparent 5%, rgba(201, 169, 110, 0.22) 20%, rgba(201, 169, 110, 0.22) 80%, transparent 95%);
-  box-shadow: 0 0 8px rgba(201, 169, 110, 0.04);
-}
-
-.gallery-line--inner-left {
-  left: 32px;
-  background: linear-gradient(180deg, transparent 8%, rgba(201, 169, 110, 0.18) 25%, rgba(201, 169, 110, 0.18) 75%, transparent 92%);
-  box-shadow: 0 0 5px rgba(201, 169, 110, 0.03);
-}
-
-.gallery-line--inner-right {
-  right: 32px;
-  background: linear-gradient(180deg, transparent 8%, rgba(201, 169, 110, 0.18) 25%, rgba(201, 169, 110, 0.18) 75%, transparent 92%);
-  box-shadow: 0 0 5px rgba(201, 169, 110, 0.03);
-}
-
-/* .scroll-top — кнопка «Наверх» в портфолио.
-   Маленький квадрат на уровне левого края фото.
-   Появляется после скролла > 2 экранов. */
-.scroll-top {
-  position: fixed;
-  bottom: 28px;
-  left: 46px;                               /* Совпадает с padding gallery__grid — на краю фото */
-  width: 64px;
-  height: 64px;
-  background: rgba(201, 169, 110, 0.1);
-  border: 1px solid rgba(201, 169, 110, 0.25);
-  color: var(--accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 160;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(10px);
-  transition: opacity 0.3s, visibility 0.3s, transform 0.3s, background 0.3s;
-}
-
-.scroll-top.visible {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-}
-
-.scroll-top:hover {
-  background: rgba(201, 169, 110, 0.2);
-}
-
-/* .gallery__row — один ряд justified-сетки */
-.gallery__row {
-  display: flex;
-  max-width: 100%;
-  overflow: hidden;
-  margin-bottom: 5px;
-}
-
-/* .gallery__item — одно фото в ряду */
-.gallery__item {
-  position: relative;
-  overflow: hidden;
-  flex-shrink: 0;
-  cursor: pointer;
-  margin-right: 5px;
-  -webkit-tap-highlight-color: transparent;
+  pointer-events: auto;
   touch-action: manipulation;
 }
-.gallery__item:last-child { margin-right: 0; }  /* Последнее фото в ряду — без правого зазора */
+.gallery__back:hover {
+  background: rgba(201, 169, 110, 0.12);
+}
+
+/* Декоративные боковые линии портфолио */
+.gallery-lines {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* .gallery__grid — контейнер masonry-сетки */
+.gallery__grid {
+padding: 0 46px 0 46px;
+position: relative;
+z-index: 1;
+}
+
+/* .gallery__grid-inner — контейнер masonry-колонок */
+.gallery__grid-inner {
+  display: flex;
+}
+
+/* .gallery__col — колонка masonry */
+.gallery__col {
+display: flex;
+flex-direction: column;
+gap: 0;
+}
+
+/* .gallery__item — одно фото */
+.gallery__item {
+position: relative;
+overflow: hidden;
+cursor: pointer;
+-webkit-tap-highlight-color: transparent;
+touch-action: manipulation;
+}
 
 /* .gallery__item img — фото */
 .gallery__item img {
-  width: 100%;                       /* На всю ширину (задаётся JS) */
-  height: 100%;                      /* На всю высоту ряда */
-  object-fit: cover;                 /* Заполняет, обрезает — все фото одинаковой высоты в ряду */
-  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);  /* Плавный зум при hover */
+width: 100%;
+height: 100%;
+object-fit: cover;
+transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.gallery__item:hover img { transform: scale(1.03); }  /* 3% зум — мягкий, не агрессивный */
+.gallery__item:hover img { transform: scale(1.03); }
 
 /* .gallery__item-overlay — оверлей с названием при hover */
 .gallery__item-overlay {
@@ -846,9 +789,40 @@
 }
 
 .gallery__item-desc {
-  font-size: 0.75rem;                /* 12px */
-  color: rgba(255, 255, 255, 0.6);  /* Белый 60% — второстепенный */
-  font-weight: 300;                   /* Light */
+  font-size: 0.75rem; /* 12px */
+  color: rgba(255, 255, 255, 0.6); /* Белый 60% — второстепенный */
+  font-weight: 300; /* Light */
+}
+
+/* Кнопка «Наверх» — стрелка внизу слева на портфолио */
+.scroll-top {
+  position: fixed;
+  left: 46px;
+  bottom: 24px;
+  width: 72px;
+  height: 72px;
+  background: transparent;
+  border: 1px solid rgba(201, 169, 110, 0.3);
+  color: var(--accent);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s, border-color 0.4s;
+  z-index: 10;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.scroll-top.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.scroll-top:hover {
+  border-color: var(--accent);
 }
 
 
@@ -863,8 +837,8 @@
    ============================================================ */
 
 .reviews {
-  padding: 40px 40px 80px;                 /* Меньше сверху, больше снизу — контент выше, кнопка ниже */
-  min-height: calc(100vh - 67px);          /* Минимум на весь экран минус хедер */
+  padding: 40px 40px 40px;                 /* Меньше сверху, больше снизу — контент выше, кнопка ниже */
+  min-height: calc(100vh - 48px);
   display: flex;
   align-items: flex-start;                 /* Контент прижат к верху */
 }
@@ -875,16 +849,18 @@
   margin: 0 auto;                           /* Центрирование */
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 67px - 100px); /* Заполняет экран минус хедер и футер */
+  min-height: calc(100vh - 48px - 80px);
 }
 
 /* Декоративные линии — как в hero и контактах */
 .reviews__line-top,
 .reviews__line-bottom {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
-  margin: 20px 0;                          /* 20px сверху и снизу */
+	height: 1px;
+	background: linear-gradient(90deg, transparent, var(--accent), transparent);
+	margin: 30px 0;
 }
+
+.reviews__line-top { margin-bottom: 10px; }
 
 .reviews__line-bottom {
   margin-top: auto;                        /* Прижимает линию и кнопку к низу секции */
@@ -892,10 +868,10 @@
 
 .reviews__grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* 2 колонки */
-  gap: 24px; /* 24px между карточками */
-  margin: 40px 0; /* 40px сверху/снизу от линий */
-  align-items: start; /* Карточки по высоте контента, не растягиваются */
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  margin: 0;
+  align-items: start;
 }
 
 .reviews__card {
@@ -912,15 +888,16 @@
   opacity: 0.3;                            /* Приглушена — декор, не текст */
   line-height: 1;
   position: absolute;
-  top: 16px;                               /* 16px от верха карточки */
-  left: 24px;                              /* 24px от левого края */
+  top: 12px;                               /* 16px от верха карточки */
+  left: 30px;                              /* 24px от левого края */
 }
 
 .reviews__rating {
-  font-family: var(--font-display);        /* DM Serif Display */
-  font-size: 1.6rem;                       /* Крупный рейтинг */
-  color: var(--accent);                    /* Золотой — заметно */
-  margin-bottom: 8px;                      /* Отступ до текста отзыва */
+	font-family: var(--font-display);
+	font-size: 1.6rem;
+	color: var(--accent);
+	margin-bottom: 8px;
+	margin-top: 12px;
 }
 
 .reviews__text {

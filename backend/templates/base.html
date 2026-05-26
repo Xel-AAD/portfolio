@@ -89,42 +89,42 @@
 
 
   <!-- ХЕДЕР — навигация по сайту -->
- <header class="header" id="header">
- <nav class="nav" aria-label="Основная навигация">
-      <!-- Логотип -->
-      <a href="/" class="nav__logo">Портретный фотограф — Екатеринбург</a>
-      <!-- Ссылки меню. На десктопе: ряд справа -->
-      <ul class="nav__links">
-        <!-- Кнопка ✕ закрытия мобильного меню -->
-        <li class="nav__close-wrap"><button class="nav__close" id="navClose" aria-label="Закрыть меню">&#10005;</button></li>
-        <li><a href="/#about">Обо мне</a></li>
-        <li><a href="/portfolio/">Портфолио</a></li>
-        <li><a href="/#services">Услуги</a></li>
-        <li><a href="/reviews/">Отзывы</a></li>
-        <li><a href="/#contact">Контакты</a></li>
-        <!-- Соцсети внизу мобильного меню -->
-        <li class="nav__menu-footer">
-          <a href="https://t.me/xel_frames" target="_blank" rel="noopener" class="nav__menu-social" aria-label="Telegram">
-            <svg width="20" height="20"><use href="#icon-telegram"/></svg>
-          </a>
-          <a href="https://instagram.com/xel_frames" target="_blank" rel="noopener" class="nav__menu-social" aria-label="Instagram">
-            <svg width="20" height="20"><use href="#icon-instagram"/></svg>
-          </a>
-          <a href="https://vk.com/xel_frames" target="_blank" rel="noopener" class="nav__menu-social" aria-label="VK">
-            <svg width="20" height="20"><use href="#icon-vk"/></svg>
-          </a>
-        </li>
-      </ul>
-      <!-- Бургер-кнопка ☰ -->
-      <button class="nav__burger" id="navBurger" aria-label="Меню" aria-expanded="false" aria-controls="navOverlay">
-        <span></span><span></span><span></span>
-      </button>
-    </nav>
-  </header>
+<header class="header" id="header">
+  <nav class="nav" aria-label="Основная навигация">
+  <!-- Логотип -->
+  <a href="/" class="nav__logo">Портретный фотограф — Екатеринбург</a>
+  <!-- Бургер-кнопка ☰ -->
+  <button class="nav__burger" id="navBurger" aria-label="Меню" aria-expanded="false" aria-controls="navOverlay">
+    <span></span><span></span><span></span>
+  </button>
+  </nav>
+</header>
 
+<!-- Мобильная панель навигации (вне header, чтобы не обрезалась clip-path) -->
+<ul class="nav__links" id="navLinks">
+  <!-- Кнопка ✕ закрытия мобильного меню -->
+  <li class="nav__close-wrap"><button class="nav__close" id="navClose" aria-label="Закрыть меню">&#10005;</button></li>
+  <li><a href="/#about">Обо мне</a></li>
+  <li><a href="/portfolio/">Портфолио</a></li>
+  <li><a href="/#services">Услуги</a></li>
+  <li><a href="/reviews/">Отзывы</a></li>
+  <li><a href="/#contact">Контакты</a></li>
+  <!-- Соцсети внизу мобильного меню -->
+  <li class="nav__menu-footer">
+  <a href="https://t.me/xel_frames" target="_blank" rel="noopener" class="nav__menu-social" aria-label="Telegram">
+    <svg width="20" height="20"><use href="#icon-telegram"/></svg>
+  </a>
+  <a href="https://instagram.com/xel_frames" target="_blank" rel="noopener" class="nav__menu-social" aria-label="Instagram">
+    <svg width="20" height="20"><use href="#icon-instagram"/></svg>
+  </a>
+  <a href="https://vk.com/xel_frames" target="_blank" rel="noopener" class="nav__menu-social" aria-label="VK">
+    <svg width="20" height="20"><use href="#icon-vk"/></svg>
+  </a>
+  </li>
+</ul>
 
-  <!-- Затемнение фона при открытом мобильном меню -->
-  <div class="nav__overlay" id="navOverlay" role="presentation" aria-hidden="true"></div>
+<!-- Затемнение фона при открытом мобильном меню -->
+<div class="nav__overlay" id="navOverlay" role="presentation" aria-hidden="true"></div>
 
   <!--  — место для контента конкретной страницы.
        index.html вставит сюда hero + about + featured + services + contact.
