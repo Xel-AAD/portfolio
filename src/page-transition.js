@@ -1,11 +1,8 @@
-
-
-
-const PARTICLE_COUNT = 200
+const PARTICLE_COUNT = 300
 const WAVE_FREQ = 0.008
 const WAVE_AMP = 30
-const ENTER_DURATION = 1800
-const HOLD_BEFORE_NAVIGATE = 150   
+const ENTER_DURATION = 1200
+const HOLD_BEFORE_NAVIGATE = 100
 
 const GOLD = { r: 201, g: 169, b: 110 }
 const DARK = { r: 26, g: 20, b: 8 }
@@ -16,12 +13,12 @@ let canvas = null
 let ctx = null
 let particles = []
 let animId = null
-let phase = 'idle'          
+let phase = 'idle'
 let phaseStart = 0
 let pendingUrl = null
 let navigateTimer = null
-let navigationStarted = false   
-
+let navigationStarted = false
+let pagePreloaded = false // ← флаг успешной предзагрузки
 
 function lerp(a, b, t) { return a + (b - a) * t }
 
@@ -34,7 +31,6 @@ function lerpColor(c1, c2, t) {
 }
 
 function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3) }
-
 
 function createParticle(w, h) {
   const t = Math.random()
@@ -80,7 +76,6 @@ function initParticles() {
     particles.push(p)
   }
 }
-
 
 function renderFrame(timestamp) {
   if (phase === 'idle') {
@@ -164,34 +159,43 @@ function renderFrame(timestamp) {
       }
     }
 
-
     const elapsed = timestamp - phaseStart
     if (!navigationStarted && elapsed >= HOLD_BEFORE_NAVIGATE && pendingUrl) {
       navigationStarted = true
-      performNavigation(pendingUrl)
+      // Ждём предзагрузку, но не более 500 мс
+      const waitAndNavigate = async () => {
+        const start = performance.now()
+        while (!pagePreloaded && (performance.now() - start) < 500) {
+          await new Promise(r => setTimeout(r, 30))
+        }
+        performNavigation(pendingUrl)
+      }
+      waitAndNavigate()
     }
   }
-
 
   animId = requestAnimationFrame(renderFrame)
 }
 
-
 function performNavigation(url) {
-
   pendingUrl = null
-
-
-  
-  if (document.startViewTransition) {
-    document.startViewTransition(() => {
-      window.location.href = url
-    })
-  } else {
+  // Минимальная задержка, чтобы последний кадр canvas успел отрисоваться
+  setTimeout(() => {
     window.location.href = url
-  }
+  }, 20)
 }
 
+// ══════════════ ПРЕДЗАГРУЗКА ══════════════
+async function preloadPage(url) {
+  try {
+    // fetch с высоким приоритетом – страница скачивается в фоне
+    await fetch(url, { priority: 'high' })
+    pagePreloaded = true
+  } catch (e) {
+    // если сеть недоступна – всё равно разрешаем переход
+    pagePreloaded = true
+  }
+}
 
 function getOrCreateWash() {
   if (washEl) return washEl
@@ -216,6 +220,12 @@ function getOrCreateWash() {
 function showWash() {
   if (phase !== 'idle') return
 
+  // Запускаем предзагрузку следующей страницы немедленно
+  if (pendingUrl) {
+    pagePreloaded = false
+    preloadPage(pendingUrl) // не ждём, просто инициируем скачивание
+  }
+
   getOrCreateWash()
   initParticles()
   if (!ctx) {
@@ -233,7 +243,7 @@ function showWash() {
   navigationStarted = false
   animId = requestAnimationFrame(renderFrame)
 
-
+  // Таймер-безопасник на случай, если переход затянется
   navigateTimer = setTimeout(() => {
     if (!navigationStarted && pendingUrl) {
       navigationStarted = true
@@ -269,7 +279,6 @@ function destroyWash() {
   if (navigateTimer) clearTimeout(navigateTimer)
 }
 
-
 function isInternalLink(href) {
   if (!href) return false
   if (href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('tel:')) return false
@@ -290,132 +299,120 @@ function isSamePageAnchor(href) {
   }
 }
 
-
 const _easeInOutQuint = (t) => t < 0.5 ? 16 * t * t * t * t * t : 1 - Math.pow(-2 * t + 2, 5) / 2
 
 function handleSamePageAnchor(e, href) {
-	const url = new URL(href, location.origin)
-	const hash = url.hash
-	if (!hash || !document.querySelector(hash)) return false
+  const url = new URL(href, location.origin)
+  const hash = url.hash
+  if (!hash || !document.querySelector(hash)) return false
 
-	e.preventDefault()
+  e.preventDefault()
 
-	const navPanel = e.target.closest('a[href]')?.closest('.nav__links')
-	if (navPanel && navPanel.classList.contains('open')) {
-		if (typeof window.__closeMobileMenu === 'function') {
-			window.__closeMobileMenu()
-		}
-	}
+  const navPanel = e.target.closest('a[href]')?.closest('.nav__links')
+  if (navPanel && navPanel.classList.contains('open')) {
+    if (typeof window.__closeMobileMenu === 'function') {
+      window.__closeMobileMenu()
+    }
+  }
 
-	const target = document.querySelector(hash)
-	const y = target.getBoundingClientRect().top + window.scrollY
+  const target = document.querySelector(hash)
+  const y = target.getBoundingClientRect().top + window.scrollY
 
-	if (typeof window.__lenis !== 'undefined' && window.__lenis) {
-		window.__lenis.scrollTo(y, { easing: _easeInOutQuint, duration: 1.6 })
-	} else {
-		const startY = window.scrollY
-		const distance = y - startY
-		if (distance === 0) return true
-		const duration = Math.min(Math.max(Math.abs(distance) / 2000, 0.5), 2.0) * 1000
-		const startTime = performance.now()
-		function step(now) {
-			const elapsed = now - startTime
-			const progress = Math.min(elapsed / duration, 1)
-			const eased = _easeInOutQuint(progress)
-			window.scrollTo(0, startY + distance * eased)
-			if (progress < 1) requestAnimationFrame(step)
-		}
-		requestAnimationFrame(step)
-	}
-	return true
+  if (typeof window.__lenis !== 'undefined' && window.__lenis) {
+    window.__lenis.scrollTo(y, { easing: _easeInOutQuint, duration: 1.6 })
+  } else {
+    const startY = window.scrollY
+    const distance = y - startY
+    if (distance === 0) return true
+    const duration = Math.min(Math.max(Math.abs(distance) / 2000, 0.5), 2.0) * 1000
+    const startTime = performance.now()
+    function step(now) {
+      const elapsed = now - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      const eased = _easeInOutQuint(progress)
+      window.scrollTo(0, startY + distance * eased)
+      if (progress < 1) requestAnimationFrame(step)
+    }
+    requestAnimationFrame(step)
+  }
+  return true
 }
-
 
 export function initPageTransition() {
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches
 
-	document.addEventListener('click', (e) => {
-		const link = e.target.closest('a[href]')
-		if (!link) return
-		const href = link.getAttribute('href')
-		if (!href) return
-		if (link.target === '_blank' || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a[href]')
+    if (!link) return
+    const href = link.getAttribute('href')
+    if (!href) return
+    if (link.target === '_blank' || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return
 
-		if (isSamePageAnchor(href)) {
-			handleSamePageAnchor(e, href)
-			return
-		}
+    if (isSamePageAnchor(href)) {
+      handleSamePageAnchor(e, href)
+      return
+    }
 
-		if (href === '/' || href === '') {
-			if (location.pathname === '/' || location.pathname === '/index.html') {
-				e.preventDefault()
-				const startY = window.scrollY
-				if (startY === 0) return
-				if (typeof window.__lenis !== 'undefined' && window.__lenis) {
-					window.__lenis.scrollTo(0, { easing: _easeInOutQuint, duration: 1.6 })
-				} else {
-					const distance = -startY
-					const duration = Math.min(Math.max(Math.abs(startY) / 2000, 0.5), 2.0) * 1000
-					const startTime = performance.now()
-					function step(now) {
-						const elapsed = now - startTime
-						const progress = Math.min(elapsed / duration, 1)
-						const eased = _easeInOutQuint(progress)
-						window.scrollTo(0, startY + distance * eased)
-						if (progress < 1) requestAnimationFrame(step)
-					}
-					requestAnimationFrame(step)
-				}
-				return
-			}
-		}
+    if (href === '/' || href === '') {
+      if (location.pathname === '/' || location.pathname === '/index.html') {
+        e.preventDefault()
+        const startY = window.scrollY
+        if (startY === 0) return
+        if (typeof window.__lenis !== 'undefined' && window.__lenis) {
+          window.__lenis.scrollTo(0, { easing: _easeInOutQuint, duration: 1.6 })
+        } else {
+          const distance = -startY
+          const duration = Math.min(Math.max(Math.abs(startY) / 2000, 0.5), 2.0) * 1000
+          const startTime = performance.now()
+          function step(now) {
+            const elapsed = now - startTime
+            const progress = Math.min(elapsed / duration, 1)
+            const eased = _easeInOutQuint(progress)
+            window.scrollTo(0, startY + distance * eased)
+            if (progress < 1) requestAnimationFrame(step)
+          }
+          requestAnimationFrame(step)
+        }
+        return
+      }
+    }
 
-		if (href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('tel:')) return
-		if (!isInternalLink(href)) return
+    if (href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('tel:')) return
+    if (!isInternalLink(href)) return
 
-		if (reducedMotion) return
+    if (reducedMotion) return
 
-		const navPanel = link.closest('.nav__links')
-		if (navPanel && navPanel.classList.contains('open')) {
-			if (typeof window.__closeMobileMenu === 'function') {
-				window.__closeMobileMenu()
-			}
-		}
+    const navPanel = link.closest('.nav__links')
+    if (navPanel && navPanel.classList.contains('open')) {
+      if (typeof window.__closeMobileMenu === 'function') {
+        window.__closeMobileMenu()
+      }
+    }
 
     e.preventDefault()
     pendingUrl = href
     showWash()
   })
 
-	window.addEventListener('pageshow', (e) => {
-		if (navigateTimer) {
-			clearTimeout(navigateTimer)
-			navigateTimer = null
-		}
-		if (animId) {
-			cancelAnimationFrame(animId)
-			animId = null
-		}
+  // Новая страница: просто чистим состояние, никаких оверлеев
+  window.addEventListener('pageshow', () => {
+    if (navigateTimer) {
+      clearTimeout(navigateTimer)
+      navigateTimer = null
+    }
+    if (animId) {
+      cancelAnimationFrame(animId)
+      animId = null
+    }
 
+    destroyWash()
 
-		destroyWash()
-		const exitWash = document.createElement('div')
-		exitWash.id = 'page-wash'
-		exitWash.className = 'page-wash--exit'
-		const bg = document.createElement('div')
-		bg.className = 'page-wash__bg'
-		exitWash.appendChild(bg)
-		document.documentElement.appendChild(exitWash)
-		requestAnimationFrame(() => {
-			exitWash.classList.add('page-wash--active')
-		})
-		setTimeout(() => exitWash.remove(), 650)
-
-		phase = 'idle'
-		particles = []
-		navigationStarted = false
-		pendingUrl = null
-	})
+    phase = 'idle'
+    particles = []
+    navigationStarted = false
+    pendingUrl = null
+    pagePreloaded = false
+  })
 
   window.addEventListener('pagehide', () => {
     if (animId) cancelAnimationFrame(animId)
