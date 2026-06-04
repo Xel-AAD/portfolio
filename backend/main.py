@@ -8,7 +8,7 @@
 # 4. PortfolioService — сканирование фото, кеш
 # 5. FastAPI-приложение: middleware, exception handlers
 # 6. Вспомогательные функции (_safe_file, _file_response, _find_assets)
-# 7. Маршруты страниц (/, /portfolio/, /reviews/)
+# 7. Маршруты страниц (/, /portfolio/)
 # 8. Маршрут sitemap
 # 9. API-маршруты (/api/portfolio, /api/gallery)
 # 10. Статические файлы (/photos/, /assets/, favicon.ico)
@@ -51,7 +51,6 @@ except ImportError:
 BASE_DIR = Path(__file__).resolve().parent.parent
 PHOTOS_DIR = BASE_DIR / "public" / "photos"
 METADATA_FILE = Path(__file__).resolve().parent / "photos.json"
-REVIEWS_FILE = Path(__file__).resolve().parent / "reviews.json"
 DIST_DIR = BASE_DIR / "dist"
 TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
 
@@ -67,6 +66,9 @@ EXTRA_MIME_TYPES = {
     ".avif": "image/avif",
     ".webp": "image/webp",
 }
+
+RESIZE_CACHE_DIR = BASE_DIR / "cache"
+RESIZE_ALLOWED_WIDTHS = {200, 800}
 
 
 # ============================================================
@@ -257,29 +259,6 @@ class PortfolioService:
         if not image_files:
             return None
         return self._photo_from_file(image_files[0], photo_meta)
-
-    def load_reviews(self) -> list[dict]:
-        if not REVIEWS_FILE.exists():
-            return []
-        try:
-            with open(REVIEWS_FILE, "r", encoding="utf-8") as f:
-                data = json.load(f)
-        except Exception:
-            return []
-
-        reviews = []
-        for r in data.get("reviews", []):
-            name = r.get("name", "").strip()
-            text = r.get("text", "").strip()
-            if not text:
-                continue
-            reviews.append({
-                "name": name,
-                "text": text,
-                "date": r.get("date", "").strip(),
-                "rating": r.get("rating"),
-            })
-        return reviews
 
     def build(self) -> dict:
         current_snapshot = self._take_snapshot()
@@ -476,11 +455,36 @@ def _safe_file(base_dir: Path, file_path: str) -> Path | None:
     return None
 
 
+def _resize_photo(full_path: Path, width: int) -> Path:
+    cache_dir = RESIZE_CACHE_DIR / str(width)
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    cache_path = cache_dir / full_path.relative_to(PHOTOS_DIR).with_suffix(".webp")
+    if cache_path.exists():
+        src_mtime = full_path.stat().st_mtime
+        if cache_path.stat().st_mtime >= src_mtime:
+            return cache_path
+    if _PILImage is None:
+        return full_path
+    try:
+        with _PILImage.open(full_path) as img:
+            img.thumbnail((width, width * 2), _PILImage.LANCZOS)
+            cache_path.parent.mkdir(parents=True, exist_ok=True)
+            img.save(str(cache_path), "WEBP", quality=80)
+            return cache_path
+    except Exception:
+        return full_path
+
+
 def _file_response(full_path: Path) -> FileResponse:
     suffix = full_path.suffix.lower()
     media_type = EXTRA_MIME_TYPES.get(suffix) or guess_type(str(full_path))[0]
     is_hashed = bool(_HASHED_RE.search(full_path.name))
-    cache_max = "31536000" if is_hashed else "86400"
+    if is_hashed:
+        cache_max = "31536000"
+    elif full_path.is_relative_to(PHOTOS_DIR):
+        cache_max = "2592000"
+    else:
+        cache_max = "2592000"
     return FileResponse(
         str(full_path),
         media_type=media_type,
@@ -589,34 +593,6 @@ def page_portfolio(request: Request, session: str | None = None):
     })
 
 
-@app.get("/reviews", response_class=HTMLResponse)
-def page_reviews_redirect(request: Request):
-    return RedirectResponse(url="/reviews/")
-
-
-@app.get("/reviews/", response_class=HTMLResponse)
-def page_reviews(request: Request):
-    reviews = portfolio_service.load_reviews()
-    css_files, js_files = _find_assets()
-
-    avg_rating = round(sum(r["rating"] for r in reviews if r.get("rating")) / max(len([r for r in reviews if r.get("rating")]), 1), 1)
-
-    return templates.TemplateResponse("reviews.html", {
-        "request": request,
-        "page": "reviews",
-        "canonical_path": "/reviews/",
-        "css_files": css_files,
-        "js_files": js_files,
-        "reviews": reviews,
-        "avg_rating": avg_rating,
-        "lightbox_data": [],
-        "gallery_data": [],
-        "active_session": None,
-        "csp_nonce": _get_nonce(request),
-        "now": date.today(),
-    })
-
-
 @app.get("/robots.txt", response_class=Response)
 def robots():
     return Response(
@@ -670,15 +646,6 @@ def sitemap():
             return _datetime.fromtimestamp(max_mtime).date().isoformat()
         return today
 
-    def _reviews_lastmod() -> str:
-        try:
-            mtime = REVIEWS_FILE.stat().st_mtime if REVIEWS_FILE.exists() else 0.0
-            if mtime > 0:
-                return _datetime.fromtimestamp(mtime).date().isoformat()
-        except OSError:
-            pass
-        return today
-
     urls = [
         {"loc": "https://ekb.photographs.gs/", "lastmod": _featured_lastmod(), "changefreq": "weekly", "priority": "1.0"},
         {"loc": "https://ekb.photographs.gs/portfolio/", "lastmod": today, "changefreq": "weekly", "priority": "0.8"},
@@ -691,8 +658,6 @@ def sitemap():
             "changefreq": "monthly",
             "priority": "0.6",
         })
-
-    urls.append({"loc": "https://ekb.photographs.gs/reviews/", "lastmod": _reviews_lastmod(), "changefreq": "monthly", "priority": "0.6"})
 
     xml_parts = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
     for u in urls:
@@ -765,12 +730,24 @@ def favicon_ico():
     raise HTTPException(status_code=404)
 
 
-@app.get("/photos/{file_path:path}")
-def serve_photo(file_path: str):
-    full_path = _safe_file(PHOTOS_DIR, file_path)
-    if full_path:
-        return _file_response(full_path)
+@app.get("/favicon.svg")
+def favicon_svg():
+    svg = DIST_DIR / "favicon.svg"
+    if not svg.exists():
+        svg = BASE_DIR / "public" / "favicon.svg"
+    if svg.exists():
+        return FileResponse(str(svg), media_type="image/svg+xml", headers={"Cache-Control": "public, max-age=86400"})
     raise HTTPException(status_code=404)
+
+
+@app.get("/photos/{file_path:path}")
+def serve_photo(file_path: str, w: int | None = None):
+    full_path = _safe_file(PHOTOS_DIR, file_path)
+    if not full_path:
+        raise HTTPException(status_code=404)
+    if w is not None and w in RESIZE_ALLOWED_WIDTHS:
+        full_path = _resize_photo(full_path, w)
+    return _file_response(full_path)
 
 
 @app.get("/assets/{file_path:path}")

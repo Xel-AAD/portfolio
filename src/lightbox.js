@@ -1,97 +1,57 @@
-/* ============================================================
-   LIGHTBOX.JS — Полноэкранный просмотр фото
-   
-   Двухслойная система:
-   1. .lightbox__img--thumb — размытая миниатюра (blur-up).
-      Появляется мгновенно (маленький файл) → плавный зум от 0.92→1.
-   2. .lightbox__img--full — полноразмерное фото.
-      Загружается в фоне, когда готово — плавно проявляется поверх.
-   
-   Навигация: ←/→ кнопки, свайп, клавиатура (Esc, ArrowLeft/Right).
-   Циклическая: после последнего → первый.
-   
-   Zoom ( pinch-zoom / double-tap / wheel / dblclick ):
-   • Pinch двумя пальцами — зум от 1x до 5x, точка зума = центр щипка
-   • Pan одним пальцем — перетаскивание при zoom > 1x
-   • Double-tap / dblclick — переключение 1x ↔ 2.5x (в точке тапа)
-   • Scroll wheel — плавный зум от курсора (десктоп)
-   • Drag мышью — перетаскивание при zoom > 1x (десктоп)
-   • Автовозврат: при zoom < 1.1 → сброс на 1x
-   
-   Все zoom-трансформы применяются к .lightbox__zoom (wrapper),
-   а не к самим изображениям — поэтому анимации открытия/
-   закрытия/навигации не конфликтуют с zoom.
-   
-   Таймеры:
-   • _lbTimer       — задержка навигации (250мс анимация → смена фото)
-   • _lbCloseTimer  — отслеживает анимацию закрытия (предотвращает
-                       повторное открытие пока закрывается)
-   • _lbTouchTimer  — скрывает стрелки навигации через 1.5с после тача
-   ============================================================ */
+
+
+
 import { $ } from './dom.js'
 import { getLightboxList, getLightboxIndex, setLightboxIndex } from './state.js'
+import { stopSmoothScroll, startSmoothScroll } from './smooth-scroll.js'
 
-let _lbTimer = null /* Таймер навигации (250мс задержка между фото) */
-let _lbCloseTimer = null /* Таймер анимации закрытия (300мс) */
-let _lbTouchTimer = null /* Таймер видимости стрелок на мобайле (1500мс) */
-let _lbPreviousFocus = null /* Элемент, на котором был фокус до открытия лайтбокса */
-const _lbT = 'translate(-50%,-50%)' /* Центрирование: сдвиг на -50% по обеим осям */
+let _lbTimer = null 
+let _lbCloseTimer = null 
+let _lbTouchTimer = null 
+let _lbPreviousFocus = null 
+const _lbT = 'translate(-50%,-50%)' 
 
-/* ============================================================
-   ZOOM — состояние и утилиты
-   
-   _lbZoom хранит текущий scale и pan-смещение (в px, относительно
-   центра лайтбокса). Трансформа wrapper'а:
-     translate(panX, panY) scale(scale)
-   
-   Порядок CSS-трансформ (справа налево):
-     1. scale(zoom) — зум от центра wrapper'а
-     2. translate(pan) — сдвиг уже зумнутого контента
-   Это даёт 1:1 соответствие пальца→движение при pan.
-   ============================================================ */
 
 const ZOOM_MIN = 1
 const ZOOM_MAX = 5
-const ZOOM_DOUBLE_TAP = 2.5                  /* Scale при double-tap */
-const ZOOM_SNAP = 1.1                        /* Если zoom < 1.1 → сброс на 1x */
+const ZOOM_DOUBLE_TAP = 2.5                  
+const ZOOM_SNAP = 1.1                        
 
 const _lbZoom = { scale: 1, x: 0, y: 0 }
 
-/* Pinch-трекинг */
+
 let _lbPinchActive = false
-let _lbPinchStartDist = 0                    /* Расстояние между пальцами в начале pinch */
-let _lbPinchStartScale = 1                   /* Zoom-scale в начале pinch */
-let _lbPinchCenterX = 0                      /* Центр pinch (отн. центра лайтбокса) */
+let _lbPinchStartDist = 0                    
+let _lbPinchStartScale = 1                   
+let _lbPinchCenterX = 0                      
 let _lbPinchCenterY = 0
-let _lbZoomAtPinchX = 0                      /* Pan-смещение в начале pinch */
+let _lbZoomAtPinchX = 0                      
 let _lbZoomAtPinchY = 0
 
-/* Pan-трекинг (1 палец при zoom > 1) */
+
 let _lbPanActive = false
 let _lbPanStartX = 0
 let _lbPanStartY = 0
 let _lbZoomAtPanX = 0
 let _lbZoomAtPanY = 0
 
-/* Mouse-drag трекинг (десктоп) */
+
 let _lbMousePanActive = false
 let _lbMousePanStartX = 0
 let _lbMousePanStartY = 0
 let _lbMouseZoomStartX = 0
 let _lbMouseZoomStartY = 0
 
-/* Double-tap трекинг */
+
 let _lbLastTapTime = 0
 let _lbLastTapX = 0
 let _lbLastTapY = 0
 
-/* Click vs dblclick разделитель */
-let _lbClickTimer = null
-let _lbTouchDoubleTapAt = 0                  /* Время последнего touch double-tap — блокирует click/dblclick */
 
-/* --- Применение zoom-трансформа к wrapper'у ---
-   animate: true → плавный переход 0.3с (для double-tap / snap-back)
-   animate: false → мгновенно (для pinch/pan — следует за пальцем) */
+let _lbClickTimer = null
+let _lbTouchDoubleTapAt = 0                  
+
+
 function _lbApplyZoom(animate = false) {
   const zoom = $('#lightboxZoom')
   if (!zoom) return
@@ -112,7 +72,7 @@ function _lbApplyZoom(animate = false) {
   }
 }
 
-/* --- Сброс zoom на 1x --- */
+
 function _lbResetZoom(animate = false) {
   _lbZoom.scale = 1
   _lbZoom.x = 0
@@ -123,15 +83,14 @@ function _lbResetZoom(animate = false) {
   _lbApplyZoom(animate)
 }
 
-/* --- Расстояние между двумя тач-точками --- */
+
 function _lbTouchDist(t1, t2) {
   const dx = t1.clientX - t2.clientX
   const dy = t1.clientY - t2.clientY
   return Math.sqrt(dx * dx + dy * dy)
 }
 
-/* --- Координаты относительно центра лайтбокса ---
-   Используется для расчёта точки zoom (pinch center, tap point, cursor). */
+
 function _lbRelCenter(clientX, clientY) {
   const lb = $('#lightbox')
   if (!lb) return { x: 0, y: 0 }
@@ -139,9 +98,7 @@ function _lbRelCenter(clientX, clientY) {
   return { x: clientX - r.left - r.width / 2, y: clientY - r.top - r.height / 2 }
 }
 
-/* --- Зум к точке (cx, cy) — центр лайтбокса = (0,0) ---
-   Формула: panNew = cx - (cx - panOld) × (scaleNew / scaleOld)
-   Это сохраняет точку (cx, cy) неподвижной при изменении scale. */
+
 function _lbZoomTo(newScale, cx, cy, animate = false) {
   newScale = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, newScale))
   const oldScale = _lbZoom.scale
@@ -153,9 +110,7 @@ function _lbZoomTo(newScale, cx, cy, animate = false) {
   _lbApplyZoom(animate)
 }
 
-/* _lbSetLoading — переключает состояние загрузки.
-   lb-loading → пульсирующая золотая линия внизу.
-   lb-done → линия заполняется и исчезает. */
+
 function _lbSetLoading(on) {
   const lb = $('#lightbox')
   if (!lb) return
@@ -168,31 +123,29 @@ function _lbSetLoading(on) {
   }
 }
 
-/* _lbLoadFull — загружает полноразмерное фото.
-   Когда загрузилось → .loaded (проявляется поверх миниатюры) + убирает loading.
-   При ошибке (404, сеть) — убирает loading, показываем миниатюру как есть. */
+
 function _lbLoadFull(full, src, idx) {
   _lbSetLoading(true)
   full.onload = () => {
-    if (getLightboxIndex() === idx) {         /* Проверяем индекс — пользователь мог уже уйти */
+    if (getLightboxIndex() === idx) {         
       full.classList.add('loaded')
       _lbSetLoading(false)
     }
   }
-  full.onerror = () => {                       /* Ошибка загрузки — не зависаем в lb-loading */
+  full.onerror = () => {                       
     if (getLightboxIndex() === idx) {
       _lbSetLoading(false)
     }
   }
   full.src = src
-  /* Кэш: если фото уже загружено — onload не сработает, проверяем вручную */
+
   if (full.complete && full.naturalWidth > 0) {
     full.classList.add('loaded')
     _lbSetLoading(false)
   }
 }
 
-/* --- Focus trap --- Keeps Tab/Shift+Tab inside lightbox while open */
+
 function _lbFocusTrap(e) {
  if (e.key !== 'Tab') return
  const lightbox = $('#lightbox')
@@ -214,8 +167,7 @@ function _lbFocusTrap(e) {
  }
 }
 
-/* --- openLightbox --- Открывает лайтбокс на фото с заданным индексом.
-   Анимация: миниатюра зумится от 0.92→1 за 0.45с (cubic-bezier). */
+
 export function openLightbox(index) {
   const lightbox = $('#lightbox')
   const thumb = $('#lightboxThumb')
@@ -223,14 +175,14 @@ export function openLightbox(index) {
   const info = $('#lightboxInfo')
   const counter = $('#lightboxCounter')
 
-  /* Если лайтбокс в процессе закрытия — отменяем таймер,
-     чтобы не осталось в полузакрытом состоянии */
+
+
   if (_lbCloseTimer) {
     clearTimeout(_lbCloseTimer)
     _lbCloseTimer = null
   }
 
-  _lbResetZoom()                               /* Сброс zoom — чистое состояние при открытии */
+  _lbResetZoom()                               
 
   setLightboxIndex(index)
   const photo = getLightboxList()[index]
@@ -238,101 +190,101 @@ export function openLightbox(index) {
   info.textContent = photo.title
   counter.textContent = `${index + 1} / ${getLightboxList().length}`
 
-  /* Подготавливаем полный размер: скрываем */
+
   full.classList.remove('loaded')
-  full.removeAttribute('src')                 /* Очищаем src — чтобы не показывало прошлое фото */
+  full.removeAttribute('src')                 
 
- /* Подготавливаем миниатюру: невидимая, маленькая, размытая */
- thumb.style.transition = 'none'
- thumb.style.opacity = '0'
- thumb.style.transform = `${_lbT} scale(0.92)`
- thumb.style.filter = 'blur(25px)'
- thumb.src = photo.src
- thumb.alt = photo.title
 
-  /* Показываем лайтбокс */
+  thumb.style.transition = 'none'
+  thumb.style.opacity = '0'
+  thumb.style.transform = `${_lbT} scale(0.92)`
+  thumb.style.filter = 'blur(25px)'
+  thumb.src = photo.src + '?w=200'
+  thumb.alt = photo.title
+
+
   lightbox.classList.add('open')
   lightbox.classList.remove('lb-loading', 'lb-done')
  lightbox.setAttribute('aria-hidden', 'false')
-  document.documentElement.classList.add('lightbox-open')
+	document.documentElement.classList.add('lightbox-open')
+	stopSmoothScroll()
 
- /* Focus trap: save previously focused element, move focus to lightbox */
+
  _lbPreviousFocus = document.activeElement
  document.addEventListener('keydown', _lbFocusTrap)
  const closeBtn = $('#lightboxClose')
  if (closeBtn) closeBtn.focus()
 
-  /* startZoom — когда миниатюра загрузилась, запускаем анимацию зума.
-     Двойной requestAnimationFrame — гарантирует, что браузер отрендерил
-     начальное состояние (opacity:0, scale:0.92) до начала transition. */
+
+
+
   const startZoom = () => {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         thumb.style.transition = 'opacity 0.4s ease, transform 0.45s cubic-bezier(0.22,1,0.36,1), filter 0.8s ease'
-        /* 0.4s появление, 0.45s зум, 0.8s размытие — разное время для «живого» ощущения */
+
         thumb.style.opacity = '1'
-        thumb.style.transform = `${_lbT} scale(1)` /* 0.92 → 1: «вырастание» */
-        thumb.style.filter = 'blur(25px)'    /* Остётся размытой — полный размер будет поверх */
+        thumb.style.transform = `${_lbT} scale(1)` 
+        thumb.style.filter = 'blur(25px)'    
       })
     })
 
- /* Параллельно загружаем фото для лайтбокса */
+
  if (getLightboxIndex() === index) {
  _lbLoadFull(full, photo.src, index)
  }
   }
 
-  /* Ждём загрузки миниатюры, потом запускаем зум */
+
   if (thumb.complete && thumb.naturalWidth > 0) {
-    startZoom()                               /* Из кэша — сразу */
+    startZoom()                               
   } else {
-    thumb.addEventListener('load', startZoom, { once: true }) /* После загрузки */
+    thumb.addEventListener('load', startZoom, { once: true }) 
   }
 }
 
-/* --- closeLightbox --- Закрывает лайтбокс с анимацией.
-   Миниатюра плавно уходит (opacity→0, scale→0.95) за 300мс.
-   После завершения анимации — убираем DOM-классы и сбрасываем стили. */
+
 export function closeLightbox() {
   const lightbox = $('#lightbox')
   const thumb = $('#lightboxThumb')
   const full = $('#lightboxFull')
 
-  _lbResetZoom()                               /* Сброс zoom перед закрытием */
+  _lbResetZoom()                               
 
-  /* Анимация ухода миниатюры */
+
   thumb.style.transition = 'opacity 0.3s ease, transform 0.3s ease'
   thumb.style.opacity = '0'
-  thumb.style.transform = `${_lbT} scale(0.95)` /* Чуть уменьшается — эффект «схлопывания» */
+  thumb.style.transform = `${_lbT} scale(0.95)` 
 
   full.classList.remove('loaded')
   lightbox.classList.remove('lb-loading', 'lb-done')
 
-  /* Отменяем навигацию если была в процессе */
+
   if (_lbTimer) {
     clearTimeout(_lbTimer)
     _lbTimer = null
   }
 
-  /* СБРАСЫВАЕМ ИНДЕКС ДО setTimeout — иначе проверка ниже не сработает.
-     Багфикс: раньше setLightboxIndex(-1) стоял ПОСЛЕ проверки,
-     и return всегда срабатывал — лайтбокс не закрывался. */
+
+
+
  const closingIndex = getLightboxIndex()
  setLightboxIndex(-1)
 
- /* Remove focus trap */
+
  document.removeEventListener('keydown', _lbFocusTrap)
 
-  /* После анимации (300мс) — окончательно убираем лайтбокс */
+
   setTimeout(() => {
-    /* Защита: если за 300мс успели открыть новое фото — не закрываем */
+
     if (getLightboxIndex() !== -1) return
 
     lightbox.classList.remove('open')
     lightbox.setAttribute('aria-hidden', 'true')
-  document.documentElement.classList.remove('lightbox-open')
+		document.documentElement.classList.remove('lightbox-open')
+		startSmoothScroll()
 
-    /* Сбрасываем inline-стили — возвращаем к CSS-значениям */
+
     thumb.style.transition = ''
     thumb.style.opacity = ''
     thumb.style.transform = ''
@@ -340,60 +292,61 @@ export function closeLightbox() {
  full.removeAttribute('src')
  _lbCloseTimer = null
 
- /* Return focus to the element that had it before opening */
+
  if (_lbPreviousFocus && typeof _lbPreviousFocus.focus === 'function') {
  _lbPreviousFocus.focus()
  _lbPreviousFocus = null
  }
- }, 300) /* 300мс — совпадает с длительностью transition миниатюры */
+ }, 300) 
 }
 
-/* --- navigateLightbox --- Переключает фото (вперёд/назад).
-   direction: -1 = назад, +1 = вперёд.
-   Циклическая навигация: после последнего → первый. */
+
 export function navigateLightbox(direction) {
-  if (getLightboxIndex() === -1) return       /* Лайтбокс закрыт — не навигируем */
+  if (getLightboxIndex() === -1) return       
 
   const thumb = $('#lightboxThumb')
   const full = $('#lightboxFull')
 
-  /* Анимация ухода текущего фото */
-  thumb.style.transition = 'opacity 0.25s ease, transform 0.25s ease'
-  thumb.style.opacity = '0'
-  thumb.style.transform = `${_lbT} scale(0.98)` /* Чуть уменьшается */
-  full.classList.remove('loaded')
 
-  const lb = $('#lightbox')
-  if (lb) lb.classList.remove('lb-done')
+const _lbMobile = window.innerWidth <= 768
+const _lbOutDur = _lbMobile ? 150 : 250
+const _lbInDelay = _lbMobile ? 150 : 250
+thumb.style.transition = `opacity ${_lbOutDur}ms ease, transform ${_lbOutDur}ms ease`
+thumb.style.opacity = '0'
+thumb.style.transform = `${_lbT} scale(0.98)`
+full.classList.remove('loaded')
 
-  /* Отменяем предыдущую навигацию если была */
-  if (_lbTimer) clearTimeout(_lbTimer)
+const lb = $('#lightbox')
+if (lb) lb.classList.remove('lb-done')
 
-  _lbResetZoom()                               /* Сброс zoom перед сменой фото */
 
-  /* Ждём 250мс (анимация ухода) → показываем новое фото */
-  _lbTimer = setTimeout(() => {
+if (_lbTimer) clearTimeout(_lbTimer)
+
+_lbResetZoom() 
+
+
+_lbTimer = setTimeout(() => {
     const list = getLightboxList()
     let newIdx = getLightboxIndex() + direction
-    if (newIdx < 0) newIdx = list.length - 1  /* Цикл: первый → последний */
-    if (newIdx >= list.length) newIdx = 0      /* Цикл: последний → первый */
+    if (newIdx < 0) newIdx = list.length - 1  
+    if (newIdx >= list.length) newIdx = 0      
 
     setLightboxIndex(newIdx)
     const photo = list[newIdx]
 
-    /* Обновляем текст */
+
     const info = $('#lightboxInfo')
     const counter = $('#lightboxCounter')
     if (info) info.textContent = photo.title
     if (counter) counter.textContent = `${newIdx + 1} / ${list.length}`
 
-    /* Подготавливаем новую миниатюру */
-    full.removeAttribute('src')
- thumb.src = photo.src
- thumb.alt = photo.title
-    thumb.style.filter = 'blur(25px)'         /* Размытая — полный размер будет поверх */
 
-    /* Анимация появления нового фото */
+	full.removeAttribute('src')
+	thumb.src = photo.src + '?w=200'
+	thumb.alt = photo.title
+	thumb.style.filter = 'blur(25px)' 
+
+
     const showNew = () => {
       requestAnimationFrame(() => {
         thumb.style.transition = 'opacity 0.3s ease, transform 0.35s cubic-bezier(0.22,1,0.36,1), filter 0.8s ease'
@@ -409,12 +362,11 @@ export function navigateLightbox(direction) {
       thumb.addEventListener('load', showNew, { once: true })
     }
 
-    _lbTimer = null
-  }, 250) /* 250мс — анимация ухода текущего фото */
+	_lbTimer = null
+	}, _lbInDelay)
 }
 
-/* --- initLightbox --- Регистрирует все обработчики событий.
-   Вызывается один раз при загрузке страницы. */
+
 export function initLightbox() {
   const lightbox = $('#lightbox')
   if (!lightbox) return
@@ -424,35 +376,33 @@ export function initLightbox() {
   const prevBtn = $('#lightboxPrev')
   const nextBtn = $('#lightboxNext')
 
-  /* Кнопки */
+
   if (closeBtn) closeBtn.addEventListener('click', closeLightbox)
   if (prevBtn) prevBtn.addEventListener('click', () => navigateLightbox(-1))
   if (nextBtn) nextBtn.addEventListener('click', () => navigateLightbox(1))
 
-  /* --- Клик по тёмному фону ---
-     Клик НЕ на фото (на тёмный фон): мгновенное закрытие —
-     dblclick на пустом фоне бессмыслен, задержка не нужна.
-     Клик НА фото при zoom=1: игнорируем — чтобы не закрывалось случайно.
-     Клик НА фото при zoom>1: сброс zoom (с задержкой на dblclick). */
+
+
+
   if (zoom) {
     zoom.addEventListener('click', e => {
-      if (Date.now() - _lbTouchDoubleTapAt < 500) return  /* Touch double-tap уже обработал */
+      if (Date.now() - _lbTouchDoubleTapAt < 500) return  
       const onPhoto = e.target.tagName === 'IMG'
-      if (onPhoto && _lbZoom.scale <= 1) return    /* Клик по фото (не зумнут) — не закрываем */
+      if (onPhoto && _lbZoom.scale <= 1) return    
       if (!onPhoto && _lbZoom.scale <= 1) {
-        closeLightbox()                            /* Тап на тёмный фон — сразу закрыть */
+        closeLightbox()                            
         return
       }
-      /* Клик по фото при zoom>1 — ждём возможный dblclick */
+
       if (_lbClickTimer) return
       _lbClickTimer = setTimeout(() => {
         _lbClickTimer = null
-        _lbResetZoom(true)                        /* Плавный возврат zoom */
+        _lbResetZoom(true)                        
       }, 250)
     })
 
     zoom.addEventListener('dblclick', e => {
-      if (Date.now() - _lbTouchDoubleTapAt < 500) return  /* Touch double-tap уже обработал */
+      if (Date.now() - _lbTouchDoubleTapAt < 500) return  
       if (_lbClickTimer) {
         clearTimeout(_lbClickTimer)
         _lbClickTimer = null
@@ -460,17 +410,16 @@ export function initLightbox() {
       e.preventDefault()
       const rel = _lbRelCenter(e.clientX, e.clientY)
       if (_lbZoom.scale > 1) {
-        _lbResetZoom(true)                       /* Плавный возврат к 1x */
+        _lbResetZoom(true)                       
       } else {
-        _lbZoomTo(ZOOM_DOUBLE_TAP, rel.x, rel.y, true)  /* Плавный зум 2.5x от курсора */
+        _lbZoomTo(ZOOM_DOUBLE_TAP, rel.x, rel.y, true)  
       }
     })
   }
 
-  /* --- Scroll wheel / trackpad pinch zoom (десктоп) ---
-  Обычная мышь: deltaY в шагах (±1, ±3), mode=line → мультипликативный фактор.
-  Трекпад pinch: ctrlKey=true, deltaY в пикселях, mode=pixel → аддитивный расчёт.
-  zoomTo от курсора — точка под курсором остаётся на месте. */
+
+
+
   if (zoom) {
     zoom.addEventListener('wheel', e => {
       if (!lightbox.classList.contains('open')) return
@@ -478,39 +427,39 @@ export function initLightbox() {
       const rel = _lbRelCenter(e.clientX, e.clientY)
       let newScale
       if (e.ctrlKey) {
-        /* Трекпад pinch: deltaY в пикселях, |deltaY| ~1-10 за событие.
-           Нормализуем к пропорциональному изменению масштаба. */
+
+
         const factor = 1 - e.deltaY * 0.01
         newScale = _lbZoom.scale * Math.max(0.8, Math.min(1.2, factor))
       } else {
-        /* Мышь: deltaY целочисленный → мультипликативный шаг. */
+
         const factor = e.deltaY > 0 ? 0.92 : 1.08
         newScale = _lbZoom.scale * factor
       }
       _lbZoomTo(newScale, rel.x, rel.y)
-      /* Автовозврат если zoom слишком мал */
+
       if (_lbZoom.scale < ZOOM_SNAP && _lbZoom.scale > ZOOM_MIN) {
         _lbResetZoom(true)
       }
     }, { passive: false })
   }
 
-  /* --- Mouse drag pan (десктоп, при zoom > 1) ---
-     mousedown на zoom-wrapper → начало перетаскивания.
-     mousemove/mouseup на window — чтобы работать даже если
-     курсор вышел за пределы лайтбокса. */
-  if (zoom) {
-    zoom.addEventListener('mousedown', e => {
-      if (_lbZoom.scale <= 1) return             /* Не зумнут — не тянем */
-      if (e.target.tagName !== 'IMG') return      /* Тянем только за фото */
-      _lbMousePanActive = true
-      _lbMousePanStartX = e.clientX
-      _lbMousePanStartY = e.clientY
-      _lbMouseZoomStartX = _lbZoom.x
-      _lbMouseZoomStartY = _lbZoom.y
-      e.preventDefault()
-    })
-  }
+
+
+
+ if (zoom) {
+  zoom.addEventListener('mousedown', e => {
+   if (_lbZoom.scale <= 1) return
+   if (e.target.tagName !== 'IMG') return
+		_lbMousePanActive = true
+		_lbMousePanStartX = e.clientX
+		_lbMousePanStartY = e.clientY
+		_lbMouseZoomStartX = _lbZoom.x
+		_lbMouseZoomStartY = _lbZoom.y
+   zoom.style.cursor = 'grabbing'
+   e.preventDefault()
+  })
+ }
 
   window.addEventListener('mousemove', e => {
     if (!_lbMousePanActive) return
@@ -519,48 +468,73 @@ export function initLightbox() {
     _lbApplyZoom()
   })
 
-  window.addEventListener('mouseup', () => {
-    if (_lbMousePanActive) {
-      _lbMousePanActive = false
-      if (_lbZoom.scale < ZOOM_SNAP) {
-        _lbResetZoom(true)
-      }
+window.addEventListener('mouseup', () => {
+  if (_lbMousePanActive) {
+    _lbMousePanActive = false
+    zoom.style.cursor = ''
+    if (_lbZoom.scale < ZOOM_SNAP) {
+      _lbResetZoom(true)
     }
-  })
+  }
+})
 
-  /* Клавиатура: Esc — закрыть, ←/→ — навигация */
-  document.addEventListener('keydown', e => {
-    if (!lightbox.classList.contains('open')) return
-    if (e.key === 'Escape') closeLightbox()
-    if (e.key === 'ArrowLeft') navigateLightbox(-1)
-    if (e.key === 'ArrowRight') navigateLightbox(1)
-  })
 
-  /* --- Тач-навигация + zoom ---
-     Свайп влево → следующее фото, вправо → предыдущее.
-     Свайп вниз → закрыть лайтбокс.
-     Pinch → zoom, pan → перетаскивание при zoom > 1.
-     Double-tap → toggle zoom 1x ↔ 2.5x.
-     
-     Правила:
-     • 2 пальца = pinch zoom (приоритет над всем)
-     • 1 палец + zoom > 1 = pan (перетаскивание)
-     • 1 палец + zoom = 1 = swipe (навигация / закрытие) */
-  let touchStartX = 0
-  let touchStartY = 0
-  let touchStartFingers = 0                     /* Кол-во пальцев в начале жеста */
+document.addEventListener('keydown', e => {
+	if (!lightbox.classList.contains('open')) return
+	if (e.key === 'Escape') closeLightbox()
+	if (e.key === 'ArrowLeft') navigateLightbox(-1)
+	if (e.key === 'ArrowRight') navigateLightbox(1)
+})
+
+function _lbSwipeSpringBack() {
+	const thumb = $('#lightboxThumb')
+	const lb = $('#lightbox')
+	if (thumb) {
+		thumb.style.transition = 'transform 0.35s cubic-bezier(0.22,1,0.36,1)'
+		thumb.style.transform = `${_lbT} scale(1)`
+	}
+	if (lb) {
+		lb.style.transition = 'background-color 0.35s ease'
+		lb.style.backgroundColor = ''
+	}
+}
+
+function _lbSwipeResetVisuals() {
+	const thumb = $('#lightboxThumb')
+	const lb = $('#lightbox')
+	if (thumb) {
+		thumb.style.transition = ''
+		thumb.style.transform = ''
+	}
+	if (lb) {
+		lb.style.transition = ''
+		lb.style.backgroundColor = ''
+	}
+}
+
+
+let touchStartX = 0
+let touchStartY = 0
+let touchStartFingers = 0
+let _lbSwipeActive = false
+let _lbSwipeStartX = 0
+let _lbSwipeStartY = 0
+let _lbSwipeLastX = 0
+let _lbSwipeLastTime = 0
 
   lightbox.addEventListener('touchstart', e => {
     const touches = e.touches
     touchStartFingers = touches.length
 
     if (touches.length === 2 && zoom) {
-      /* --- Pinch start ---
-         Запоминаем: расстояние между пальцами, текущий zoom,
-         центр pinch, текущее pan-смещение. */
-      _lbPinchActive = true
-      _lbPanActive = false
-      _lbPinchStartDist = _lbTouchDist(touches[0], touches[1])
+
+
+
+		_lbPinchActive = true
+		_lbPanActive = false
+		_lbSwipeActive = false
+		_lbSwipeResetVisuals()
+		_lbPinchStartDist = _lbTouchDist(touches[0], touches[1])
       _lbPinchStartScale = _lbZoom.scale
       const cx = (touches[0].clientX + touches[1].clientX) / 2
       const cy = (touches[0].clientY + touches[1].clientY) / 2
@@ -569,20 +543,25 @@ export function initLightbox() {
       _lbPinchCenterY = rel.y
       _lbZoomAtPinchX = _lbZoom.x
       _lbZoomAtPinchY = _lbZoom.y
-    } else if (touches.length === 1) {
-      touchStartX = touches[0].clientX
-      touchStartY = touches[0].clientY
+	} else if (touches.length === 1) {
+		touchStartX = touches[0].clientX
+		touchStartY = touches[0].clientY
 
-      if (_lbZoom.scale > 1) {
-        /* --- Pan start (когда зумнут) --- */
-        _lbPanActive = true
-        _lbPanStartX = touches[0].clientX
-        _lbPanStartY = touches[0].clientY
-        _lbZoomAtPanX = _lbZoom.x
-        _lbZoomAtPanY = _lbZoom.y
-      }
+		if (_lbZoom.scale > 1) {
+			_lbPanActive = true
+			_lbPanStartX = touches[0].clientX
+			_lbPanStartY = touches[0].clientY
+			_lbZoomAtPanX = _lbZoom.x
+			_lbZoomAtPanY = _lbZoom.y
+		} else {
+			_lbSwipeActive = true
+			_lbSwipeStartX = touches[0].clientX
+			_lbSwipeStartY = touches[0].clientY
+			_lbSwipeLastX = touches[0].clientX
+			_lbSwipeLastTime = Date.now()
+		}
 
-      /* Показываем стрелки навигации при касании */
+
       if (prevBtn) prevBtn.style.opacity = '1'
       if (nextBtn) nextBtn.style.opacity = '1'
     }
@@ -592,10 +571,9 @@ export function initLightbox() {
     const touches = e.touches
 
     if (_lbPinchActive && touches.length === 2 && zoom) {
-      /* --- Pinch move ---
-         Новый scale = стартовый scale × (текущее расстояние / стартовое).
-         Пересчёт pan по формуле: panNew = center - (center - panOld) × ratio.
-         Это сохраняет центр pinch неподвижным. */
+
+
+
       const dist = _lbTouchDist(touches[0], touches[1])
       const newScale = _lbPinchStartScale * (dist / _lbPinchStartDist)
       const clampedScale = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, newScale))
@@ -604,27 +582,50 @@ export function initLightbox() {
       _lbZoom.x = _lbPinchCenterX - (_lbPinchCenterX - _lbZoomAtPinchX) * ratio
       _lbZoom.y = _lbPinchCenterY - (_lbPinchCenterY - _lbZoomAtPinchY) * ratio
       _lbApplyZoom()
-    } else if (_lbPanActive && touches.length === 1) {
-      /* --- Pan move (когда зумнут) ---
-         1:1 соответствие: палец сдвинулся на N px → фото сдвигается на N px. */
-      _lbZoom.x = _lbZoomAtPanX + (touches[0].clientX - _lbPanStartX)
-      _lbZoom.y = _lbZoomAtPanY + (touches[0].clientY - _lbPanStartY)
-      _lbApplyZoom()
-    }
+	} else if (_lbPanActive && touches.length === 1) {
+			_lbZoom.x = _lbZoomAtPanX + (touches[0].clientX - _lbPanStartX)
+			_lbZoom.y = _lbZoomAtPanY + (touches[0].clientY - _lbPanStartY)
+			_lbApplyZoom()
+		} else if (_lbSwipeActive && touches.length === 1 && _lbZoom.scale === 1) {
+			const deltaX = touches[0].clientX - _lbSwipeStartX
+			const deltaY = touches[0].clientY - _lbSwipeStartY
+
+			if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 8) {
+				const thumb = $('#lightboxThumb')
+				if (thumb) {
+					thumb.style.transition = 'none'
+					thumb.style.transform = `${_lbT} translateX(${deltaX}px) scale(${1 - Math.abs(deltaX) / 2000})`
+				}
+				const lb = $('#lightbox')
+				if (lb) lb.style.backgroundColor = `rgba(0,0,0,${1 - Math.abs(deltaX) / 800})`
+			} else if (deltaY > 8 && Math.abs(deltaY) > Math.abs(deltaX)) {
+				const thumb = $('#lightboxThumb')
+				if (thumb) {
+					thumb.style.transition = 'none'
+					thumb.style.transform = `${_lbT} translateY(${deltaY}px) scale(${1 - deltaY / 1000})`
+				}
+				const lb = $('#lightbox')
+				if (lb) lb.style.backgroundColor = `rgba(0,0,0,${1 - deltaY / 600})`
+			}
+			_lbSwipeLastX = touches[0].clientX
+			_lbSwipeLastTime = Date.now()
+		}
   }, { passive: true })
 
-  /* --- touchcancel — прерывание жеста (звонок, уведомление) ---
-     Сбрасываем флаги pan/pinch, чтобы следующее касание не
-     воспринималось как продолжение прерванного жеста. */
-  lightbox.addEventListener('touchcancel', () => {
-    _lbPinchActive = false
-    _lbPanActive = false
-  }, { passive: true })
+
+
+
+	lightbox.addEventListener('touchcancel', () => {
+		_lbPinchActive = false
+		_lbPanActive = false
+		_lbSwipeActive = false
+		_lbSwipeResetVisuals()
+	}, { passive: true })
 
   lightbox.addEventListener('touchend', e => {
-    /* --- Pinch end ---
-       Если пальцев стало < 2 — pinch завершён.
-       Если zoom оказался < ZOOM_SNAP → плавный возврат на 1x. */
+
+
+
     if (_lbPinchActive && e.touches.length < 2) {
       _lbPinchActive = false
       if (_lbZoom.scale < ZOOM_SNAP && _lbZoom.scale > ZOOM_MIN) {
@@ -632,36 +633,63 @@ export function initLightbox() {
       }
     }
 
-    /* --- Pan end ---
-       Все пальцы убраны — pan завершён.
-       Автовозврат если zoom оказался < ZOOM_SNAP. */
-    if (_lbPanActive && e.touches.length === 0) {
-      _lbPanActive = false
-      if (_lbZoom.scale < ZOOM_SNAP) {
-        _lbResetZoom(true)
-      }
-    }
 
-    /* --- Swipe навигация ---
-     Только когда: пальцев 0, zoom = 1, pinch/pan не активны,
-     и жест начат одним пальцем. */
-    if (e.touches.length === 0 && touchStartFingers === 1 && !_lbPinchActive && !_lbPanActive && _lbZoom.scale === 1) {
-      const diffX = e.changedTouches[0].clientX - touchStartX
-      const diffY = e.changedTouches[0].clientY - touchStartY
 
-      /* Горизонтальный свайп (>50px, больше чем вертикальный) → навигация */
-      if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) {
-        navigateLightbox(diffX > 0 ? -1 : 1)   /* Свайп вправо = назад, влево = вперёд */
-      }
-      /* Вертикальный свайп вниз (>100px) → закрыть */
-      if (Math.abs(diffY) > 100 && diffY > 0 && Math.abs(diffY) > Math.abs(diffX)) {
-        closeLightbox()
-      }
-    }
 
-    /* --- Double-tap ---
-     Два тапа за < 300мс, в радиусе 30px → toggle zoom.
-     При zoom > 1 → возврат на 1x. При zoom = 1 → зум 2.5x в точке тапа. */
+	if (_lbPanActive && e.touches.length === 0) {
+		_lbPanActive = false
+		if (_lbZoom.scale < ZOOM_SNAP) {
+			_lbResetZoom(true)
+		}
+	}
+
+
+	if (_lbSwipeActive && e.touches.length === 0 && !_lbPinchActive && !_lbPanActive && _lbZoom.scale === 1) {
+		_lbSwipeActive = false
+		const deltaX = e.changedTouches[0].clientX - _lbSwipeStartX
+		const deltaY = e.changedTouches[0].clientY - _lbSwipeStartY
+		const dt = Date.now() - _lbSwipeLastTime
+		const velocity = dt > 0 ? Math.abs(_lbSwipeLastX - _lbSwipeStartX) / dt : 0
+		const thumb = $('#lightboxThumb')
+		const lb = $('#lightbox')
+
+
+ const swipeH = window.innerWidth <= 768 ? 65 : 80
+ const swipeV = window.innerWidth <= 768 ? 65 : 100
+ if (Math.abs(deltaX) > swipeH || (Math.abs(deltaX) > 50 && velocity > 0.5)) {
+  if (Math.abs(deltaX) > Math.abs(deltaY)) {
+   const dir = deltaX > 0 ? 1 : -1
+			if (thumb) {
+					thumb.style.transition = 'transform 0.2s cubic-bezier(0.22,1,0.36,1)'
+					thumb.style.transform = `${_lbT} translateX(${dir * window.innerWidth}px) scale(0.9)`
+				}
+				if (lb) lb.style.transition = 'background-color 0.2s ease'
+				setTimeout(() => {
+					_lbSwipeResetVisuals()
+					navigateLightbox(deltaX > 0 ? -1 : 1)
+				}, 200)
+  } else {
+   _lbSwipeSpringBack()
+  }
+
+ } else if (deltaY > swipeV && deltaY > Math.abs(deltaX)) {
+			if (thumb) {
+				thumb.style.transition = 'transform 0.25s cubic-bezier(0.22,1,0.36,1)'
+				thumb.style.transform = `${_lbT} translateY(${window.innerHeight}px) scale(0.8)`
+			}
+			if (lb) lb.style.transition = 'background-color 0.25s ease'
+			setTimeout(() => {
+				_lbSwipeResetVisuals()
+				closeLightbox()
+			}, 250)
+	} else {
+		_lbSwipeSpringBack()
+	}
+}
+
+
+
+
     const now = Date.now()
     const tapX = e.changedTouches[0].clientX
     const tapY = e.changedTouches[0].clientY
@@ -672,15 +700,15 @@ export function initLightbox() {
       } else {
         _lbZoomTo(ZOOM_DOUBLE_TAP, rel.x, rel.y, true)
       }
-      _lbTouchDoubleTapAt = Date.now()           /* Блокируем последующий click/dblclick от браузера */
-      _lbLastTapTime = 0                        /* Предотвращаем тройной тап */
+      _lbTouchDoubleTapAt = Date.now()           
+      _lbLastTapTime = 0                        
     } else {
       _lbLastTapTime = now
       _lbLastTapX = tapX
       _lbLastTapY = tapY
     }
 
-    /* Скрываем стрелки через 1.5с — чтобы не мешали просмотру */
+
     if (_lbTouchTimer) clearTimeout(_lbTouchTimer)
     _lbTouchTimer = setTimeout(() => {
       if (prevBtn) prevBtn.style.opacity = ''

@@ -1,33 +1,29 @@
-/* ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ */
+
 :root {
-/* --- Цвета --- */
---bg: #0a0a0a; /* Фон страницы */
---bg-card: #131313; /* Фон карточек (услуги)*/
---text: #e8e4de; /* Основной текст: тёплый белый*/
- --text-muted: #999; /* Второстепенный текст: серый — описания, подписи, footer */
---accent: #c9a96e; /* Золотой акцент: кнопки, линии, hover-эффекты, цены — фирменный цвет */
---accent-soft: rgba(201, 169, 110, 0.15); /* Мягкий акцент: тени и свечения — accent с прозрачностью 15% */
---accent-glow: rgba(201, 169, 110, 0.35); /* Свечение акцента: 35% прозрачности — для ярких glow-эффектов */
---neon: rgba(201, 169, 110, 0.3); /* Неон: 30% — для пульсирующих боковых линий */
---neon-glow: rgba(201, 169, 110, 0.12); /* Неон-свечение: 12% — мягкий ореол вокруг линий */
---border: #1e1e1e; /* Цвет рамок: очень тёмный серый — еле заметные границы */
 
-/* Шрифты */
---font-display: 'DM Serif Display', Georgia, serif; /* Заголовки: серифный (с засечками) — солидный, элегантный */
---font-body: 'Inter', -apple-system, sans-serif; /* Текст: без засечек — чистый, современный. Fallback: системный шрифт */
+--bg: #0a0a0a; 
+--bg-card: #131313; 
+--text: #e8e4de; 
+ --text-muted: #999; 
+--accent: #c9a96e; 
+--accent-soft: rgba(201, 169, 110, 0.15); 
+--accent-glow: rgba(201, 169, 110, 0.35); 
+--neon: rgba(201, 169, 110, 0.3); 
+--neon-glow: rgba(201, 169, 110, 0.12); 
+--border: #1e1e1e; 
 
-/* Размеры */
---section-pad: 120px; /* Вертикальный отступ секций: пустое пространство сверху и снизу */
---max-w: 1450px; /* Максимальная ширина контента */
+
+--font-display: 'DM Serif Display', Georgia, serif; 
+--font-body: 'Inter', -apple-system, sans-serif; 
+
+
+--section-pad: 120px; 
+--max-w: 1450px; 
 --page-dur-open: 0.7s;
 --page-dur-close: 0.5s;
 }
 
-/* COLOR WASH — переход между страницами
-Canvas-частицы + overlay с волновым затемнением.
-JS рисует градиентный (чёрно-золотой) поток частиц
-с волнообразным движением. Overlay обеспечивает полную
-заливку под частицами. */
+
 @view-transition {
   navigation: auto;
 }
@@ -51,66 +47,67 @@ JS рисует градиентный (чёрно-золотой) поток ч
 }
 
 
-
-
-/* СБРОС СТИЛЕЙ
-   Каждый браузер задаёт элементам свои дефолтные отступы */
-
-/*  * — универсальный селектор: выбирает ВСЕ элементы на странице */
-/*  *::before, *::after — все псевдоэлементы (линии, заливки кнопок) */
 *,
 *::before,
 *::after {
-  margin: 0;                        /* Убираем дефолтные внешние отступы (margin) у всех элементов */
-  padding: 0;                       /* Убираем дефолтные внутренние отступы (padding) у всех элементов */
-  box-sizing: border-box;           /* padding и border включены в width — не увеличивают размер */
-  /* Без border-box: width: 300px + padding: 20px = реальная ширина 340px (padding добавляется сверх) */
-  /* С border-box: width: 300px + padding: 20px = реальная ширина 300px (padding внутри) */
+  margin: 0;                        
+  padding: 0;                       
+  box-sizing: border-box;           
+
+  
 }
 
 html {
-  scroll-behavior: smooth;
-  -webkit-font-smoothing: antialiased;
-  -webkit-text-size-adjust: 100%;
-  overflow-x: hidden;
+-webkit-font-smoothing: antialiased;
+-webkit-text-size-adjust: 100%;
+overflow-x: hidden;
+scrollbar-gutter: stable;
 }
 
-/* body — тело страницы, содержит весь видимый контент */
+
 body {
   font-family: var(--font-body);    
-  background: var(--bg);            /* Фон: #0a0a0a — почти чёрный */
-  color: var(--text);               /* Цвет текста по умолчанию: #e8e4de — тёплый белый. Наследуется дочерними элементами */
-  line-height: 1.3;                 /* Межстрочный интервал: множитель от font-size. 16px × 1.3 = 20.8px высота строки */
+  background: var(--bg);            
+  color: var(--text);               
+  line-height: 1.3;                 
   font-size: 16px;                  
-  overflow-x: hidden;               /* Скрываем горизонтальный скролл. Частицы/анимации могут выходить за края — это не ломает страницу */
+  overflow-x: hidden;               
 }
 
 
-
-/* БАЗОВЫЕ СТИЛИ ЭЛЕМЕНТОВ */
-
-/* Ссылки */
 a {
-  color: inherit;                   /* Цвет текста от родителя */
-  text-decoration: none;            /* Убираем подчёркивание */
+	color: inherit;
+	text-decoration: none;
+	touch-action: manipulation;
 }
 
-/* Картинки */
+
 img {
-  display: block;                   /* По умолчанию img = inline — под картинкой щель 3px. block убирает её */
-  max-width: 100%;                  /* Фото никогда не шире контейнера. 6000px фото сожмётся до 400px колонки */
+  display: block;                   
+  max-width: 100%;                  
 }
 
-/* Кнопки */
+
 button {
-  font: inherit;                    
-  cursor: pointer;                  /* Курсор-рука при наведении. Без этого — стрелка */
-  border: none;                     /* Убираем дефолтную рамку браузера */
-  background: none;                 /* Убираем серый фон */
-  color: inherit;                   
+  font: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+  touch-action: manipulation;
 }
 
-/* Выделение текста мышкой */
+*:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+}
+.lightbox__close:focus-visible,
+.lightbox__prev:focus-visible,
+.lightbox__next:focus-visible {
+	outline: none;
+}
+
+
 ::selection {
  background: var(--accent);
  color: var(--bg);
@@ -129,13 +126,6 @@ button {
  }
 
 
-
-/* COLOR WASH — overlay + canvas для перехода между страницами
-#page-wash — полноэкранный контейнер, содержит:
-  1. canvas#washCanvas — градиентные частицы с волновым движением
-  2. .page-wash__bg — сплошная заливка под частицами
-Вход: overlay появляется (opacity 0→1 за 0.3с), затем частицы
-заполняют экран ~1.2с. Выход: частицы + overlay растворяются ~0.6с. */
 #page-wash {
   position: fixed;
   inset: 0;
@@ -175,46 +165,57 @@ button {
 }
 
 
-/* СТРАНИЦЫ И ЛАЙТБОКС
-lightbox-open блокирует скролл при открытом лайтбоксе. */
-
 html.lightbox-open { overflow: hidden; }
+
+@keyframes pageFadeIn {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
+main.page {
+	animation: pageFadeIn 0.4s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	main.page { animation: none !important; }
+	.anim-fade-up { opacity: 1 !important; transform: none !important; transition: none !important; }
+	.scroll-progress { display: none !important; }
+}
+
+.scroll-progress {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 3px;
+	background: var(--accent);
+	transform: scaleX(0);
+	transform-origin: left;
+	z-index: 150;
+	opacity: 0;
+	transition: opacity 0.3s;
+	pointer-events: none;
+}
 
 .page--main {
   min-height: 100vh;
 }
 
 .page--portfolio {
-  min-height: 100vh;
-  padding-top: 48px;
+	min-height: 100vh;
+	padding-top: 48px;
 }
 
 .page--404 {
-  min-height: 100vh;
-  padding-top: 48px;
-}
-
-.page--reviews {
-  min-height: 100vh;
-  padding-top: 48px;
+	min-height: 100vh;
+	padding-top: 48px;
 }
 
 .svg-sprite {
-  display: none;
+	display: none;
 }
 
 
-
-/* ХЕДЕР
-  Состоит из двух состояний:
-    • Начальное: прозрачный фон, текст поверх hero-картинки
-    • Прокрученное: полупрозрачный тёмный фон с blur
-   
-   Переключение состояний — JS добавляет класс .scrolled
-   когда пользователь проскроллил больше 80px от верха.
-   ============================================================ */
-
-/* .header — обёртка всей шапки */
 .header {
   position: fixed;
   top: 0;
@@ -236,7 +237,7 @@ html.lightbox-open { overflow: hidden; }
   display: none;
 }
 
-/* .nav — внутренний контейнер навигации (логотип + бургер) */
+
 .nav {
   display: flex;
   align-items: center;
@@ -247,18 +248,16 @@ html.lightbox-open { overflow: hidden; }
   position: relative;
 }
 
-/* .nav__logo */
+
 .nav__logo {
-font-family: var(--font-display);
-font-size: 1.25rem;
+font-family: var(--font-body);
+font-size: 1.15rem;
 letter-spacing: 0.01em;
 transition: opacity 0.3s;
 }
 .nav__logo:hover { opacity: 0.75; }
 
-/* .nav__links — фиксированное позиционирование (вне header в DOM,
-чтобы не обрезаться clip-path на .header). На десктопе — по правому
-краю контента, по вертикали — по центру хедера. */
+
 .nav__links {
 position: fixed;
 right: 0;
@@ -271,11 +270,10 @@ list-style: none;
 max-width: var(--max-w);
 margin: 0 auto;
 padding: 0 40px;
-  height: 48px;
-align-items: center;
-pointer-events: none;
-z-index: 101;
-will-change: transform;
+ height: 48px;
+ align-items: center;
+ pointer-events: none;
+ z-index: 101;
 }
 
 .nav__links a,
@@ -285,7 +283,7 @@ will-change: transform;
 pointer-events: auto;
 }
 
-/* .nav__links a — каждая ссылка меню */
+
 .nav__links a {
   font-size: 0.8rem;                 
   font-weight: 400;                  
@@ -297,7 +295,6 @@ pointer-events: auto;
 .nav__links a.nav__link--active { color: var(--accent); }
 
 
-/* .nav__burger */
 .nav__burger {
   display: none;
   flex-direction: column;
@@ -318,98 +315,90 @@ pointer-events: auto;
 .nav__burger.active span:nth-child(2) { opacity: 0; }
 .nav__burger.active span:nth-child(3) { transform: translateY(-5px) rotate(-45deg); }
 
-/* .nav__close — кнопка закрытия мобильного меню (✕) */
+
 .nav__close-wrap { display: none; }
 .nav__close { display: none; }
 .nav__menu-footer { display: none; }
 
 
-
-/* HERO
-   Слои (z-index от нижнего к верхнему):
-   1. .hero__bg       — анимированные золотистые свечения
-   2. .hero__overlay  — затемнение по краям (виньетка)
-   3. .hero__content  — текст + кнопка (z-index: 2)
-   4. .hero__particles — летящие золотые точки (z-index: 1, pointer-events: none) */
-
 .hero {
-  position: relative;                /* Относительное позиционирование — дочерние absolute будут позиционироваться от этого блока */
-  height: 100vh;                     /* 100% высоты viewport — занимает весь экран */
-  min-height: 600px;                 /* Минимум 600px — на очень коротких экранах (типа горизонтальный телефон) не сожмётся слишком */
-  display: flex;                     /* Flexbox для центрирования контента */
-  align-items: center;               /* Вертикальное центрирование */
-  justify-content: center;           /* Горизонтальное центрирование */
-  overflow: hidden;                  /* Скрываем всё что выходит за границы — частицы и свечения не создают скролл */
+  position: relative;                
+  height: 100vh;                     
+  min-height: 600px;                 
+  display: flex;                     
+  align-items: center;               
+  justify-content: center;           
+  overflow: hidden;                  
 }
 
 .hero__particles {
-  position: absolute;                /* Абсолютное — занимает весь hero, не влияет на flex-раскладку */
-  inset: 0;                          /* top:0, right:0, bottom:0, left:0 — на весь hero */
-  z-index: 1;                        /* Над bg и overlay, под content */
-  pointer-events: none;              /* Мышь проходит насквозь — частицы не перехватывают клики по кнопке */
+  position: absolute;                
+  inset: 0;                          
+  z-index: 1;                        
+  pointer-events: none;              
 }
 
-/* одна золотая точка (создаётся JS, ~30 штук) */
+
 .hero__particle {
   position: absolute;                
   border-radius: 50%;                
   background: var(--accent);         
-  opacity: 0;                        /* Начальная прозрачность — невидима до анимации */
+  opacity: 0;                        
   animation: particleDrift linear infinite;  
 }
 
-/* траектория полёта частицы */
+
 @keyframes particleDrift {
-  0%   { opacity: 0; transform: translateY(0) translateX(0); }        /* Старт: невидима, на месте */
-  15%  { opacity: 0.5; }                                               /* Появляется: полупрозрачная (0.5 — мягкая, не режет глаз) */
-  85%  { opacity: 0.5; }                                               /* Всё ещё видима — летит */
-  100% { opacity: 0; transform: translateY(-90vh) translateX(20px); }  /* Конец: невидима, улетела на 90vh вверх, сдвиг 20px вправо — лёгкий дрейф */
+  0%   { opacity: 0; transform: translateY(0) translateX(0); }        
+  15%  { opacity: 0.5; }                                               
+  85%  { opacity: 0.5; }                                               
+  100% { opacity: 0; transform: translateY(-90vh) translateX(20px); }  
 }
 
-/* золотистые свечения на фоне */
+
 .hero__bg {
-  position: absolute;                /* Абсолютное — за контентом */
-  inset: 0;                          /* На весь hero */
-  background:                        /* Три радиальных градиента — мягкие пятна света */
-    radial-gradient(ellipse at 25% 45%, rgba(201, 169, 110, 0.08) 0%, transparent 55%),  /* Левый: 8% золотого, центр 25%→45%, растворяется к 55% */
-    radial-gradient(ellipse at 75% 25%, rgba(201, 169, 110, 0.05) 0%, transparent 50%),  /* Правый верх: 5%, слабее — глубина */
-    radial-gradient(ellipse at 50% 90%, rgba(201, 169, 110, 0.04) 0%, transparent 40%);  /* Нижний: 4%, ещё слабее — фоновое свечение */
-  animation: heroGlow 18s ease-in-out infinite alternate;  /* Пульсация: 18с цикл, ease-in-out (медленно→быстро→медленно), alternate (туда-обратно) */
+  position: absolute;                
+  inset: 0;                          
+  background:                        
+    radial-gradient(ellipse at 25% 45%, rgba(201, 169, 110, 0.08) 0%, transparent 55%),  
+    radial-gradient(ellipse at 75% 25%, rgba(201, 169, 110, 0.05) 0%, transparent 50%),  
+    radial-gradient(ellipse at 50% 90%, rgba(201, 169, 110, 0.04) 0%, transparent 40%);  
+  animation: heroGlow 18s ease-in-out infinite alternate;  
 }
 
-/* медленная пульсация свечения */
+
 @keyframes heroGlow {
-  0%   { opacity: 1; transform: scale(1); }     /* Яркое, нормальный размер */
-  100% { opacity: 0.6; transform: scale(1.1); }  /* Тускнее (60%), чуть больше (110%) — эффект "дыхания" */
+  0%   { opacity: 1; transform: scale(1); }     
+  100% { opacity: 0.6; transform: scale(1.1); }  
 }
 
-/* виньетка */
+
 .hero__overlay {
-  position: absolute;                /* Абсолютное — поверх bg, под content */
+  position: absolute;                
   inset: 0;                         
-  background: radial-gradient(ellipse at center, transparent 0%, rgba(10, 10, 10, 0.7) 100%);  /* Центр — прозрачный, края — 70% тёмного */
+  background: radial-gradient(ellipse at center, transparent 0%, rgba(10, 10, 10, 0.7) 100%);  
 }
 
 .hero__content {
   position: relative;
   z-index: 2;
   text-align: center;
-  max-width: var(--max-w);    /* 1400px — как у nav */
-  margin: 0 auto;             /* центрирование */
-  padding: 0 40px;            /* 40px — как у nav */
+  max-width: var(--max-w);    
+  margin: 0 auto;             
+  padding: 0 40px;            
 }
 
-/* горизонтальные линии (маленькие) */
+
 .hero__line-top,
 .hero__line-bottom {
   width: 48px;                    
   height: 1px;                       
-  margin: 0 auto;                    /* Центрирование горизонтально */
+  margin: 0 auto;                    
   background: linear-gradient(90deg, transparent, var(--accent), transparent);  
-  /* Градиент: прозрачный → золотой → прозрачный — линия "растворяется" по краям */
+
 }
-.hero__line-top { margin-bottom: 40px; }     /* Отступ до подзаголовка */
-.hero__line-bottom { margin-top: 44px; }     /* Отступ после описания до кнопки */
+.hero__line-top { margin-bottom: 40px; }     
+.hero__line-bottom { margin-top: 52px; } 
 
 .hero__subtitle {
   font-family: var(--font-body);     
@@ -418,58 +407,57 @@ pointer-events: auto;
   letter-spacing: 0.3em;             
   text-transform: uppercase;          
   color: var(--accent);             
-  margin-bottom: 20px;                   /* Отступ до заголовка */
+  margin-bottom: 20px;                   
 }
 
 .hero__title {
   font-family: var(--font-display);   
-  font-size: clamp(3.5rem, 10vw, 8rem);  /* Адаптивный размер */
-  /* clamp(min, preferred, max): на 400px экране ≈ 36px, на 1200px ≈ 108px, на 2000px ≈ 112px */
+  font-size: clamp(3.5rem, 10vw, 8rem);  
+
   font-weight: 400;                   
-  line-height: 1;                        /* Межстрочный = font-size — если имя в 2 строки, строки плотно */
-  letter-spacing: -0.01em;               /* Микро-уменьшение — серифные заголовки чуть плотнее смотрятся */
-  margin-bottom: 30px;                   /* Отступ до описания */
+  line-height: 1;                        
+  letter-spacing: -0.01em;               
+  margin-bottom: 30px;                   
   background: linear-gradient(135deg, var(--text) 30%, var(--accent) 70%);  
-  /* Градиент: от тёплого белого (30%) к золотому (70%) — диагональ 135° (сверху-лево → вниз-право) */
-  -webkit-background-clip: text;         /* Текст = маска для градиента */
-  -webkit-text-fill-color: transparent;  /* Сам текст прозрачный — виден только градиент сквозь форму букв */
-  background-clip: text;                 /* Стандартное свойство (Safari/Firefox понимают -webkit-, Chrome оба) */
+
+  -webkit-background-clip: text;         
+  -webkit-text-fill-color: transparent;  
+  background-clip: text;                 
 }
 
-/*  "Одиночные · На улице · Студия" */
+
 .hero__desc {
   font-size: 0.95rem;                
   font-weight: 300;                   
   color: var(--text-muted);           
   letter-spacing: 0.15em;            
-  margin-bottom: 44px;                   /* Отступ до кнопки */
+	margin-bottom: 52px; 
 }
 
 .hero__btn {
   display: inline-block;               
-  padding: 16px 56px;                    /* 14px сверху/снизу, 48px по бокам  */
-  border: 1px solid rgba(201, 169, 110, 0.4);  /* Золотая рамка 40% прозрачности */
-  font-size: 0.85rem;                    /* 12px */
+  padding: 16px 56px;                    
+  border: 1px solid rgba(201, 169, 110, 0.4);  
+  font-size: 0.85rem;                    
   font-weight: 400;                      
   letter-spacing: 0.2em;                 
   text-transform: uppercase;             
-  transition: color 0.4s, border-color 0.4s, box-shadow 0.4s;  /* Плавная анимация конкретных свойств при hover */
-  position: relative;                    /* Для ::before — позиционируется от кнопки */
-  overflow: hidden;                      /* Скрываем ::before когда он за пределами кнопки */
+  transition: color 0.4s, border-color 0.4s, box-shadow 0.4s;  
+  position: relative;                    
+  overflow: hidden;                      
 }
 
-/* золотая заливка, скрытая scaleY(0) — заливка сверху вниз */
 .hero__btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--accent);
-  transform: scaleY(0);
-  transform-origin: top;
-  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-  z-index: -1;
+	content: '';
+	position: absolute;
+	inset: 0;
+	background: var(--accent);
+	transform: scaleX(0);
+	transform-origin: left;
+	transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+	z-index: -1;
 }
-.hero__btn:hover::before { transform: scaleY(1); }
+.hero__btn:hover::before { transform: scaleX(1); }
 
 .hero__btn:hover {
   color: var(--bg);                   
@@ -477,7 +465,7 @@ pointer-events: auto;
   box-shadow: 0 0 30px var(--accent-soft);  
 }
 
-/* контейнер стрелки вниз */
+
 .hero__scroll-hint {
   position: absolute;
   bottom: 48px;
@@ -488,11 +476,11 @@ pointer-events: auto;
   align-items: center;
 }
 
-/* пульсирующая вертикальная линия */
+
 .hero__scroll-line {
   width: 1px;                        
   height: 48px;                   
-  background: linear-gradient(to bottom, var(--accent), transparent);  /* Золотая сверху → прозрачная снизу */
+  background: linear-gradient(to bottom, var(--accent), transparent);  
   animation: scrollPulse 2.5s ease-in-out infinite;  
 }
 
@@ -503,106 +491,154 @@ pointer-events: auto;
   letter-spacing: 0.2em;                
   text-transform: uppercase;              
   color: var(--text-muted);               
-  margin-top: 10px;                      /* Отступ от линии до текста */
+  margin-top: 10px;                      
   text-align: center;                     
 }
 
-/* анимация "вырастает сверху, исчезает снизу" */
+
 @keyframes scrollPulse {
-  0%   { opacity: 0; transform: scaleY(0); transform-origin: top; }      /* Невидима, сжата до 0, точка роста — верх */
-  40%  { opacity: 1; transform: scaleY(1); transform-origin: top; }      /* Полностью видима, выросла сверху вниз, точка роста — верх */
-  60%  { transform-origin: bottom; }                                     /* Меняем точку роста на низ — теперь будет "сжиматься" снизу вверх */
-  100% { opacity: 0; transform: scaleY(0); transform-origin: bottom; }   /* Невидима, сжалась снизу вверх — эффект "линия появляется и исчезает" */
+  0%   { opacity: 0; transform: scaleY(0); transform-origin: top; }      
+  40%  { opacity: 1; transform: scaleY(1); transform-origin: top; }      
+  60%  { transform-origin: bottom; }                                     
+  100% { opacity: 0; transform: scaleY(0); transform-origin: bottom; }   
 }
 
 
-
-/* DIVIDER */
 .divider {
   max-width: var(--max-w);       
-  margin: 0 auto;                     /* Центрирование */
-  padding: 0 40px;                   /* 40px по бокам — отступ от краёв экрана */
+  margin: 0 auto;                     
+  padding: 0 40px;                   
 }
 
-/* сама линия (псевдоэлемент) */
+
 .divider::before {
   content: '';                       
-  display: block;                     /* Блочный — занимает всю ширину родителя */
+  display: block;                     
   height: 2px;                      
-  background: linear-gradient(90deg, transparent, rgba(201, 169, 110, 0.25), transparent);    /* Градиент: прозрачный → золотой 25% → прозрачный */
+  background: linear-gradient(90deg, transparent, rgba(201, 169, 110, 0.25), transparent);    
 }
 
 
-
-/* SECTION-TITLE
-   Общий стиль для h2 всех секций: "Обо мне", "Избранное",
-   "Услуги", "Контакты". Один CSS — все заголовки консистентны.
-   
-   Модификатор --left: текст прижат влево (для "Обо мне").
-   Без модификатора: по центру */
-
-/* базовый стиль h2 */
 .section-title {
   font-family: var(--font-display);
-  font-size: clamp(1.8rem, 3.5vw, 2.6rem); /* Адаптивный: мин 28.8px, предп. 3.5% ширины, макс 41.6px */
+  font-size: clamp(1.8rem, 3.5vw, 2.6rem); 
   font-weight: 400;
   text-align: center;
   letter-spacing: 0.01em;
-  margin-top: 30px;
-  margin-bottom: 30px;
+	margin-top: 15px;
+	margin-bottom: 30px;
 }
 
-/* модификатор для "Обо мне" */
+
 .section-title--left {
   text-align: left;                  
   margin-bottom: 14px;               
 }
 
 
-
-/* АНИМАЦИИ (ANIM-FADE-UP)
-   Плавное появление элементов при скролле вниз.
-   Элементы скрыты (opacity: 0, сдвинуты вниз на 20px).
-   Когда JS замечает элемент в видимой зоне — добавляет
-   класс .visible → элемент плавно "всплывает".
-   
-   Задержки (.anim-delay-1/2/3/4) — элементы появляются
-   по очереди, не все сразу. Например: карточки услуг
-   появляются с интервалом 0.1с. */
-
-/* скрытое состояние (до появления) */
 .anim-fade-up {
   opacity: 0;                        
-  transform: translateY(20px);       /* Сдвинут на 20px вниз */
-  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),  /* Плавное появление: 0.8с */
-    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);          /* Плавный сдвиг вверх: 0.8с */
+  transform: translateY(20px);       
+  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),  
+    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);          
 }
 
-/* появившийся элемент (JS добавляет при скролле) */
+
 .anim-fade-up.visible {
   opacity: 1;                        
   transform: translateY(0);          
 }
 
-/* Задержки — каскадное появление */
-.anim-delay-1 { transition-delay: 0.1s; }  /* +0.1с задержка — первый элемент появляется чуть позже триггера */
-.anim-delay-2 { transition-delay: 0.2s; }  /* +0.2с — второй */
+
+.anim-delay-1 { transition-delay: 0.1s; }  
+.anim-delay-2 { transition-delay: 0.2s; }  
 .anim-delay-3 { transition-delay: 0.3s; }  
 .anim-delay-4 { transition-delay: 0.4s; }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-  .anim-fade-up {
-    opacity: 1 !important;
-    transform: none !important;
-  }
-  ::view-transition-old(root),
-  ::view-transition-new(root) {
-    animation: none !important;
-  }
+	*, *::before, *::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+	.anim-fade-up {
+		opacity: 1 !important;
+		transform: none !important;
+	}
+	::view-transition-old(root), ::view-transition-new(root) {
+		animation: none !important;
+	}
+	.preloader { display: none !important; }
+}
+
+
+.preloader {
+position: fixed;
+inset: 0;
+z-index: 9999;
+background: #000;
+display: flex;
+align-items: center;
+justify-content: center;
+pointer-events: all;
+}
+
+.preloader__content {
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 32px;
+opacity: 0;
+transition: opacity 1s ease;
+}
+
+.preloader__content--visible {
+opacity: 1;
+}
+
+.preloader__text {
+font-family: var(--font-display);
+font-size: clamp(2.4rem, 14vw, 12rem);
+letter-spacing: 0.2em;
+color: var(--accent);
+opacity: 0;
+text-shadow: 0 0 60px rgba(201, 169, 110, 0.5), 0 0 120px rgba(201, 169, 110, 0.2);
+max-width: 90vw;
+overflow: hidden;
+}
+
+.preloader__line-wrap {
+width: 160px;
+height: 1px;
+background: rgba(201,169,110,0.12);
+overflow: hidden;
+}
+
+.preloader__line {
+height: 100%;
+width: 0%;
+background: var(--accent);
+}
+
+.preloader--exit {
+animation: preloaderZoomOut 1.2s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+@keyframes preloaderZoomOut {
+0% {
+transform: scale(1);
+filter: blur(0px);
+opacity: 1;
+}
+40% {
+transform: scale(1.04);
+filter: blur(0px);
+opacity: 1;
+}
+100% {
+transform: scale(1.15);
+filter: blur(12px);
+opacity: 0;
+}
 }

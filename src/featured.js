@@ -1,14 +1,6 @@
-/* ============================================================
-FEATURED.JS — Masonry-сетка избранных фото на главной
 
-Крупные фото в колонках (3 десктоп / 2 мобайл).
-Каждое фото сохраняет пропорции — ширина = ширина колонки,
-высота = пропорционально. Колонки выравниваются по верху
-и низу: последнее фото в короткой колонке растягивается
-через object-fit: cover, чтобы не было «лесенки».
 
-Клик по фото открывает лайтбокс.
-============================================================ */
+
 import { $ } from './dom.js'
 import { setLightboxList } from './state.js'
 import { openLightbox } from './lightbox.js'
@@ -57,12 +49,14 @@ export function renderFeatured() {
     itemEl.className = 'featured__item anim-fade-up'
     itemEl.style.marginBottom = `${gap}px`
 
-    const img = document.createElement('img')
-    img.src = photo.src
-    img.alt = photo.title
-    img.loading = 'lazy'
-    img.width = Math.round(colWidth)
-    img.height = Math.round(imgHeight)
+  const img = document.createElement('img')
+  img.src = photo.src + '?w=800'
+  img.srcset = `${photo.src}?w=200 200w, ${photo.src}?w=800 800w`
+  img.sizes = `${Math.round(colWidth)}px`
+  img.alt = photo.title
+  img.loading = 'lazy'
+  img.width = Math.round(colWidth)
+  img.height = Math.round(imgHeight)
 
     const overlay = document.createElement('div')
     overlay.className = 'featured__item-overlay'
@@ -75,10 +69,25 @@ export function renderFeatured() {
     itemEl.appendChild(img)
     itemEl.appendChild(overlay)
 
-    itemEl.addEventListener('click', () => {
-      setLightboxList(photos)
-      openLightbox(idx)
-    })
+  itemEl.addEventListener('click', () => {
+    setLightboxList(photos)
+    openLightbox(idx)
+  })
+
+  let _overlayTimer = null
+  itemEl.addEventListener('pointerdown', (e) => {
+    if (e.pointerType !== 'touch') return
+    const overlay = itemEl.querySelector('.featured__item-overlay')
+    if (!overlay) return
+    overlay.classList.remove('featured__item-overlay--show')
+    void overlay.offsetWidth
+    overlay.classList.add('featured__item-overlay--show')
+    if (_overlayTimer) clearTimeout(_overlayTimer)
+    _overlayTimer = setTimeout(() => {
+      overlay.classList.remove('featured__item-overlay--show')
+      _overlayTimer = null
+    }, 3000)
+  })
 
     columns[shortest].el.appendChild(itemEl)
     columns[shortest].height += imgHeight + gap

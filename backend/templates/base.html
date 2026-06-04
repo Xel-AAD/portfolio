@@ -6,11 +6,17 @@
   <meta name="theme-color" content="#0a0a0a" />
   <title>{% block title %}Портретный фотограф • Екатеринбург • Фотосессия | Александр Ахметов{% endblock %}</title>
   <meta name="description" content="{% block description %}Портретный фотограф в Екатеринбурге. Фотосессия от 800₽. Студийные и уличные портреты. Запись на съёмку{% endblock %}" />
-  <meta property="og:title" content="{% block og_title %}Александр Ахметов — Портретный фотограф{% endblock %}" />
-  <meta property="og:description" content="{% block og_description %}Студийные и уличные портреты. Съёмка от 800₽.{% endblock %}" />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://ekb.photographs.gs/photos/og-cover.webp" />
-  <meta property="og:url" content="https://ekb.photographs.gs{{ canonical_path }}" />
+<meta property="og:title" content="{% block og_title %}Александр Ахметов — Портретный фотограф{% endblock %}" />
+<meta property="og:description" content="{% block og_description %}Студийные и уличные портреты. Съёмка от 800₽.{% endblock %}" />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="https://ekb.photographs.gs/photos/og-cover.webp" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:url" content="https://ekb.photographs.gs{{ canonical_path }}" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="{% block tw_title %}Александр Ахметов — Портретный фотограф{% endblock %}" />
+<meta name="twitter:description" content="{% block tw_description %}Студийные и уличные портреты. Съёмка от 800₽.{% endblock %}" />
+<meta name="twitter:image" content="https://ekb.photographs.gs/photos/og-cover.webp" />
   <link rel="canonical" href="https://ekb.photographs.gs{{ canonical_path }}" />
  <link rel="preconnect" href="https://fonts.googleapis.com" />
  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -18,6 +24,7 @@
  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
  <noscript><link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" /></noscript>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/favicon.ico" sizes="any" />
   <noscript><style>.anim-fade-up{opacity:1!important;transform:none!important}</style></noscript>
   {% for css in css_files %}<link rel="stylesheet" href="/assets/{{ css }}" />{% endfor %}
   {% include "_icons.html" %} 
@@ -31,7 +38,7 @@
     "description": "Портретный фотограф в Екатеринбурге. Студийные и уличные портреты. Фотосессия от 800₽.",
     "url": "https://ekb.photographs.gs",
     "image": "https://ekb.photographs.gs/photos/og-cover.webp",
-    "priceRange": "700₽ - 2500₽",
+    "priceRange": "800₽ - 2500₽",
     "address": {
       "@type": "PostalAddress",
       "addressLocality": "Екатеринбург",
@@ -88,28 +95,36 @@
 <body>
 
 
-  <!-- ХЕДЕР — навигация по сайту -->
+<div class="preloader" id="preloader" role="status" aria-label="Загрузка">
+	<div class="preloader__content">
+		<div class="preloader__text">Ахметов</div>
+		<div class="preloader__line-wrap">
+			<div class="preloader__line"></div>
+		</div>
+	</div>
+</div>
+
+
 <header class="header" id="header">
   <nav class="nav" aria-label="Основная навигация">
-  <!-- Логотип -->
-  <a href="/" class="nav__logo">Портретный фотограф — Екатеринбург</a>
-  <!-- Бургер-кнопка ☰ -->
+
+  <a href="/" class="nav__logo">Ахметов &middot; Екатеринбург</a>
+
   <button class="nav__burger" id="navBurger" aria-label="Меню" aria-expanded="false" aria-controls="navOverlay">
     <span></span><span></span><span></span>
   </button>
   </nav>
 </header>
 
-<!-- Мобильная панель навигации (вне header, чтобы не обрезалась clip-path) -->
-<ul class="nav__links" id="navLinks">
-  <!-- Кнопка ✕ закрытия мобильного меню -->
+
+<ul class="nav__links" id="navLinks" role="list">
+
   <li class="nav__close-wrap"><button class="nav__close" id="navClose" aria-label="Закрыть меню">&#10005;</button></li>
   <li><a href="/#about">Обо мне</a></li>
   <li><a href="/portfolio/">Портфолио</a></li>
-  <li><a href="/#services">Услуги</a></li>
-  <li><a href="/reviews/">Отзывы</a></li>
-  <li><a href="/#contact">Контакты</a></li>
-  <!-- Соцсети внизу мобильного меню -->
+	<li><a href="/#services">Услуги</a></li>
+	<li><a href="/#contact">Контакты</a></li>
+
   <li class="nav__menu-footer">
   <a href="https://t.me/xel_frames" target="_blank" rel="noopener" class="nav__menu-social" aria-label="Telegram">
     <svg width="20" height="20"><use href="#icon-telegram"/></svg>
@@ -123,39 +138,34 @@
   </li>
 </ul>
 
-<!-- Затемнение фона при открытом мобильном меню -->
+
 <div class="nav__overlay" id="navOverlay" role="presentation" aria-hidden="true"></div>
 
-  <!--  — место для контента конкретной страницы.
-       index.html вставит сюда hero + about + featured + services + contact.
-       portfolio.html вставит сюда галерею.
-       reviews.html вставит сюда отзывы. -->
+
   {% block content %}{% endblock %}
 
 
-  <!-- ЛАЙТБОКС -->
+
   <div class="lightbox" id="lightbox" role="dialog" aria-label="Просмотр фотографии" aria-hidden="true" aria-modal="true">
-    <!-- Кнопка закрытия ✕ (правый верхний угол) -->
+
     <button class="lightbox__close" id="lightboxClose" aria-label="Закрыть">&times;</button>
-    <!-- Стрелка ←  -->
+
     <button class="lightbox__prev" id="lightboxPrev" aria-label="Предыдущее">&#10094;</button>
-    <!-- Стрелка →  -->
+
     <button class="lightbox__next" id="lightboxNext" aria-label="Следующее">&#10095;</button>
 
-    <!-- .lightbox__zoom — обёртка для zoom-трансформ -->
+
   <div class="lightbox__zoom" id="lightboxZoom">
-    <!-- Миниатюра — нижний слой. Загружается мгновенно (маленький файл),
-         показывается размытой (blur-up), потом перекрывается оригиналом. -->
+
     <img class="lightbox__img lightbox__img--thumb" id="lightboxThumb" src="" alt="" />
-    <!-- Оригинал — верхний слой. Загружается в фоне.
-         Когда готов — плавно проявляется поверх миниатюры (opacity: 0 → 1). -->
+
     <img class="lightbox__img lightbox__img--full" id="lightboxFull" src="" alt="" />
   </div>
-    <!-- Название фото (внизу лайтбокса) -->
+
     <div class="lightbox__info" id="lightboxInfo"></div>
-    <!-- Счётчик "3 / 44" (вверху по центру) -->
+
     <div class="lightbox__counter" id="lightboxCounter"></div>
-    <!-- Золотая линия загрузки (пульсирует пока грузится оригинал) -->
+
     <div class="lightbox__bar" id="lightboxBar"></div>
   </div>
 
@@ -170,9 +180,7 @@
     // window.__ACTIVE_SESSION__ — ID активной съёмки или null.
     window.__ACTIVE_SESSION__ = {{ active_session | tojson }};
   </script>
-  <!-- JS-файлы. type="module" — ES-модули (import/export).
-        — цикл по всем JS-чанкам из dist/assets/.
-       Атрибут module = отложенная загрузка (не блокирует рендер). -->
+
   {% for js in js_files %}<script type="module" src="/assets/{{ js }}"></script>{% endfor %}
 </body>
 </html>

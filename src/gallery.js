@@ -1,14 +1,8 @@
-/* ============================================================
-GALLERY.JS — Masonry-сетка портфолио + фильтры по съёмкам
 
-Masonry с неравными колонками (4 десктоп / 2 мобайл).
-Колонки разной ширины — края размываются.
-Одинаковый gap между всеми фото.
-Каждое фото получает случайную высоту из диапазона:
-- Portrait: высокая (380–560 десктоп, 240–380 мобайл)
-- Landscape: низкая (240–360 десктоп, 150–240 мобайл)
-============================================================ */
+
+
 import { $, $$ } from './dom.js'
+import { scrollToTop } from './smooth-scroll.js'
 import { setLightboxList } from './state.js'
 import { openLightbox } from './lightbox.js'
 
@@ -53,6 +47,10 @@ const lazyLoader = new IntersectionObserver(
         if (img.dataset.src) {
           img.src = img.dataset.src
           img.removeAttribute('data-src')
+        }
+        if (img.dataset.srcset) {
+          img.srcset = img.dataset.srcset
+          img.removeAttribute('data-srcset')
         }
         lazyLoader.unobserve(img)
       }
@@ -120,11 +118,13 @@ function renderGrid(photos) {
     itemEl.style.height = `${itemHeight}px`
     itemEl.style.marginBottom = `${GAP}px`
 
-    const img = document.createElement('img')
-    img.dataset.src = photo.src
-    img.alt = photo.title
-    img.width = Math.round(colW)
-    img.height = itemHeight
+  const img = document.createElement('img')
+  img.dataset.src = photo.src + '?w=800'
+  img.dataset.srcset = `${photo.src}?w=200 200w, ${photo.src}?w=800 800w`
+  img.sizes = `${Math.round(colW)}px`
+  img.alt = photo.title
+  img.width = Math.round(colW)
+  img.height = itemHeight
 
     lazyLoader.observe(img)
 
@@ -143,13 +143,26 @@ function renderGrid(photos) {
       overlay.appendChild(desc)
     }
 
-    itemEl.appendChild(img)
-    itemEl.appendChild(overlay)
+ itemEl.appendChild(img)
+ itemEl.appendChild(overlay)
 
-    itemEl.addEventListener('click', () => {
-      setLightboxList(photos)
-      openLightbox(itemIndex)
-    })
+ let _overlayTimer = null
+ itemEl.addEventListener('pointerdown', (e) => {
+   if (e.pointerType !== 'touch') return
+   overlay.classList.remove('gallery__item-overlay--show')
+   void overlay.offsetWidth
+   overlay.classList.add('gallery__item-overlay--show')
+   if (_overlayTimer) clearTimeout(_overlayTimer)
+   _overlayTimer = setTimeout(() => {
+     overlay.classList.remove('gallery__item-overlay--show')
+     _overlayTimer = null
+   }, 3000)
+ })
+
+ itemEl.addEventListener('click', () => {
+   setLightboxList(photos)
+   openLightbox(itemIndex)
+ })
 
     columns[shortest].el.appendChild(itemEl)
     columns[shortest].height += itemHeight + GAP
@@ -180,9 +193,9 @@ _scrollTicking = true
 }
 }, { passive: true })
 checkScroll()
-scrollTopBtn.addEventListener('click', () => {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-})
+	scrollTopBtn.addEventListener('click', () => {
+		scrollToTop()
+	})
 }
 
 if (activeSession) {

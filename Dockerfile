@@ -2,8 +2,9 @@ FROM node:20-alpine AS frontend-builder
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
-COPY index.html vite.config.js ./
-COPY src/ src/
+COPY index.html vite.config.js ./                                                                      
+COPY src/ src/                                                                                          
+COPY public/ public/                                                                                    
 RUN npm run build
 
 FROM python:3.12-slim

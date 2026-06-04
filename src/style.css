@@ -8,6 +8,7 @@
    
    Vite собирает все три в один CSS-файл с хешем в имени.
    ============================================================ */
+@import 'lenis/dist/lenis.css';
 @import './styles/base.css';
 @import './styles/components.css';
 @import './styles/responsive.css';

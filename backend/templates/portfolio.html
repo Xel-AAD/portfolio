@@ -1,14 +1,12 @@
 {% extends "base.html" %}
 
-<!-- Переопределяем meta-теги из base.html для этой страницы -->
+
 {% block title %}Портфолио • Портретный фотограф • Екатеринбург | Александр Ахметов{% endblock %}
 {% block description %}Портретное портфолио фотографа в Екатеринбурге. Чёрно-белые и цветные портреты, студийные и уличные фотосессии.{% endblock %}
 {% block og_title %}Портфолио — Александр Ахметов{% endblock %}
 {% block og_description %}Портретное портфолио фотографа в Екатеринбурге.{% endblock %}
 
-<!-- JSON-LD для поисковиков — структурированные данные о галерее.
-     BreadcrumbList — «хлебные крошки» (путь: Главная → Портфолио).
-     ImageGallery — информация о галерее для Google Images. -->
+
 {% block structured_data %}
 <script type="application/ld+json">
 [
@@ -27,9 +25,7 @@
     "description": "Портретное портфолио фотографа в Екатеринбурге. Чёрно-белые и цветные портреты, студийные и уличные фотосессии.",
     "url": "https://ekb.photographs.gs/portfolio/",
     "image": [
-      <!-- Список всех фото для Google Images.
-           | jsonsafe — кастомный фильтр: экранирует спецсимволы для JSON внутри <script>.
-           loop.last / loop.parent.last — проверка: последний ли элемент (чтобы не ставить запятую в конце). -->
+
       {% for s in sessions %}{% for p in s.photos %}"https://ekb.photographs.gs{{ p.src | jsonsafe }}"{% if not loop.last or not loop.parent.last %},{% endif %}{% endfor %}{% endfor %}
     ]
   }
@@ -40,16 +36,12 @@
 
 {% block content %}
 <main class="page page--portfolio">
-  <div class="gallery-lines active">
-    <a href="/" class="gallery__back">&#10094;&ensp;На главную</a>
-    <div class="gallery-line gallery-line--outer-left"></div>
-    <div class="gallery-line gallery-line--outer-right"></div>
-    <div class="gallery-line gallery-line--inner-left"></div>
-    <div class="gallery-line gallery-line--inner-right"></div>
-  </div>
+<div class="gallery-lines active">
+	<a href="/" class="gallery__back">&#10094;&ensp;На главную</a>
+</div>
 
 
- <!-- ГАЛЕРЕЯ -->
+
  <section class="gallery" id="gallery">
  <h1 class="gallery__heading visually-hidden">Портфолио</h1>
     <div class="gallery__filter-wrap anim-fade-up">
@@ -62,10 +54,10 @@
           {% endif %}
           <span class="gallery__filter-arrow">&#9662;</span>
         </button>
-        <div class="gallery__filter-dropdown" id="filterDropdown">
-          <button class="gallery__filter-option{% if not active_session %} gallery__filter-option--active{% endif %}" data-session="">Все съёмки</button>
-          {% for session in sessions %}
-          <button class="gallery__filter-option{% if active_session == session.id %} gallery__filter-option--active{% endif %}" data-session="{{ session.id }}">{{ session.title }}</button>
+	<div class="gallery__filter-dropdown" id="filterDropdown" role="listbox" aria-label="Фильтр по съёмкам">
+		<button class="gallery__filter-option{% if not active_session %} gallery__filter-option--active{% endif %}" data-session="" role="option">Все съёмки</button>
+		{% for session in sessions %}
+		<button class="gallery__filter-option{% if active_session == session.id %} gallery__filter-option--active{% endif %}" data-session="{{ session.id }}" role="option">{{ session.title }}</button>
           {% endfor %}
         </div>
       </div>
@@ -76,7 +68,7 @@
   </section>
 
 
-  <!-- Кнопка "Наверх" -->
+
   <button class="scroll-top" id="scrollTop" aria-label="Наверх">
     <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V3M4 7l4-4 4 4"/></svg>
   </button>
