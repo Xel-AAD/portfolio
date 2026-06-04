@@ -1,6 +1,3 @@
-
-
-
 import { renderFeatured } from './featured.js'
 import { initGallery, renderCurrentGallery } from './gallery.js'
 import { initLightbox } from './lightbox.js'
@@ -8,7 +5,8 @@ import { initScrollAnimations, initHeaderScroll, initHeroAnimations } from './sc
 import { initMobileNav } from './mobile-nav.js'
 import { initParticles } from './hero.js'
 import { setLightboxList } from './state.js'
-import { initPageTransition } from './page-transition.js'
+import { initPageTransition } from './page-transition-particles.js'
+
 import { initSmoothScroll, scrollToTop, getLenis } from './smooth-scroll.js'
 import { initScrollAnimations2, onScroll } from './scroll-animations.js'
 import { initPreloader } from './preloader.js'
