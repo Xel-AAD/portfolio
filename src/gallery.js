@@ -7,7 +7,7 @@ import { setLightboxList } from './state.js'
 import { openLightbox } from './lightbox.js'
 
 const GAP = 6
-const LAZY_ROOT_MARGIN = '300px 0px 300px 0px'
+const LAZY_ROOT_MARGIN = '600px 0px 600px 0px'
 
 const HEIGHT_RANGE_DESKTOP = { portrait: [380, 560], landscape: [240, 360] }
 const HEIGHT_RANGE_MOBILE = { portrait: [240, 380], landscape: [150, 240] }
@@ -177,6 +177,11 @@ if (!galleryData?.length) return
 
 const allPhotos = galleryData.flatMap(s => s.photos)
 const activeSession = window.__ACTIVE_SESSION__
+// Замедляем скролл только на странице портфолио
+if (window.__PAGE__ === 'portfolio' && window.__lenis) {
+  window.__lenis.options.speed = 0.6    // 0.6 = в ~1.6 раза медленнее
+  window.__lenis.resize()               // применяем новые настройки
+}
 
 const scrollTopBtn = $('#scrollTop')
 if (scrollTopBtn) {
