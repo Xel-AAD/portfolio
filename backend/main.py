@@ -1,19 +1,3 @@
-# ============================================================
-# MAIN.PY — Весь бэкенд в одном файле
-#
-# Структура (сверху вниз):
-# 1. Импорты и конфигурация
-# 2. Модели (Photo)
-# 3. Утилиты (prettify_filename, prettify_session_name)
-# 4. PortfolioService — сканирование фото, кеш
-# 5. FastAPI-приложение: middleware, exception handlers
-# 6. Вспомогательные функции (_safe_file, _file_response, _find_assets)
-# 7. Маршруты страниц (/, /portfolio/)
-# 8. Маршрут sitemap
-# 9. API-маршруты (/api/portfolio, /api/gallery)
-# 10. Статические файлы (/photos/, /assets/, favicon.ico)
-# ============================================================
-
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -58,7 +42,7 @@ IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".tiff", ".bmp", ".heic", 
 
 FAVOURITES_DIR = PHOTOS_DIR / "Favourites"
 GALLERY_DIR = PHOTOS_DIR / "Gallery"
-ABOUT_DIR = PHOTOS_DIR / "About me"
+ABOUT_DIR = PHOTOS_DIR / "About-me"
 
 EXTRA_MIME_TYPES = {
     ".heic": "image/heic",
