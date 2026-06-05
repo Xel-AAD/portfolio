@@ -21,4 +21,4 @@ USER appuser
 
 EXPOSE 8000
 HEALTHCHECK CMD curl -f http://localhost:8000/ || exit 1
-CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "-w", "4", "-b", "0.0.0.0:8000", "backend.main:app"]
+CMD ["gunicorn", "-c", "backend/gunicorn.conf.py", "backend.main:app"]
