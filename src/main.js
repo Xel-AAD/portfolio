@@ -6,6 +6,7 @@ import { initMobileNav } from './mobile-nav.js'
 import { initParticles } from './hero.js'
 import { setLightboxList } from './state.js'
 import { initPageTransition } from './page-transition-particles.js'
+import { initPageTransitionFade } from './page-transition-fade.js';
 
 import { initSmoothScroll, scrollToTop, getLenis } from './smooth-scroll.js'
 import { initScrollAnimations2, onScroll } from './scroll-animations.js'
@@ -83,7 +84,8 @@ try { initLightbox() } catch (e) { console.error('[init] initLightbox:', e) }
 	try { initScrollAnimations2() } catch (e) { console.error('[init] initScrollAnimations2:', e) }
 	try { initPreloader() } catch (e) { console.error('[init] initPreloader:', e) }
 	initResizeHandler()
-	try { initPageTransition() } catch (e) { console.error('[init] initPageTransition:', e) }
+	try { initPageTransition() } catch (e) { console.error('[init] initPageTransition:', e) } 
+	/* try { initPageTransitionFade() } catch (e) { console.error('[init] initPageTransitionFade:', e) } */ 
 
 	if (!getLenis()) {
 		let _nativeScrollTicking = false

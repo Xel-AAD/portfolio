@@ -97,27 +97,27 @@ MONTHS_RU = {
 
 def prettify_filename(filename: str) -> str:
     name = Path(filename).stem
-    parts = [p.strip() for p in name.split("|") if p.strip()]
-    is_bw = any("b&w" in p.lower() or "bw" in p.lower() for p in parts)
-    num = parts[-1].lstrip("-") if len(parts) > 1 else ""
-
-    title_parts = []
-    title_parts.append("Чёрно-белый портрет" if is_bw else "Портрет")
-    if num:
-        title_parts.append(f"№{num}")
-
-    return ", ".join(title_parts) if title_parts else "Фотография"
+    m = re.match(r"\d{1,2}-\d{2}-\d{2,4}-(.+)-(\d+)$", name)
+    if m:
+        style, num = m.group(1), m.group(2)
+        is_bw = style.lower() in ("bnw", "bw", "b-w", "b-and-w")
+        title = "Чёрно-белый портрет" if is_bw else "Портрет"
+        return f"{title}, №{num}"
+    m = re.match(r"\d{1,2}-\d{2}-\d{2,4}-(\d+)$", name)
+    if m:
+        return f"Портрет, №{m.group(1)}"
+    return "Фотография"
 
 
 def prettify_session_name(dirname: str) -> str:
-    m = re.match(r"(\d{1,2})-(\d{2})-(\d{2,4})\s*(.*)", dirname)
+    m = re.match(r"(\d{1,2})-(\d{2})-(\d{2,4})[-\s]*(.*)", dirname)
     if m:
         d, mo, y, rest = m.group(1), m.group(2), m.group(3), m.group(4).strip()
         if len(y) == 2:
             y = "20" + y
         date_str = f"{int(d)} {MONTHS_RU.get(mo, mo)} {y}"
         if rest:
-            name = rest
+            name = rest.replace("-", " ").replace("_", " ")
         else:
             name = date_str
         return name
