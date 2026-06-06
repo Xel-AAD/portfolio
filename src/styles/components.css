@@ -42,14 +42,14 @@
 
 
 .about__text p {
-  font-size: 1rem;
+  font-family: var(--font-body);
+  font-size: 1.1rem;
   font-weight: 300;
   color: var(--text);
   margin-bottom: 12px;
   line-height: 1.8;
 }
 
-.about__text p:first-of-type { font-size: 1.1rem; }
 .about__text p:nth-last-child(-n+1) { color: var(--text-muted); }
 
 

@@ -1,6 +1,3 @@
-
-
-
 import { $ } from './dom.js'
 import { getLightboxList, getLightboxIndex, setLightboxIndex } from './state.js'
 import { stopSmoothScroll, startSmoothScroll } from './smooth-scroll.js'
