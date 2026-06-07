@@ -28,9 +28,10 @@ except ImportError:
     _PILImage = None
 
 
-# ============================================================
-# 1. КОНФИГУРАЦИЯ — пути и константы
-# ============================================================
+
+
+
+# 1. КОНФИГУРАЦИЯ 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 PHOTOS_DIR = BASE_DIR / "public" / "photos"
@@ -55,9 +56,10 @@ RESIZE_CACHE_DIR = BASE_DIR / "cache"
 RESIZE_ALLOWED_WIDTHS = {200, 800}
 
 
-# ============================================================
-# 2. МОДЕЛЬ PHOTO — данные одного фото
-# ============================================================
+
+
+
+# 2. МОДЕЛЬ PHOTO 
 
 class Photo(BaseModel):
     src: str
@@ -67,9 +69,10 @@ class Photo(BaseModel):
     height: int = 0
 
 
-# ============================================================
-# 3. УТИЛИТЫ — красивые имена из файлов
-# ============================================================
+
+
+
+# 3. УТИЛИТЫ 
 
 MONTHS_RU = {
     "01": "января", "02": "февраля", "03": "марта",
@@ -84,8 +87,10 @@ def prettify_filename(filename: str) -> str:
     m = re.match(r"\d{1,2}-\d{2}-\d{2,4}-(.+)-(\d+)$", name)
     if m:
         style, num = m.group(1), m.group(2)
-        is_bw = style.lower() in ("bnw", "bw", "b-w", "b-and-w")
+        is_bw = style.lower() in ("bnw", "bw", "b-w", "b-and-w", "black and white")
         title = "Чёрно-белый портрет" if is_bw else "Портрет"
+        is_sepia = style.lower() in ("sep", "sepia")
+        title = "Сепия портрет" if is_sepia else "Портрет"
         return f"{title}, №{num}"
     m = re.match(r"\d{1,2}-\d{2}-\d{2,4}-(\d+)$", name)
     if m:
@@ -101,19 +106,19 @@ def prettify_session_name(dirname: str) -> str:
             y = "20" + y
         date_str = f"{int(d)} {MONTHS_RU.get(mo, mo)} {y}"
         if rest:
-            name = rest.replace("-", " ").replace("_", " ")
+            desc = rest.replace("-", " ").replace("_", " ")
+            name = f"{desc} {date_str}"   
         else:
-            name = date_str
+            name = date_str               
         return name
     return dirname.replace("-", " ").replace("_", " ")
 
 
-# ============================================================
+
+
+
 # 4. PORTFOLIO SERVICE — ядро приложения
-#
-# Сканирование папок с фото + кеширование по mtime.
-# Без генерации миниатюр — фото отдаются как есть.
-# ============================================================
+# Сканирование папок с фото + кеширование по mtime
 
 class PortfolioService:
     def __init__(self):
@@ -284,9 +289,10 @@ class PortfolioService:
         }
 
 
-# ============================================================
+
+
+
 # 5. FASTAPI-ПРИЛОЖЕНИЕ
-# ============================================================
 
 portfolio_service = PortfolioService()
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
@@ -426,9 +432,10 @@ async def custom_500(request: Request, exc):
     return Response("Internal Server Error", status_code=500, media_type="text/plain")
 
 
-# ============================================================
+
+
+
 # 6. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-# ============================================================
 
 def _safe_file(base_dir: Path, file_path: str) -> Path | None:
     full_path = (base_dir / file_path).resolve()
@@ -508,9 +515,10 @@ def _get_nonce(request: Request) -> str:
     return getattr(request.state, "csp_nonce", "")
 
 
-# ============================================================
+
+
+
 # 7. МАРШРУТЫ СТРАНИЦ — серверный рендеринг (SSR)
-# ============================================================
 
 @app.get("/", response_class=HTMLResponse)
 def page_index(request: Request):
@@ -585,9 +593,10 @@ def robots():
     )
 
 
-# ============================================================
+
+
+
 # 8. SITEMAP — динамическая генерация
-# ============================================================
 
 @app.get("/sitemap.xml", response_class=Response)
 def sitemap():
@@ -656,9 +665,10 @@ def sitemap():
     return Response(content="\n".join(xml_parts), media_type="application/xml")
 
 
-# ============================================================
+
+
+
 # 9. API-МАРШРУТЫ — JSON-эндпоинты
-# ============================================================
 
 @app.get("/api/portfolio")
 def get_portfolio():
@@ -700,9 +710,10 @@ def get_gallery(session: str | None = None):
     return resp
 
 
-# ============================================================
+
+
+
 # 10. СТАТИЧЕСКИЕ ФАЙЛЫ
-# ============================================================
 
 @app.get("/favicon.ico")
 def favicon_ico():

@@ -1,8 +1,35 @@
+function extractVar(text, varName) {
+  const startRe = new RegExp(`window\\.${varName}\\s*=\\s*`)
+  const match = text.match(startRe)
+  if (!match) return undefined
+  const startIdx = match.index + match[0].length
+  const jsonStr = text.slice(startIdx)
+  let depth = 0
+  let inStr = false
+  let escape = false
+  for (let i = 0; i < jsonStr.length; i++) {
+    const ch = jsonStr[i]
+    if (escape) { escape = false; continue }
+    if (ch === '\\') { if (inStr) escape = true; continue }
+    if (ch === '"') { inStr = !inStr; continue }
+    if (inStr) continue
+    if (ch === '{' || ch === '[') depth++
+    else if (ch === '}' || ch === ']') depth--
+    if (depth === 0) {
+      const raw = jsonStr.slice(0, i + 1).trim().replace(/;$/, '')
+      try { return JSON.parse(raw) } catch { return undefined }
+    }
+  }
+  return undefined
+}
+
 const PARTICLE_COUNT = 300
 const WAVE_FREQ = 0.008
 const WAVE_AMP = 30
 const ENTER_DURATION = 1200
-const HOLD_BEFORE_NAVIGATE = 100
+const HOLD_BEFORE_SWAP = 100
+const FADE_OUT_DURATION = 800
+const IMAGE_LOAD_TIMEOUT = 4000
 
 const GOLD = { r: 201, g: 169, b: 110 }
 const DARK = { r: 26, g: 20, b: 8 }
@@ -17,8 +44,9 @@ let phase = 'idle'
 let phaseStart = 0
 let pendingUrl = null
 let navigateTimer = null
-let navigationStarted = false
-let pagePreloaded = false // ← флаг успешной предзагрузки
+let swapStarted = false
+let imagesReady = false
+let fadeOutStarted = false
 
 function lerp(a, b, t) { return a + (b - a) * t }
 
@@ -160,41 +188,165 @@ function renderFrame(timestamp) {
     }
 
     const elapsed = timestamp - phaseStart
-    if (!navigationStarted && elapsed >= HOLD_BEFORE_NAVIGATE && pendingUrl) {
-      navigationStarted = true
-      // Ждём предзагрузку, но не более 500 мс
-      const waitAndNavigate = async () => {
-        const start = performance.now()
-        while (!pagePreloaded && (performance.now() - start) < 500) {
-          await new Promise(r => setTimeout(r, 30))
-        }
-        performNavigation(pendingUrl)
+    if (!swapStarted && elapsed >= HOLD_BEFORE_SWAP && pendingUrl) {
+      swapStarted = true
+      performSpaSwap(pendingUrl)
+    }
+
+    if (imagesReady && !fadeOutStarted) {
+      fadeOutStarted = true
+      startFadeOut()
+    }
+  } else if (phase === 'exit') {
+    const holdBuckets = []
+    for (let i = 0; i < 5; i++) holdBuckets.push([])
+    for (const p of particles) {
+      const waveX = Math.sin(p.baseY * p.waveFreq + timestamp * 0.002 + p.waveOffset) * p.waveAmp
+      const x = p.homeX + waveX + (Math.random() - 0.5) * 1.5
+      const y = p.baseY + (Math.random() - 0.5) * 1.5
+      const alpha = p.alpha * 0.85
+      const bi = Math.min(Math.round(alpha * 4), 4)
+      holdBuckets[bi].push(p, x, y)
+    }
+    for (let bi = 0; bi < 5; bi++) {
+      const items = holdBuckets[bi]
+      if (!items.length) continue
+      ctx.globalAlpha = bi / 4
+      for (let i = 0; i < items.length; i += 3) {
+        const pp = items[i], px = items[i + 1], py = items[i + 2]
+        ctx.fillStyle = pp.colorStr
+        ctx.beginPath()
+        ctx.arc(Math.round(px), Math.round(py) % h, pp.size * 0.9, 0, Math.PI * 2)
+        ctx.fill()
       }
-      waitAndNavigate()
     }
   }
 
   animId = requestAnimationFrame(renderFrame)
 }
 
-function performNavigation(url) {
-  pendingUrl = null
-  // Минимальная задержка, чтобы последний кадр canvas успел отрисоваться
+function startFadeOut() {
+  phase = 'exit'
+  phaseStart = performance.now()
+
+  washEl.classList.remove('page-wash--active')
+  washEl.classList.add('page-wash--exit')
+
   setTimeout(() => {
-    window.location.href = url
-  }, 20)
+    destroyWash()
+    phase = 'idle'
+    particles = []
+    animId = null
+    fadeOutStarted = false
+    imagesReady = false
+    swapStarted = false
+  }, FADE_OUT_DURATION + 50)
 }
 
-// ══════════════ ПРЕДЗАГРУЗКА ══════════════
-async function preloadPage(url) {
+async function performSpaSwap(url) {
   try {
-    // fetch с высоким приоритетом – страница скачивается в фоне
-    await fetch(url, { priority: 'high' })
-    pagePreloaded = true
+    const response = await fetch(url, { priority: 'high' })
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+    const html = await response.text()
+
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(html, 'text/html')
+
+    const newMain = doc.querySelector('main.page')
+    if (!newMain) throw new Error('No <main.page> found')
+
+    const oldMain = document.querySelector('main.page')
+    if (!oldMain) throw new Error('No current <main.page>')
+
+    const newPageType = newMain.classList.contains('page--main') ? 'index' : 'portfolio'
+
+    const inlineScripts = doc.querySelectorAll('script:not([src])')
+    const tempVars = {}
+    for (const script of inlineScripts) {
+      const text = script.textContent
+      const pageMatch = text.match(/window\.__PAGE__\s*=\s*"(.*?)"/)
+      if (pageMatch) tempVars.__PAGE__ = pageMatch[1]
+      const extracted = extractVar(text, '__GALLERY_DATA__')
+      if (extracted !== undefined) tempVars.__GALLERY_DATA__ = extracted
+      const extracted2 = extractVar(text, '__LIGHTBOX_DATA__')
+      if (extracted2 !== undefined) tempVars.__LIGHTBOX_DATA__ = extracted2
+      const activeMatch = text.match(/window\.__ACTIVE_SESSION__\s*=\s*(.*?);/)
+      if (activeMatch) {
+        try { tempVars.__ACTIVE_SESSION__ = JSON.parse(activeMatch[1].trim()) } catch {}
+      }
+    }
+
+    if (tempVars.__GALLERY_DATA__ !== undefined) window.__GALLERY_DATA__ = tempVars.__GALLERY_DATA__
+    if (tempVars.__LIGHTBOX_DATA__ !== undefined) window.__LIGHTBOX_DATA__ = tempVars.__LIGHTBOX_DATA__
+    if (tempVars.__ACTIVE_SESSION__ !== undefined) window.__ACTIVE_SESSION__ = tempVars.__ACTIVE_SESSION__
+
+    newMain.classList.add('page--spa-hidden')
+    oldMain.replaceWith(newMain)
+
+    window.__PAGE__ = newPageType
+
+    window.scrollTo(0, 0)
+    if (window.__lenis) {
+      window.__lenis.scrollTo(0, { immediate: true })
+    }
+
+    history.pushState({}, '', url)
+
+    requestAnimationFrame(() => {
+      if (typeof window.__spaInit === 'function') {
+        window.__spaInit(newPageType)
+      }
+
+      requestAnimationFrame(() => {
+        newMain.classList.remove('page--spa-hidden')
+        newMain.classList.add('page--spa-reveal')
+
+        preloadImages(newMain).then(() => {
+          imagesReady = true
+        })
+      })
+    })
+
   } catch (e) {
-    // если сеть недоступна – всё равно разрешаем переход
-    pagePreloaded = true
+    window.location.href = url
   }
+}
+
+function preloadImages(container) {
+  const imgs = container.querySelectorAll('img[data-src], img[src]')
+  if (!imgs.length) return Promise.resolve()
+
+  const promises = []
+  const timeout = (ms) => new Promise(r => setTimeout(r, ms))
+
+  imgs.forEach(img => {
+    if (img.dataset.src && !img.src) {
+      img.src = img.dataset.src
+      img.removeAttribute('data-src')
+    }
+    if (img.dataset.srcset && !img.srcset) {
+      img.srcset = img.dataset.srcset
+      img.removeAttribute('data-srcset')
+    }
+
+    const src = img.src
+    if (!src) return
+    promises.push(
+      new Promise(resolve => {
+        if (img.complete && img.naturalWidth > 0) {
+          resolve()
+          return
+        }
+        img.addEventListener('load', resolve, { once: true })
+        img.addEventListener('error', resolve, { once: true })
+      })
+    )
+  })
+
+  return Promise.race([
+    Promise.all(promises),
+    timeout(IMAGE_LOAD_TIMEOUT)
+  ])
 }
 
 function getOrCreateWash() {
@@ -220,12 +372,6 @@ function getOrCreateWash() {
 function showWash() {
   if (phase !== 'idle') return
 
-  // Запускаем предзагрузку следующей страницы немедленно
-  if (pendingUrl) {
-    pagePreloaded = false
-    preloadPage(pendingUrl) // не ждём, просто инициируем скачивание
-  }
-
   getOrCreateWash()
   initParticles()
   if (!ctx) {
@@ -240,25 +386,18 @@ function showWash() {
 
   phase = 'enter'
   phaseStart = performance.now()
-  navigationStarted = false
+  swapStarted = false
+  imagesReady = false
+  fadeOutStarted = false
   animId = requestAnimationFrame(renderFrame)
 
-  // Таймер-безопасник на случай, если переход затянется
   navigateTimer = setTimeout(() => {
-    if (!navigationStarted && pendingUrl) {
-      navigationStarted = true
-      performNavigation(pendingUrl)
-    } else if (phase !== 'idle') {
-      emergencyHide()
+    if (!swapStarted && pendingUrl) {
+      window.location.href = pendingUrl
+    } else if (phase !== 'idle' && !fadeOutStarted) {
+      imagesReady = true
     }
-  }, ENTER_DURATION + HOLD_BEFORE_NAVIGATE + 5000)
-}
-
-function hideWash() {
-  if (!washEl) return
-  washEl.classList.remove('page-wash--active')
-  washEl.classList.add('page-wash--exit')
-  setTimeout(() => destroyWash(), 650)
+  }, ENTER_DURATION + HOLD_BEFORE_SWAP + 10000)
 }
 
 function emergencyHide() {
@@ -277,6 +416,7 @@ function destroyWash() {
     ctx = null
   }
   if (navigateTimer) clearTimeout(navigateTimer)
+  navigateTimer = null
 }
 
 function isInternalLink(href) {
@@ -394,7 +534,14 @@ export function initPageTransition() {
     showWash()
   })
 
-  // Новая страница: просто чистим состояние, никаких оверлеев
+  window.addEventListener('popstate', () => {
+    if (phase !== 'idle') return
+    const url = location.pathname + location.search
+    if (url === pendingUrl) return
+    pendingUrl = url
+    showWash()
+  })
+
   window.addEventListener('pageshow', () => {
     if (navigateTimer) {
       clearTimeout(navigateTimer)
@@ -409,9 +556,10 @@ export function initPageTransition() {
 
     phase = 'idle'
     particles = []
-    navigationStarted = false
+    swapStarted = false
+    imagesReady = false
+    fadeOutStarted = false
     pendingUrl = null
-    pagePreloaded = false
   })
 
   window.addEventListener('pagehide', () => {

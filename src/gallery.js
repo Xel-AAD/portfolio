@@ -1,13 +1,10 @@
-
-
-
 import { $, $$ } from './dom.js'
 import { scrollToTop } from './smooth-scroll.js'
 import { setLightboxList } from './state.js'
 import { openLightbox } from './lightbox.js'
 
 const GAP = 6
-const LAZY_ROOT_MARGIN = '600px 0px 600px 0px'
+const LAZY_ROOT_MARGIN = '1000px 0px 1000px 0px'
 
 const HEIGHT_RANGE_DESKTOP = { portrait: [380, 560], landscape: [240, 360] }
 const HEIGHT_RANGE_MOBILE = { portrait: [240, 380], landscape: [150, 240] }
@@ -118,13 +115,13 @@ function renderGrid(photos) {
     itemEl.style.height = `${itemHeight}px`
     itemEl.style.marginBottom = `${GAP}px`
 
-  const img = document.createElement('img')
-  img.dataset.src = photo.src + '?w=800'
-  img.dataset.srcset = `${photo.src}?w=200 200w, ${photo.src}?w=800 800w`
-  img.sizes = `${Math.round(colW)}px`
-  img.alt = photo.title
-  img.width = Math.round(colW)
-  img.height = itemHeight
+    const img = document.createElement('img')
+    img.dataset.src = photo.src + '?w=800'
+    img.dataset.srcset = `${photo.src}?w=200 200w, ${photo.src}?w=800 800w`
+    img.sizes = `${Math.round(colW)}px`
+    img.alt = photo.title
+    img.width = Math.round(colW)
+    img.height = itemHeight
 
     lazyLoader.observe(img)
 
@@ -143,26 +140,26 @@ function renderGrid(photos) {
       overlay.appendChild(desc)
     }
 
- itemEl.appendChild(img)
- itemEl.appendChild(overlay)
+    itemEl.appendChild(img)
+    itemEl.appendChild(overlay)
 
- let _overlayTimer = null
- itemEl.addEventListener('pointerdown', (e) => {
-   if (e.pointerType !== 'touch') return
-   overlay.classList.remove('gallery__item-overlay--show')
-   void overlay.offsetWidth
-   overlay.classList.add('gallery__item-overlay--show')
-   if (_overlayTimer) clearTimeout(_overlayTimer)
-   _overlayTimer = setTimeout(() => {
-     overlay.classList.remove('gallery__item-overlay--show')
-     _overlayTimer = null
-   }, 3000)
- })
+    let _overlayTimer = null
+    itemEl.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'touch') return
+      overlay.classList.remove('gallery__item-overlay--show')
+      void overlay.offsetWidth
+      overlay.classList.add('gallery__item-overlay--show')
+      if (_overlayTimer) clearTimeout(_overlayTimer)
+      _overlayTimer = setTimeout(() => {
+        overlay.classList.remove('gallery__item-overlay--show')
+        _overlayTimer = null
+      }, 3000)
+    })
 
- itemEl.addEventListener('click', () => {
-   setLightboxList(photos)
-   openLightbox(itemIndex)
- })
+    itemEl.addEventListener('click', () => {
+      setLightboxList(photos)
+      openLightbox(itemIndex)
+    })
 
     columns[shortest].el.appendChild(itemEl)
     columns[shortest].height += itemHeight + GAP
@@ -170,133 +167,147 @@ function renderGrid(photos) {
 }
 
 let _currentPhotos = []
+let _galleryInited = false
 
 export function initGallery() {
-const galleryData = window.__GALLERY_DATA__
-if (!galleryData?.length) return
+  const galleryData = window.__GALLERY_DATA__
+  if (!galleryData?.length) return
 
-const allPhotos = galleryData.flatMap(s => s.photos)
-const activeSession = window.__ACTIVE_SESSION__
-// Замедляем скролл только на странице портфолио
-if (window.__PAGE__ === 'portfolio' && window.__lenis) {
-  window.__lenis.options.speed = 0.6    // 0.6 = в ~1.6 раза медленнее
-  window.__lenis.resize()               // применяем новые настройки
-}
+  const allPhotos = galleryData.flatMap(s => s.photos)
+  const activeSession = window.__ACTIVE_SESSION__
+  if (window.__PAGE__ === 'portfolio' && window.__lenis) {
+    window.__lenis.options.speed = 0.5
+    window.__lenis.resize()
+  } else if (window.__lenis) {
+    window.__lenis.options.speed = 1.2
+    window.__lenis.resize()
+  }
 
-const scrollTopBtn = $('#scrollTop')
-if (scrollTopBtn) {
-let _scrollTicking = false
-const checkScroll = () => {
-const show = window.scrollY > window.innerHeight * 2
-scrollTopBtn.classList.toggle('visible', show)
-_scrollTicking = false
-}
-window.addEventListener('scroll', () => {
-if (!_scrollTicking) {
-requestAnimationFrame(checkScroll)
-_scrollTicking = true
-}
-}, { passive: true })
-checkScroll()
-	scrollTopBtn.addEventListener('click', () => {
-		scrollToTop()
-	})
-}
+  const scrollTopBtn = $('#scrollTop')
+  if (scrollTopBtn) {
+    scrollTopBtn.addEventListener('click', () => {
+      scrollToTop()
+    })
+    if (!_galleryInited) {
+      let _scrollTicking = false
+      const checkScroll = () => {
+        const btn = $('#scrollTop')
+        if (!btn) return
+        const show = window.scrollY > window.innerHeight * 2
+        btn.classList.toggle('visible', show)
+        _scrollTicking = false
+      }
+      window.addEventListener('scroll', () => {
+        if (!_scrollTicking) {
+          requestAnimationFrame(checkScroll)
+          _scrollTicking = true
+        }
+      }, { passive: true })
+      checkScroll()
+    } else {
+      const show = window.scrollY > window.innerHeight * 2
+      scrollTopBtn.classList.toggle('visible', show)
+    }
+  }
 
-if (activeSession) {
-const session = galleryData.find(s => s.id === activeSession)
-if (session) {
-_currentPhotos = session.photos
-}
-} else {
-_currentPhotos = shuffle(allPhotos, _seededRandom(_dayOfYear()))
-}
+  if (activeSession) {
+    const session = galleryData.find(s => s.id === activeSession)
+    if (session) {
+      _currentPhotos = session.photos
+    }
+  } else {
+    _currentPhotos = shuffle(allPhotos, _seededRandom(_dayOfYear()))
+  }
 
-renderGrid(_currentPhotos)
-setLightboxList(_currentPhotos)
+  renderGrid(_currentPhotos)
+  setLightboxList(_currentPhotos)
 
-const inner = $('.gallery__filter-inner')
-const toggle = $('#filterToggle')
-const dropdown = $('#filterDropdown')
+  const inner = $('.gallery__filter-inner')
+  const toggle = $('#filterToggle')
+  const dropdown = $('#filterDropdown')
 
-function _updateToggleLabel(text) {
-if (!toggle) return
-toggle.textContent = text
-const arrow = document.createElement('span')
-arrow.className = 'gallery__filter-arrow'
-arrow.textContent = '\u25BE'
-toggle.appendChild(arrow)
-}
+  function _updateToggleLabel(text) {
+    if (!toggle) return
+    toggle.textContent = text
+    const arrow = document.createElement('span')
+    arrow.className = 'gallery__filter-arrow'
+    arrow.textContent = '\u25BE'
+    toggle.appendChild(arrow)
+  }
 
-window.addEventListener('popstate', () => {
-const params = new URLSearchParams(window.location.search)
-const sessionId = params.get('session') || ''
+  if (!_galleryInited) {
+    _galleryInited = true
 
-if (sessionId) {
-const session = galleryData.find(s => s.id === sessionId)
-if (session) {
-_currentPhotos = session.photos
-_updateToggleLabel(session.title)
-}
-} else {
-_currentPhotos = shuffle(allPhotos, _seededRandom(_dayOfYear()))
-_updateToggleLabel('Все съёмки')
-}
+    window.addEventListener('popstate', () => {
+      const params = new URLSearchParams(window.location.search)
+      const sessionId = params.get('session') || ''
 
-$$('.gallery__filter-option').forEach(b => b.classList.remove('gallery__filter-option--active'))
-const activeBtn = document.querySelector(`.gallery__filter-option[data-session="${sessionId}"]`)
-if (activeBtn) activeBtn.classList.add('gallery__filter-option--active')
+      if (sessionId) {
+        const session = galleryData.find(s => s.id === sessionId)
+        if (session) {
+          _currentPhotos = session.photos
+          _updateToggleLabel(session.title)
+        }
+      } else {
+        _currentPhotos = shuffle(allPhotos, _seededRandom(_dayOfYear()))
+        _updateToggleLabel('Все съёмки')
+      }
 
-renderGrid(_currentPhotos)
-setLightboxList(_currentPhotos)
-})
+      $$('.gallery__filter-option').forEach(b => b.classList.remove('gallery__filter-option--active'))
+      const activeBtn = document.querySelector(`.gallery__filter-option[data-session="${sessionId}"]`)
+      if (activeBtn) activeBtn.classList.add('gallery__filter-option--active')
 
-if (toggle && dropdown && inner) {
-toggle.addEventListener('click', () => {
-const open = inner.classList.toggle('gallery__filter-inner--open')
-toggle.setAttribute('aria-expanded', String(open))
-})
+      renderGrid(_currentPhotos)
+      setLightboxList(_currentPhotos)
+    })
 
-document.addEventListener('click', (e) => {
-if (!inner.contains(e.target)) {
-inner.classList.remove('gallery__filter-inner--open')
-toggle.setAttribute('aria-expanded', 'false')
-}
-})
+    if (toggle && dropdown && inner) {
+      toggle.addEventListener('click', () => {
+        const open = inner.classList.toggle('gallery__filter-inner--open')
+        toggle.setAttribute('aria-expanded', String(open))
+      })
 
-$$('.gallery__filter-option').forEach(btn => {
-btn.addEventListener('click', () => {
-const sessionId = btn.dataset.session
+      document.addEventListener('click', (e) => {
+        if (!inner.contains(e.target)) {
+          inner.classList.remove('gallery__filter-inner--open')
+          toggle.setAttribute('aria-expanded', 'false')
+        }
+      })
 
-$$('.gallery__filter-option').forEach(b => b.classList.remove('gallery__filter-option--active'))
-btn.classList.add('gallery__filter-option--active')
+      $$('.gallery__filter-option').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const sessionId = btn.dataset.session
 
-if (sessionId) {
-const session = galleryData.find(s => s.id === sessionId)
-if (session) {
-_currentPhotos = session.photos
-_updateToggleLabel(session.title)
-}
-} else {
-_currentPhotos = shuffle(allPhotos, _seededRandom(_dayOfYear()))
-_updateToggleLabel('Все съёмки')
-}
+          $$('.gallery__filter-option').forEach(b => b.classList.remove('gallery__filter-option--active'))
+          btn.classList.add('gallery__filter-option--active')
 
-inner.classList.remove('gallery__filter-inner--open')
-toggle.setAttribute('aria-expanded', 'false')
+          if (sessionId) {
+            const session = galleryData.find(s => s.id === sessionId)
+            if (session) {
+              _currentPhotos = session.photos
+              _updateToggleLabel(session.title)
+            }
+          } else {
+            _currentPhotos = shuffle(allPhotos, _seededRandom(_dayOfYear()))
+            _updateToggleLabel('Все съёмки')
+          }
 
-renderGrid(_currentPhotos)
-setLightboxList(_currentPhotos)
+          inner.classList.remove('gallery__filter-inner--open')
+          toggle.setAttribute('aria-expanded', 'false')
 
-const url = sessionId ? `/portfolio/?session=${sessionId}` : '/portfolio/'
-history.replaceState(null, '', url)
-})
-})
-}
+          renderGrid(_currentPhotos)
+          setLightboxList(_currentPhotos)
+
+          const url = sessionId ? `/portfolio/?session=${sessionId}` : '/portfolio/'
+          history.replaceState(null, '', url)
+        })
+      })
+    }
+  }
 }
 
 export function renderCurrentGallery() {
-if (_currentPhotos.length) {
-renderGrid(_currentPhotos)
-}
+  if (_currentPhotos.length) {
+    renderGrid(_currentPhotos)
+  }
 }

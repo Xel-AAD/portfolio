@@ -826,9 +826,10 @@ align-items: center;
 justify-content: center;
 opacity: 0;
 transition: color 0.3s, opacity 0.3s, border-color 0.3s;
-border: 1px solid transparent;
-border-radius: 6px;
+border: 2px solid transparent;
+border-radius: 10px;
 }
+
 .lightbox:hover .lightbox__prev,
 .lightbox:hover .lightbox__next,
 .lightbox__prev:focus,
@@ -840,8 +841,8 @@ color: var(--text);
 border-color: rgba(201, 169, 110, 0.2);
 }
 
-.lightbox__prev { left: 16px; }
-.lightbox__next { right: 16px; }
+.lightbox__prev { left: 10px; }
+.lightbox__next { right: 10px; }
 
 
 .lightbox__zoom {

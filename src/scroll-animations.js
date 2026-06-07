@@ -1,6 +1,3 @@
-
-
-
 import { $$ } from './dom.js'
 
 let progressEl = null
@@ -8,10 +5,15 @@ let parallaxEls = []
 let countersDone = false
 
 function initProgressBar() {
-	progressEl = document.createElement('div')
-	progressEl.className = 'scroll-progress'
-	progressEl.setAttribute('aria-hidden', 'true')
-	document.body.appendChild(progressEl)
+  if (progressEl) {
+    const existing = document.querySelector('.scroll-progress')
+    if (existing === progressEl) return
+    existing?.remove()
+  }
+  progressEl = document.createElement('div')
+  progressEl.className = 'scroll-progress'
+  progressEl.setAttribute('aria-hidden', 'true')
+  document.body.appendChild(progressEl)
 }
 
 function updateProgress(ratio) {

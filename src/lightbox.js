@@ -196,7 +196,7 @@ export function openLightbox(index) {
   thumb.style.opacity = '0'
   thumb.style.transform = `${_lbT} scale(0.92)`
   thumb.style.filter = 'blur(25px)'
-  thumb.src = photo.src + '?w=200'
+  thumb.src = photo.src + '?w=800'
   thumb.alt = photo.title
 
 
@@ -231,6 +231,17 @@ export function openLightbox(index) {
  _lbLoadFull(full, photo.src, index)
  }
   }
+
+// Предзагружаем оригиналы соседних фото
+const list = getLightboxList()
+const preloadIndices = [index - 1, index + 1]
+preloadIndices.forEach(i => {
+  if (i >= 0 && i < list.length) {
+    const img = new Image()
+    img.src = list[i].src
+  }
+})
+
 
 
   if (thumb.complete && thumb.naturalWidth > 0) {
@@ -339,7 +350,7 @@ _lbTimer = setTimeout(() => {
 
 
 	full.removeAttribute('src')
-	thumb.src = photo.src + '?w=200'
+	thumb.src = photo.src + '?w=800'
 	thumb.alt = photo.title
 	thumb.style.filter = 'blur(25px)' 
 
@@ -364,7 +375,11 @@ _lbTimer = setTimeout(() => {
 }
 
 
+let _lbInited = false
+
 export function initLightbox() {
+  if (_lbInited) return
+  _lbInited = true
   const lightbox = $('#lightbox')
   if (!lightbox) return
 

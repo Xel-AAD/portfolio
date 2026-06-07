@@ -1,6 +1,3 @@
-
-
-
 import Lenis from 'lenis'
 import { onScroll } from './scroll-animations.js'
 

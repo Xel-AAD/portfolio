@@ -1,6 +1,3 @@
-
-
-
 import { $, $$ } from './dom.js'
 
 
@@ -25,9 +22,11 @@ export function initScrollAnimations() {
 }
 
 
+let _headerInited = false
+
 export function initHeaderScroll() {
   const header = $('#header')
-  let ticking = false                       
+  let ticking = false
   const page = window.__PAGE__
   let sections = []
   let navLinks = [...$$('#navLinks a')].filter(a => a.id !== 'navClose')
@@ -37,18 +36,22 @@ export function initHeaderScroll() {
     sections = ['about', 'featured', 'services', 'contact']
   }
 
-if (page === 'portfolio' && header) {
-  header.classList.add('header--hidden')
-  const navLinks = document.getElementById('navLinks')
-  if (navLinks) navLinks.style.display = 'none'
-}
+  if (page === 'portfolio' && header) {
+    header.classList.add('header--hidden')
+    const navLinksEl = document.getElementById('navLinks')
+    if (navLinksEl) navLinksEl.style.display = 'none'
+  } else if (header) {
+    header.classList.remove('header--hidden')
+    const navLinksEl = document.getElementById('navLinks')
+    if (navLinksEl) navLinksEl.style.display = ''
+  }
 
-const sectionEls = sections.map(id => document.getElementById(id)).filter(Boolean)
+  const sectionEls = sections.map(id => document.getElementById(id)).filter(Boolean)
 
   function updateActiveNav() {
 
     if (header && page === 'index') {
-      header.classList.toggle('scrolled', window.scrollY > 60) 
+      header.classList.toggle('scrolled', window.scrollY > 60)
     }
 
 
@@ -62,32 +65,31 @@ const sectionEls = sections.map(id => document.getElementById(id)).filter(Boolea
         let activeId = ''
         for (const el of sectionEls) {
           const rect = el.getBoundingClientRect()
-          if (rect.top <= 150) activeId = el.id 
+          if (rect.top <= 150) activeId = el.id
         }
         isActive = activeId !== '' && (href === `#${activeId}` || href === `/#${activeId}`)
-	} else if (page === 'portfolio') {
-		isActive = href === '/portfolio/'
-	}
+      } else if (page === 'portfolio') {
+        isActive = href === '/portfolio/'
+      }
 
-      link.classList.toggle('nav__link--active', isActive) 
+      link.classList.toggle('nav__link--active', isActive)
     })
   }
 
+  if (!_headerInited) {
+    _headerInited = true
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          updateActiveNav()
+          ticking = false
+        })
+        ticking = true
+      }
+    }, { passive: true })
 
-
-
-window.addEventListener('scroll', () => {
-if (!ticking) {
-requestAnimationFrame(() => {
-updateActiveNav()
-ticking = false
-})
-ticking = true
-}
-}, { passive: true })
-
-window.addEventListener('pageshow', () => { ticking = false })
-
+    window.addEventListener('pageshow', () => { ticking = false })
+  }
 
   updateActiveNav()
 }

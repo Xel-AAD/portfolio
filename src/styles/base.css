@@ -24,21 +24,6 @@
 }
 
 
-::view-transition-new(root) {
-  animation: vtFadeIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@keyframes vtFadeOut {
-  0%   { opacity: 1; }
-  100% { opacity: 0; }
-}
-
-@keyframes vtFadeIn {
-  0%   { opacity: 0; }
-  100% { opacity: 1; }
-}
-
-
 *,
 *::before,
 *::after {
@@ -134,7 +119,8 @@ button {
 
 #page-wash.page-wash--exit {
   opacity: 0;
-  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
 }
 
 .page-wash__bg {
@@ -155,6 +141,19 @@ button {
   inset: 0;
   width: 100%;
   height: 100%;
+}
+
+main.page--spa-hidden {
+  opacity: 0;
+}
+
+main.page--spa-reveal {
+  animation: spaReveal 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes spaReveal {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 
