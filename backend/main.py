@@ -22,10 +22,7 @@ _HASHED_RE = re.compile(r'-[a-f0-9]{8,}\.')
 def _natural_key(s: str):
     return [int(c) if c.isdigit() else c.lower() for c in re.split(r'(\d+)', s)]
 
-try:
-    from PIL import Image as _PILImage
-except ImportError:
-    _PILImage = None
+
 
 
 
@@ -41,9 +38,10 @@ TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".tiff", ".bmp", ".heic", ".avif"}
 
-FAVOURITES_DIR = PHOTOS_DIR / "Favourites"
-GALLERY_DIR = PHOTOS_DIR / "Gallery"
-ABOUT_DIR = PHOTOS_DIR / "About-me"
+FAVOURITES_DIR = PHOTOS_DIR / "thumbs" / "Favourites"
+GALLERY_DIR = PHOTOS_DIR / "thumbs" / "Gallery"
+ABOUT_DIR = PHOTOS_DIR / "thumbs" / "About-me"
+SRC_SUBDIR = "thumbs"
 
 EXTRA_MIME_TYPES = {
     ".heic": "image/heic",
@@ -52,8 +50,7 @@ EXTRA_MIME_TYPES = {
     ".webp": "image/webp",
 }
 
-RESIZE_CACHE_DIR = BASE_DIR / "cache"
-RESIZE_ALLOWED_WIDTHS = {200, 800}
+
 
 
 
@@ -82,21 +79,58 @@ MONTHS_RU = {
 }
 
 
+def _read_webp_dimensions(path: Path) -> tuple[int, int]:
+    try:
+        with open(path, "rb") as f:
+            data = f.read(64)
+        if len(data) < 16:
+            return 0, 0
+        if data[0:4] != b"RIFF" or data[8:12] != b"WEBP":
+            return 0, 0
+        chunk = data[12:16]
+        if chunk == b"VP8 ":
+            if len(data) < 30:
+                return 0, 0
+            w = int.from_bytes(data[26:28], "little") & 0x3FFF
+            h = int.from_bytes(data[28:30], "little") & 0x3FFF
+            return w, h
+        if chunk == b"VP8L":
+            if len(data) < 25:
+                return 0, 0
+            bits = int.from_bytes(data[21:25], "little")
+            w = (bits & 0x3FFF) + 1
+            h = ((bits >> 14) & 0x3FFF) + 1
+            return w, h
+        if chunk == b"VP8X":
+            if len(data) < 30:
+                return 0, 0
+            w = int.from_bytes(data[24:27], "little") + 1
+            h = int.from_bytes(data[27:30], "little") + 1
+            return w, h
+        return 0, 0
+    except Exception:
+        return 0, 0
+
+
 def prettify_filename(filename: str) -> str:
     name = Path(filename).stem
     m = re.match(r"\d{1,2}-\d{2}-\d{2,4}-(.+)-(\d+)$", name)
     if m:
         style, num = m.group(1), m.group(2)
-        is_bw = style.lower() in ("bnw", "bw", "b-w", "b-and-w", "black and white")
-        title = "Чёрно-белый портрет" if is_bw else "Портрет"
-        is_sepia = style.lower() in ("sep", "sepia")
-        title = "Сепия портрет" if is_sepia else "Портрет"
-        return f"{title}, №{num}"
+        style_lower = style.lower()
+        if style_lower in ("sep", "sepia"):
+            return f"Сепия, №{num}"
+        elif style_lower in ("bnw", "bw", "b-w", "b-and-w", "black and white"):
+            return f"ЧБ, №{num}"
+        else:
+            return f"Портрет, №{num}"
     m = re.match(r"\d{1,2}-\d{2}-\d{2,4}-(\d+)$", name)
     if m:
         return f"Портрет, №{m.group(1)}"
     return "Фотография"
 
+
+NICKNAME_MAP = {"Katyushka": "Katya"}
 
 def prettify_session_name(dirname: str) -> str:
     m = re.match(r"(\d{1,2})-(\d{2})-(\d{2,4})[-\s]*(.*)", dirname)
@@ -106,19 +140,16 @@ def prettify_session_name(dirname: str) -> str:
             y = "20" + y
         date_str = f"{int(d)} {MONTHS_RU.get(mo, mo)} {y}"
         if rest:
-            desc = rest.replace("-", " ").replace("_", " ")
-            name = f"{desc} {date_str}"   
-        else:
-            name = date_str               
-        return name
+            first_name = rest.replace("_", " ").split("-")[0].split(" ")[0]
+            return NICKNAME_MAP.get(first_name, first_name)
+        return date_str
     return dirname.replace("-", " ").replace("_", " ")
 
 
 
 
 
-# 4. PORTFOLIO SERVICE — ядро приложения
-# Сканирование папок с фото + кеширование по mtime
+# 4. PORTFOLIO SERVICE — Сканирование папок с фото + кеширование по mtime
 
 class PortfolioService:
     def __init__(self):
@@ -174,20 +205,14 @@ class PortfolioService:
         return False
 
     def _photo_from_file(self, img_file: Path, photo_meta: dict[str, dict]) -> Photo:
-        relative_path = str(img_file.relative_to(PHOTOS_DIR))
+        relative_path = str(img_file.relative_to(PHOTOS_DIR / SRC_SUBDIR))
         src_path = f"/photos/{relative_path}"
 
         meta = photo_meta.get(relative_path)
         title = meta.get("title", prettify_filename(img_file.name)) if meta else prettify_filename(img_file.name)
         description = meta.get("description", "") if meta else ""
 
-        w, h = 0, 0
-        if _PILImage is not None:
-            try:
-                with _PILImage.open(img_file) as img:
-                    w, h = img.size
-            except Exception:
-                pass
+        w, h = _read_webp_dimensions(img_file)
 
         return Photo(
             src=src_path,
@@ -334,7 +359,7 @@ async def csp_middleware(request: Request, call_next):
         f"script-src 'self' 'nonce-{nonce}'; "
         "style-src 'self' https://fonts.googleapis.com; "
         "font-src 'self' https://fonts.gstatic.com; "
-        "img-src 'self' data:; "
+        "img-src 'self'; "
         "connect-src 'self'; "
         "form-action https://forms.yandex.ru; "
         "frame-ancestors 'none'"
@@ -357,6 +382,8 @@ _rate_limits: dict[str, list[float]] = {}
 _RATE_LIMIT = 60
 _RATE_WINDOW = 60
 _TRUSTED_PROXIES = {"127.0.0.1", "::1"}
+_rate_last_purge = 0.0
+_RATE_PURGE_INTERVAL = 60.0
 
 
 def _get_client_ip(request: Request) -> str:
@@ -366,6 +393,17 @@ def _get_client_ip(request: Request) -> str:
         if first_ip and request.client and request.client.host in _TRUSTED_PROXIES:
             return first_ip
     return request.client.host if request.client else "unknown"
+
+
+def _purge_rate_limits():
+    global _rate_last_purge
+    now = time.time()
+    if now - _rate_last_purge < _RATE_PURGE_INTERVAL:
+        return
+    _rate_last_purge = now
+    expired = [k for k, v in _rate_limits.items() if not v or now - v[-1] >= _RATE_WINDOW]
+    for k in expired:
+        del _rate_limits[k]
 
 
 @app.middleware("http")
@@ -386,13 +424,7 @@ async def rate_limit_middleware(request: Request, call_next):
     requests.append(now)
     _rate_limits[ip] = requests
 
-    if len(_rate_limits) > 10000:
-        expired = [k for k, v in _rate_limits.items() if not v or now - v[-1] >= _RATE_WINDOW]
-        for k in expired:
-            del _rate_limits[k]
-        if not expired:
-            oldest = min(_rate_limits, key=lambda k: _rate_limits[k][0] if _rate_limits[k] else 0)
-            del _rate_limits[oldest]
+    _purge_rate_limits()
 
     return await call_next(request)
 
@@ -439,31 +471,14 @@ async def custom_500(request: Request, exc):
 
 def _safe_file(base_dir: Path, file_path: str) -> Path | None:
     full_path = (base_dir / file_path).resolve()
-    if not full_path.is_relative_to(base_dir.resolve()):
+    base_resolved = base_dir.resolve()
+    if not full_path.is_relative_to(base_resolved):
+        return None
+    if full_path.is_symlink():
         return None
     if full_path.exists() and full_path.is_file():
         return full_path
     return None
-
-
-def _resize_photo(full_path: Path, width: int) -> Path:
-    cache_dir = RESIZE_CACHE_DIR / str(width)
-    cache_dir.mkdir(parents=True, exist_ok=True)
-    cache_path = cache_dir / full_path.relative_to(PHOTOS_DIR).with_suffix(".webp")
-    if cache_path.exists():
-        src_mtime = full_path.stat().st_mtime
-        if cache_path.stat().st_mtime >= src_mtime:
-            return cache_path
-    if _PILImage is None:
-        return full_path
-    try:
-        with _PILImage.open(full_path) as img:
-            img.thumbnail((width, width * 2), _PILImage.LANCZOS)
-            cache_path.parent.mkdir(parents=True, exist_ok=True)
-            img.save(str(cache_path), "WEBP", quality=80)
-            return cache_path
-    except Exception:
-        return full_path
 
 
 def _file_response(full_path: Path) -> FileResponse:
@@ -570,15 +585,17 @@ def page_portfolio(request: Request, session: str | None = None):
             "photos": [p.model_dump() for p in s["photos"]],
         })
 
+    lightbox_data = [p.model_dump() for p in data["gallery"]]
+
     return templates.TemplateResponse("portfolio.html", {
         "request": request,
         "page": "portfolio",
         "canonical_path": "/portfolio/",
         "css_files": css_files,
         "js_files": js_files,
-        "sessions": [{"id": s["id"], "title": s["title"]} for s in sessions],
+        "sessions": [{"id": s["id"], "title": s["title"], "photos": [p.model_dump() for p in s["photos"]]} for s in sessions],
         "active_session": active_session,
-        "lightbox_data": [],
+        "lightbox_data": lightbox_data,
         "gallery_data": gallery_data,
         "csp_nonce": _get_nonce(request),
         "now": date.today(),
@@ -736,12 +753,10 @@ def favicon_svg():
 
 
 @app.get("/photos/{file_path:path}")
-def serve_photo(file_path: str, w: int | None = None):
+def serve_photo(file_path: str):
     full_path = _safe_file(PHOTOS_DIR, file_path)
     if not full_path:
         raise HTTPException(status_code=404)
-    if w is not None and w in RESIZE_ALLOWED_WIDTHS:
-        full_path = _resize_photo(full_path, w)
     return _file_response(full_path)
 
 

@@ -15,6 +15,7 @@ const SCROLL_KEY = '__scroll__'
 
 let _globalInitDone = false
 let _nativeScrollAttached = false
+let _resizeInited = false
 
 function getScrollKey(page) {
   return SCROLL_KEY + page
@@ -22,6 +23,8 @@ function getScrollKey(page) {
 
 
 function initResizeHandler() {
+  if (_resizeInited) return
+  _resizeInited = true
   let resizeTimer
   let lastWidth = window.innerWidth
   window.addEventListener('resize', () => {

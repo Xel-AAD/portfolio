@@ -23,20 +23,50 @@ export function initScrollAnimations() {
 
 
 let _headerInited = false
+let _headerTicking = false
+let _headerNavLinks = []
+let _headerSectionEls = []
+let _headerPage = ''
+
+function _updateActiveNav() {
+  const header = $('#header')
+  const page = _headerPage
+
+  if (header && page === 'index') {
+    header.classList.toggle('scrolled', window.scrollY > 60)
+  }
+
+  _headerNavLinks.forEach(link => {
+    const href = link.getAttribute('href')
+    let isActive = false
+
+    if (page === 'index') {
+      let activeId = ''
+      for (const el of _headerSectionEls) {
+        const rect = el.getBoundingClientRect()
+        if (rect.top <= 150) activeId = el.id
+      }
+      isActive = activeId !== '' && (href === `#${activeId}` || href === `/#${activeId}`)
+    } else if (page === 'portfolio') {
+      isActive = href === '/portfolio/'
+    }
+
+    link.classList.toggle('nav__link--active', isActive)
+  })
+}
 
 export function initHeaderScroll() {
   const header = $('#header')
-  let ticking = false
-  const page = window.__PAGE__
+  _headerPage = window.__PAGE__
+  _headerNavLinks = [...$$('#navLinks a')].filter(a => a.id !== 'navClose')
+
   let sections = []
-  let navLinks = [...$$('#navLinks a')].filter(a => a.id !== 'navClose')
 
-  if (page === 'index') {
-
+  if (_headerPage === 'index') {
     sections = ['about', 'featured', 'services', 'contact']
   }
 
-  if (page === 'portfolio' && header) {
+  if (_headerPage === 'portfolio' && header) {
     header.classList.add('header--hidden')
     const navLinksEl = document.getElementById('navLinks')
     if (navLinksEl) navLinksEl.style.display = 'none'
@@ -46,52 +76,24 @@ export function initHeaderScroll() {
     if (navLinksEl) navLinksEl.style.display = ''
   }
 
-  const sectionEls = sections.map(id => document.getElementById(id)).filter(Boolean)
-
-  function updateActiveNav() {
-
-    if (header && page === 'index') {
-      header.classList.toggle('scrolled', window.scrollY > 60)
-    }
-
-
-    navLinks.forEach(link => {
-      const href = link.getAttribute('href')
-      let isActive = false
-
-      if (page === 'index') {
-
-
-        let activeId = ''
-        for (const el of sectionEls) {
-          const rect = el.getBoundingClientRect()
-          if (rect.top <= 150) activeId = el.id
-        }
-        isActive = activeId !== '' && (href === `#${activeId}` || href === `/#${activeId}`)
-      } else if (page === 'portfolio') {
-        isActive = href === '/portfolio/'
-      }
-
-      link.classList.toggle('nav__link--active', isActive)
-    })
-  }
+  _headerSectionEls = sections.map(id => document.getElementById(id)).filter(Boolean)
 
   if (!_headerInited) {
     _headerInited = true
     window.addEventListener('scroll', () => {
-      if (!ticking) {
+      if (!_headerTicking) {
         requestAnimationFrame(() => {
-          updateActiveNav()
-          ticking = false
+          _updateActiveNav()
+          _headerTicking = false
         })
-        ticking = true
+        _headerTicking = true
       }
     }, { passive: true })
 
-    window.addEventListener('pageshow', () => { ticking = false })
+    window.addEventListener('pageshow', () => { _headerTicking = false })
   }
 
-  updateActiveNav()
+  _updateActiveNav()
 }
 
 

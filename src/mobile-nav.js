@@ -3,8 +3,11 @@
 
 import { $ } from './dom.js'
 
+let _mobileNavInited = false
+
 export function initMobileNav() {
-const burger = $('#navBurger')
+  if (_mobileNavInited) return
+  const burger = $('#navBurger')
 const links = $('#navLinks')
 const overlay = $('#navOverlay')
 const closeBtn = $('#navClose')
@@ -52,4 +55,6 @@ window.__closeMobileMenu = closeMenu
     if (link.id === 'navClose') return
     link.addEventListener('click', closeMenu)
   })
+
+  _mobileNavInited = true
 }

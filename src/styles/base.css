@@ -115,6 +115,7 @@ button {
 
 #page-wash.page-wash--active {
   opacity: 1;
+  pointer-events: auto;
 }
 
 #page-wash.page-wash--exit {
@@ -424,34 +425,35 @@ pointer-events: auto;
 }
 
 .hero__btn {
-  display: inline-block;               
-  padding: 16px 56px;                    
-  border: 1px solid rgba(201, 169, 110, 0.4);  
-  font-size: 0.85rem;                    
-  font-weight: 400;                      
-  letter-spacing: 0.2em;                 
-  text-transform: uppercase;             
-  transition: color 0.4s, border-color 0.4s, box-shadow 0.4s;  
-  position: relative;                    
-  overflow: hidden;                      
+  display: inline-block;
+  padding: 16px 56px;
+  border: 1px solid rgba(201, 169, 110, 0.4);
+  font-size: 0.85rem;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  transition: color 0.4s, border-color 0.4s, box-shadow 0.4s, transform 0.3s;
+  position: relative;
+  overflow: hidden;
 }
 
 .hero__btn::before {
-	content: '';
-	position: absolute;
-	inset: 0;
-	background: var(--accent);
-	transform: scaleX(0);
-	transform-origin: left;
-	transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-	z-index: -1;
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: -1;
 }
 .hero__btn:hover::before { transform: scaleX(1); }
 
 .hero__btn:hover {
-  color: var(--bg);                   
-  border-color: var(--accent);        
-  box-shadow: 0 0 30px var(--accent-soft);  
+  color: var(--bg);
+  border-color: var(--accent);
+  box-shadow: 0 4px 24px var(--accent-glow);
+  transform: translateY(-2px) !important;
 }
 
 

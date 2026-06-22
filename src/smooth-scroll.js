@@ -4,7 +4,8 @@ import { onScroll } from './scroll-animations.js'
 let lenis = null
 
 export function initSmoothScroll() {
-if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  if (lenis) return
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
 const isTouch = 'ontouchstart' in window
 

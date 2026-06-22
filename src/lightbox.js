@@ -123,13 +123,18 @@ function _lbSetLoading(on) {
 
 function _lbLoadFull(full, src, idx) {
   _lbSetLoading(true)
+  const thumb = $('#lightboxThumb')
   full.onload = () => {
-    if (getLightboxIndex() === idx) {         
+    if (getLightboxIndex() === idx) {
       full.classList.add('loaded')
+      if (thumb) {
+        thumb.style.transition = 'opacity 0.4s ease'
+        thumb.style.opacity = '0'
+      }
       _lbSetLoading(false)
     }
   }
-  full.onerror = () => {                       
+  full.onerror = () => {
     if (getLightboxIndex() === idx) {
       _lbSetLoading(false)
     }
@@ -138,6 +143,7 @@ function _lbLoadFull(full, src, idx) {
 
   if (full.complete && full.naturalWidth > 0) {
     full.classList.add('loaded')
+    if (thumb) thumb.style.opacity = '0'
     _lbSetLoading(false)
   }
 }
@@ -196,7 +202,7 @@ export function openLightbox(index) {
   thumb.style.opacity = '0'
   thumb.style.transform = `${_lbT} scale(0.92)`
   thumb.style.filter = 'blur(25px)'
-  thumb.src = photo.src + '?w=800'
+  thumb.src = photo.src.replace('/photos/', '/photos/thumbs/')
   thumb.alt = photo.title
 
 
@@ -227,9 +233,9 @@ export function openLightbox(index) {
     })
 
 
- if (getLightboxIndex() === index) {
- _lbLoadFull(full, photo.src, index)
- }
+  if (getLightboxIndex() === index) {
+    _lbLoadFull(full, photo.src.replace('/photos/', '/photos/lightbox/'), index)
+  }
   }
 
 // Предзагружаем оригиналы соседних фото
@@ -238,7 +244,7 @@ const preloadIndices = [index - 1, index + 1]
 preloadIndices.forEach(i => {
   if (i >= 0 && i < list.length) {
     const img = new Image()
-    img.src = list[i].src
+    img.src = list[i].src.replace('/photos/', '/photos/lightbox/')
   }
 })
 
@@ -350,7 +356,7 @@ _lbTimer = setTimeout(() => {
 
 
 	full.removeAttribute('src')
-	thumb.src = photo.src + '?w=800'
+    thumb.src = photo.src.replace('/photos/', '/photos/thumbs/')
 	thumb.alt = photo.title
 	thumb.style.filter = 'blur(25px)' 
 
@@ -361,7 +367,7 @@ _lbTimer = setTimeout(() => {
         thumb.style.opacity = '1'
         thumb.style.transform = `${_lbT} scale(1)`
       })
-      _lbLoadFull(full, photo.src, newIdx)
+      _lbLoadFull(full, photo.src.replace('/photos/', '/photos/lightbox/'), newIdx)
     }
 
     if (thumb.complete && thumb.naturalWidth > 0) {
@@ -398,23 +404,23 @@ export function initLightbox() {
 
   if (zoom) {
     zoom.addEventListener('click', e => {
-      if (Date.now() - _lbTouchDoubleTapAt < 500) return  
+      if (Date.now() - _lbTouchDoubleTapAt < 500) return
       const onPhoto = e.target.tagName === 'IMG'
-      if (onPhoto && _lbZoom.scale <= 1) return    
+      if (onPhoto && _lbZoom.scale <= 1) return
       if (!onPhoto && _lbZoom.scale <= 1) {
-        closeLightbox()                            
+        closeLightbox()
         return
       }
 
       if (_lbClickTimer) return
       _lbClickTimer = setTimeout(() => {
         _lbClickTimer = null
-        _lbResetZoom(true)                        
+        _lbResetZoom(true)
       }, 250)
     })
 
     zoom.addEventListener('dblclick', e => {
-      if (Date.now() - _lbTouchDoubleTapAt < 500) return  
+      if (Date.now() - _lbTouchDoubleTapAt < 500) return
       if (_lbClickTimer) {
         clearTimeout(_lbClickTimer)
         _lbClickTimer = null
@@ -422,9 +428,9 @@ export function initLightbox() {
       e.preventDefault()
       const rel = _lbRelCenter(e.clientX, e.clientY)
       if (_lbZoom.scale > 1) {
-        _lbResetZoom(true)                       
+        _lbResetZoom(true)
       } else {
-        _lbZoomTo(ZOOM_DOUBLE_TAP, rel.x, rel.y, true)  
+        _lbZoomTo(ZOOM_DOUBLE_TAP, rel.x, rel.y, true)
       }
     })
   }

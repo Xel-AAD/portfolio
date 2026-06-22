@@ -28,7 +28,7 @@ const WAVE_FREQ = 0.008
 const WAVE_AMP = 30
 const ENTER_DURATION = 1200
 const HOLD_BEFORE_SWAP = 100
-const FADE_OUT_DURATION = 800
+const FADE_OUT_DURATION = 1200
 const IMAGE_LOAD_TIMEOUT = 4000
 
 const GOLD = { r: 201, g: 169, b: 110 }
@@ -43,6 +43,7 @@ let animId = null
 let phase = 'idle'
 let phaseStart = 0
 let pendingUrl = null
+let _fromPopstate = false
 let navigateTimer = null
 let swapStarted = false
 let imagesReady = false
@@ -290,7 +291,12 @@ async function performSpaSwap(url) {
       window.__lenis.scrollTo(0, { immediate: true })
     }
 
+    if (_fromPopstate) {
+    history.replaceState({}, '', url)
+    _fromPopstate = false
+  } else {
     history.pushState({}, '', url)
+  }
 
     requestAnimationFrame(() => {
       if (typeof window.__spaInit === 'function') {
@@ -478,7 +484,11 @@ function handleSamePageAnchor(e, href) {
   return true
 }
 
+let _transitionInited = false
+
 export function initPageTransition() {
+  if (_transitionInited) return
+  _transitionInited = true
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches
 
   document.addEventListener('click', (e) => {
@@ -539,6 +549,7 @@ export function initPageTransition() {
     const url = location.pathname + location.search
     if (url === pendingUrl) return
     pendingUrl = url
+    _fromPopstate = true
     showWash()
   })
 

@@ -50,8 +50,8 @@ export function renderFeatured() {
     itemEl.style.marginBottom = `${gap}px`
 
   const img = document.createElement('img')
-  img.src = photo.src + '?w=800'
-  img.srcset = `${photo.src}?w=200 200w, ${photo.src}?w=800 800w`
+  img.src = photo.src.replace('/photos/', '/photos/thumbs/')
+  img.srcset = `${photo.src.replace('/photos/', '/photos/mobile/')} 300w, ${photo.src.replace('/photos/', '/photos/thumbs/')} 800w`
   img.sizes = `${Math.round(colWidth)}px`
   img.alt = photo.title
   img.loading = 'lazy'

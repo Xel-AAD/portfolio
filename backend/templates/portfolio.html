@@ -26,7 +26,7 @@
     "url": "https://ekb.photographs.gs/portfolio/",
     "image": [
 
-      {% for s in sessions %}{% for p in s.photos %}"https://ekb.photographs.gs{{ p.src | jsonsafe }}"{% if not loop.last or not loop.parent.last %},{% endif %}{% endfor %}{% endfor %}
+      {% set ns = namespace(first=true) %}{% for s in sessions %}{% for p in s.photos %}{% if not ns.first %},{% endif %}"https://ekb.photographs.gs{{ p.src | replace('/photos/', '/photos/lightbox/') | jsonsafe }}"{% set ns.first = false %}{% endfor %}{% endfor %}
     ]
   }
 ]

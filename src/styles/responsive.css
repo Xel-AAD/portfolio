@@ -262,9 +262,11 @@ width: 100%;
 }
 .contact__cta-icon { width: 16px; height: 18px; }
 .contact__bottom { flex-direction: column; gap: 6px; order: 2; margin-top: 24px; }
-.contact__email { order: 1; font-size: 0.84rem; padding: 12px 8px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
-.contact__tgk { order: 2; font-size: 0.9rem; padding: 12px 8px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
-.contact__socials { order: 3; display: flex; gap: 16px; justify-content: center; }
+.contact__links { flex-direction: column; gap: 6px; }
+.contact__phone { order: 1; font-size: 0.9rem; padding: 12px 8px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+.contact__email { order: 2; font-size: 0.84rem; padding: 12px 8px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+.contact__tgk { order: 3; font-size: 0.9rem; padding: 12px 8px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+.contact__socials { order: 4; display: flex; gap: 16px; justify-content: center; }
 .contact__dot { display: none; }
 .contact__social { width: 44px; height: 44px; }
 .contact__social svg { width: 24px; height: 24px; }
@@ -281,13 +283,15 @@ width: 100%;
     max-height: 85dvh;                        
   }
   .lightbox__bar { bottom: 0; }
-  .lightbox__img--thumb { filter: blur(20px); } 
+  .lightbox__img--thumb { filter: blur(25px); } 
   .lightbox__zoom { cursor: default; }
   .lightbox__info { font-size: 0.85rem; padding: 16px 0; }
   .lightbox__counter { top: 16px; font-size: 0.65rem; }
-  .lightbox__prev, .lightbox__next { font-size: 1.2rem; width: 44px; height: 44px; opacity: 0.6; top: 50%; transform: translateY(-50%); border: none; border-radius: 0; }
-.lightbox:hover .lightbox__prev, .lightbox:hover .lightbox__next, .lightbox__prev:focus, .lightbox__next:focus { opacity: 1; }
-  .lightbox__close { font-size: 1.6rem; width: 44px; height: 44px; }
+  .lightbox__prev, .lightbox__next { font-size: 0; width: 90px; height: 30vh; opacity: 0; top: 50%; 
+    transform: translateY(-50%); border: none; 
+    -webkit-tap-highlight-color: transparent; }
+  .lightbox:hover .lightbox__prev, .lightbox:hover .lightbox__next, .lightbox__prev:focus, .lightbox__next:focus { opacity: 0; }
+  .lightbox__close { font-size: 2rem; width: 55px; height: 55px;}
 }
 
 
