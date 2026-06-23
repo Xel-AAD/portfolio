@@ -47,6 +47,7 @@ let _lbLastTapY = 0
 
 let _lbClickTimer = null
 let _lbTouchDoubleTapAt = 0                  
+let _lbTapHandledAt = 0
 
 
 function _lbApplyZoom(animate = false) {
@@ -395,15 +396,16 @@ export function initLightbox() {
   const nextBtn = $('#lightboxNext')
 
 
-  if (closeBtn) closeBtn.addEventListener('click', closeLightbox)
-  if (prevBtn) prevBtn.addEventListener('click', () => navigateLightbox(-1))
-  if (nextBtn) nextBtn.addEventListener('click', () => navigateLightbox(1))
+  if (closeBtn) closeBtn.addEventListener('click', () => { if (Date.now() - _lbTapHandledAt > 500) closeLightbox() })
+  if (prevBtn) prevBtn.addEventListener('click', () => { if (Date.now() - _lbTapHandledAt > 500) navigateLightbox(-1) })
+  if (nextBtn) nextBtn.addEventListener('click', () => { if (Date.now() - _lbTapHandledAt > 500) navigateLightbox(1) })
 
 
 
 
   if (zoom) {
     zoom.addEventListener('click', e => {
+      if (Date.now() - _lbTapHandledAt < 500) return
       if (Date.now() - _lbTouchDoubleTapAt < 500) return
       const onPhoto = e.target.tagName === 'IMG'
       if (onPhoto && _lbZoom.scale <= 1) return
@@ -702,6 +704,27 @@ let _lbSwipeLastTime = 0
 			}, 250)
 	} else {
 		_lbSwipeSpringBack()
+
+		const mobileTapX = e.changedTouches[0].clientX
+		const mobileTapY = e.changedTouches[0].clientY
+		const isMobile = window.innerWidth <= 768
+
+		if (isMobile) {
+			const mobileTapTarget = document.elementFromPoint(mobileTapX, mobileTapY)
+			if (mobileTapTarget && (mobileTapTarget === prevBtn || mobileTapTarget.closest('#lightboxPrev'))) {
+				navigateLightbox(-1)
+				_lbTapHandledAt = Date.now()
+			} else if (mobileTapTarget && (mobileTapTarget === nextBtn || mobileTapTarget.closest('#lightboxNext'))) {
+				navigateLightbox(1)
+				_lbTapHandledAt = Date.now()
+			} else if (mobileTapTarget && (mobileTapTarget === closeBtn || mobileTapTarget.closest('#lightboxClose'))) {
+				closeLightbox()
+				_lbTapHandledAt = Date.now()
+			} else if (!mobileTapTarget || mobileTapTarget.tagName !== 'IMG') {
+				closeLightbox()
+				_lbTapHandledAt = Date.now()
+			}
+		}
 	}
 }
 

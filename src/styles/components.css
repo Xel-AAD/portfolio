@@ -198,6 +198,9 @@
   letter-spacing: 0.04em;
 }
 
+.services__break { display: none; }
+.services__line2 { display: inline; }
+
 
 .services__card {
   background: var(--bg-card);              
